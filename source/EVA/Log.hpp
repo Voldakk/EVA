@@ -49,6 +49,8 @@ namespace EVA
 
 			s_AppLogger = spdlog::stderr_color_mt("APP");
 			s_AppLogger->set_level(spdlog::level::trace);
+
+			s_EngineLogger->info("Initialized log");
 		}
 	};
 

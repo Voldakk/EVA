@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 file(GLOB SOURCES
 	source/*
-	source/*/*
+	source/EVA/**
 )
 
 # Add the library
@@ -56,12 +56,28 @@ FILE(GLOB STB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/stb/*.cpp")
 list(APPEND EXTRA_SOURCES ${STB_SOURCES})
 list(APPEND EXTRA_INCLUDES "dependencies/stb")
 
+# Platforms
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+	add_compile_definitions(EVA_PLATFORM_WINDOWS)
+	add_compile_definitions(EVA_PLATFORM="windows")
+
+	FILE(GLOB WINDOWS_SOURCES "source/Platform/Windows/**")
+	list(APPEND EXTRA_SOURCES ${WINDOWS_SOURCES})
+	list(APPEND EXTRA_INCLUDES PRIVATE "source/Platform/Windows")
+
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	add_compile_definitions(EVA_PLATFORM_LINUX)
+	add_compile_definitions(EVA_PLATFORM="linux")
+endif()
+
 # Include paths
-target_include_directories(eva PUBLIC
-	"${CMAKE_CURRENT_SOURCE_DIR}/include"
-	${EXTRA_INCLUDES}
+target_include_directories(eva 
+	PUBLIC "source"
+	PRIVATE "source/EVA"
+	PUBLIC ${EXTRA_INCLUDES}
 )
 
+# Target
 target_sources(eva PRIVATE ${EXTRA_SOURCES})
 
 # Test
@@ -70,14 +86,6 @@ target_precompile_headers(eva_test PUBLIC "source/pch.hpp")
 target_link_libraries(eva_test PRIVATE eva)
 
 # Definitions
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	add_compile_definitions(EVA_PLATFORM_WINDOWS)
-	add_compile_definitions(EVA_PLATFORM="windows")
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	add_compile_definitions(EVA_PLATFORM_LINUX)
-	add_compile_definitions(EVA_PLATFORM="linux")
-endif()
-
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_compile_definitions(EVA_ARCHITECTURE_64)
 	add_compile_definitions(EVA_ARCHITECTURE="x64")
