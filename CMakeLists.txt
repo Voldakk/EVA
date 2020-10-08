@@ -79,6 +79,7 @@ target_include_directories(eva
 
 # Target
 target_sources(eva PRIVATE ${EXTRA_SOURCES})
+target_precompile_headers(eva PUBLIC "source/pch.hpp")
 
 # Test
 add_executable(eva_test "test/source/main.cpp")

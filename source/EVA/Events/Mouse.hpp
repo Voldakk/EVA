@@ -9,18 +9,18 @@ namespace EVA
 	protected:
 		int m_Button;
 
-		MouseButtonEvent(int button) : m_Button(button) {}
+        explicit MouseButtonEvent(int button) : m_Button(button) {}
 	
 	public:
-		int GetMouseButton() const { return m_Button; }	
+		[[nodiscard]] int GetMouseButton() const { return m_Button; }
 	};
 
 	class MouseButtonPressedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonPressedEvent(int button) : MouseButtonEvent(button) {}
+		explicit MouseButtonPressedEvent(int button) : MouseButtonEvent(button) {}
 
-		std::string ToString() const override
+		[[nodiscard]] std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseButtonPressedEvent: " << m_Button;
@@ -33,9 +33,9 @@ namespace EVA
 	class MouseButtonReleasedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonReleasedEvent(int button) : MouseButtonEvent(button) {}
+        explicit MouseButtonReleasedEvent(int button) : MouseButtonEvent(button) {}
 
-		std::string ToString() const override
+		[[nodiscard]] std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseButtonReleasedEvent: " << m_Button;
@@ -50,12 +50,12 @@ namespace EVA
 		float m_XOffset, m_YOffset;
 
 	public:
-		MouseScrolledEvent(float xOffset, float yOffset) : m_XOffset(xOffset), m_YOffset(yOffset) {}
+        explicit MouseScrolledEvent(float xOffset, float yOffset) : m_XOffset(xOffset), m_YOffset(yOffset) {}
 
-		float GetXOffset() const { return m_XOffset; }
-		float GetYOffset() const { return m_YOffset; }
+		[[nodiscard]] float GetXOffset() const { return m_XOffset; }
+		[[nodiscard]] float GetYOffset() const { return m_YOffset; }
 
-		std::string ToString() const override
+		[[nodiscard]] std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseScrolledEvent: " << GetXOffset() << ", " << GetYOffset();
@@ -70,12 +70,12 @@ namespace EVA
 		float m_MouseX, m_MouseY;
 
 	public:
-		MouseMovedEvent(float x, float y) : m_MouseX(x), m_MouseY(y) {}
+        explicit MouseMovedEvent(float x, float y) : m_MouseX(x), m_MouseY(y) {}
 
-		float GetX() const { return m_MouseX; }
-		float GetY() const { return m_MouseY; }
+        [[nodiscard]] float GetX() const { return m_MouseX; }
+        [[nodiscard]] float GetY() const { return m_MouseY; }
 
-		std::string ToString() const override
+		[[nodiscard]] std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseMovedEvent: " << m_MouseX << ", " << m_MouseY;

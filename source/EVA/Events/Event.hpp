@@ -2,22 +2,21 @@
 
 namespace EVA
 {
-	class Event
+	struct Event
 	{
-	public:
 		enum class Type
 		{
 			None,
 			WindowOpen, WindowClose, WindowFocus, WindowLostFocus, WindowResize, WindowMoved,
 			KeyPressed, KeyReleased,
-			MouseButtonPressed, MouseButtonReleased, MouseScroll, MouseMoved
+			MouseButtonPressed, MouseButtonReleased, MouseScrolled, MouseMoved
 		};
 
 		bool handled = false;
 
-		virtual Type GetType() const = 0;
-		virtual const char* GetName() const = 0;
-		virtual std::string ToString() const { return GetName(); }
+		[[nodiscard]] virtual Type GetType() const = 0;
+        [[nodiscard]] virtual const char* GetName() const = 0;
+        [[nodiscard]] virtual std::string ToString() const { return GetName(); }
 	};
 
 	inline std::ostream& operator<<(std::ostream& os, const Event& e)
@@ -35,7 +34,7 @@ namespace EVA
 		Event& m_Event;
 
 	public:
-		EventDispatcher(Event& event) : m_Event(event)
+		explicit EventDispatcher(Event& event) : m_Event(event)
 		{
 
 		}
@@ -43,9 +42,9 @@ namespace EVA
 		template<typename T, typename F>
 		bool Dispatch(const F& func)
 		{
-			if (m_Event.GetEventType() == T::GetStaticType())
+			if (m_Event.GetType() == T::GetStaticType())
 			{
-				m_Event.Handled = func(static_cast<T&>(m_Event));
+				m_Event.handled = func(static_cast<T&>(m_Event));
 				return true;
 			}
 			return false;

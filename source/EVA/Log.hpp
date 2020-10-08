@@ -54,7 +54,7 @@ namespace EVA
 		}
 	};
 
-	#define EVA_LOG_INIT          Log::Init
+	#define EVA_LOG_INIT               Log::Init
 
 	#define EVA_INTERNAL_TRACE(...)    Log::GetEngineLogger()->trace(__VA_ARGS__)
 	#define EVA_INTERNAL_INFO(...)     Log::GetEngineLogger()->info(__VA_ARGS__)
