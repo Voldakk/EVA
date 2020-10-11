@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Window.hpp"
+#include "Events\Window.hpp"
 
 namespace EVA
 {
@@ -16,5 +17,9 @@ namespace EVA
 
         void Run();
         void Exit();
+
+    private:
+        void OnEvent(Event& event);
+        bool OnWindowClosed(WindowCloseEvent& event);
     };
 }

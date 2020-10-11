@@ -1,10 +1,11 @@
 #include "Application.hpp"
 
 #include "Core.hpp"
-#include "Events/Window.hpp"
 
 namespace EVA
 {
+#define BIND_EVENT_FN(f) std::bind(&Application::f, this, std::placeholders::_1)
+
 	Application::Application()
 	{
 		EVA_LOG_INIT();
@@ -14,6 +15,7 @@ namespace EVA
 		EVA_INTERNAL_INFO("Configuration: {}", EVA_CONFIGURATION);
 
 		m_Window = Window::Create();
+		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 	}
 
 	Application::~Application()
@@ -30,7 +32,20 @@ namespace EVA
     }
 
 	void Application::Exit()
-	{
+	{ 
 		
+	}
+
+	void Application::OnEvent(Event& event)
+	{
+		EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClosed));
+		EVA_INTERNAL_TRACE("{0}", event);
+	}
+
+	bool Application::OnWindowClosed(WindowCloseEvent& event)
+	{
+		m_Running = false;
+		return true;
 	}
 }
