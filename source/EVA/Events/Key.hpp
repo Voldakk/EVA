@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-#include <sstream>
 #include "Event.hpp"
 
 namespace EVA

@@ -8,9 +8,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 file(GLOB SOURCES
-	source/*
+	source/**
 	source/EVA/**
-	source/EVA/ImGui/**
+	source/EVA/*/**
 )
 
 # Add the library
@@ -75,7 +75,6 @@ endif()
 # Include paths
 target_include_directories(eva 
 	PUBLIC "source"
-	PRIVATE "source/EVA"
 	PUBLIC ${EXTRA_INCLUDES}
 )
 

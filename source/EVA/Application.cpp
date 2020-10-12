@@ -1,6 +1,9 @@
 #include "Application.hpp"
 
 #include "Core.hpp"
+#include "Input.hpp"
+
+#include <glad/glad.h>
 
 namespace EVA
 {
@@ -32,6 +35,9 @@ namespace EVA
     {
         while(m_Running)
         {
+			glClearColor(0, 0, 0, 1);
+			glClear(GL_COLOR_BUFFER_BIT);
+
 			for (auto layer : m_LayerStack)
 				layer->OnUpdate();
 

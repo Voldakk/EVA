@@ -5,7 +5,7 @@
 #include "EVA/Events/Mouse.hpp"
 #include "EVA/Events/Window.hpp"
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 
 namespace EVA
 {

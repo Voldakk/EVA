@@ -8,6 +8,8 @@ public:
 	void OnUpdate() override
 	{
 		EVA_TRACE("Example layer: OnUpdate");
+		if(EVA::Input::IsKeyPressed(EVA::KeyCode::Tab))
+			EVA_TRACE("Example layer: TAB");
 	}
 
 	void OnEvent(EVA::Event& e) override
