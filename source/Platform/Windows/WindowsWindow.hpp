@@ -1,4 +1,5 @@
 #pragma once
+
 #include "GLFW/glfw3.h"
 #include "EVA/Window.hpp"
 
@@ -14,7 +15,7 @@ namespace EVA
             EventCallbackFn  eventCallback;
         };
 
-        GLFWwindow * m_Window;
+        GLFWwindow* m_Window;
         WindowData m_Data;
     public:
 
@@ -29,6 +30,8 @@ namespace EVA
         void SetEventCallback(const EventCallbackFn &callback) override { m_Data.eventCallback = callback; }
         void SetVSync(bool enabled) override;
         [[nodiscard]] bool IsVSync() const override { return m_Data.vSync; };
+
+        virtual void* GetNativeWindow() const { return m_Window; }
 
     private:
 

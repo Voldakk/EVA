@@ -5,6 +5,8 @@
 #include "EVA/Events/Mouse.hpp"
 #include "EVA/Events/Window.hpp"
 
+#include "glad/glad.h"
+
 namespace EVA
 {
     static bool s_GLFWInitialized = false;
@@ -40,7 +42,7 @@ namespace EVA
         if (!s_GLFWInitialized)
         {
             int success = glfwInit();
-            EVA_INTERNAL_ASSERT(success, "Could not initialize GLFW");
+            EVA_INTERNAL_ASSERT(success, "Failed to initialize GLFW");
             glfwSetErrorCallback(GLFWErrorCallback);
             s_GLFWInitialized = true;
         }
@@ -48,6 +50,8 @@ namespace EVA
         m_Window = glfwCreateWindow(m_Data.width, m_Data.height, m_Data.title.c_str(), nullptr, nullptr);
 
         glfwMakeContextCurrent(m_Window);
+        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        EVA_INTERNAL_ASSERT(status, "Failed to initialize GLAD");
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
         SetVSync(true);

@@ -14,6 +14,13 @@ public:
 	{
 		EVA_INFO("Example layer: {0}", e);
 	}
+
+	void OnImGuiRender() override
+	{
+		ImGui::Begin("Example window");
+		ImGui::Text("Hello world");
+		ImGui::End();
+	}
 };
 
 int main()

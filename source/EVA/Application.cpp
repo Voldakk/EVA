@@ -8,6 +8,8 @@ namespace EVA
 
 	Application::Application()
 	{
+		EVA_INTERNAL_ASSERT(s_Instance == nullptr, "Application already exists");
+		s_Instance = this;
 		EVA_LOG_INIT();
 		EVA_INTERNAL_TRACE("Initializing application");
 		EVA_INTERNAL_INFO("Platform: {}", EVA_PLATFORM);
@@ -16,6 +18,9 @@ namespace EVA
 
 		m_Window = Window::Create();
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+
+		m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);
 	}
 
 	Application::~Application()
@@ -28,9 +33,12 @@ namespace EVA
         while(m_Running)
         {
 			for (auto layer : m_LayerStack)
-			{
 				layer->OnUpdate();
-			}
+
+			m_ImGuiLayer->Begin();
+			for (auto layer : m_LayerStack)
+				layer->OnImGuiRender();
+			m_ImGuiLayer->End();
 
             m_Window->OnUpdate();
         }
@@ -44,11 +52,13 @@ namespace EVA
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);
+		layer->OnAttach();
 	}
 
-	void Application::PushOverlay(Layer* layer)
+	void Application::PushOverlay(Layer* overlay)
 	{
-		m_LayerStack.PushOverlay(layer);
+		m_LayerStack.PushOverlay(overlay);
+		overlay->OnAttach();
 	}
 
 	void Application::OnEvent(Event& event)

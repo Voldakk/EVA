@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 file(GLOB SOURCES
 	source/*
 	source/EVA/**
+	source/EVA/ImGui/**
 )
 
 # Add the library
@@ -29,6 +30,7 @@ if(WIN32)
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
 endif()
 
+add_compile_definitions(GLFW_INCLUDE_NONE)
 target_link_libraries(eva PUBLIC glfw)
 
 # GLAD
