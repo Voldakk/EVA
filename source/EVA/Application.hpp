@@ -1,9 +1,13 @@
 ﻿#pragma once
 
-#include "LayerStack.hpp"
-#include "Window.hpp"
-#include "Events/Window.hpp"
-#include "ImGui/ImGuiLayer.hpp"
+#include "EVA/LayerStack.hpp"
+#include "EVA/Window.hpp"
+#include "EVA/Events/Window.hpp"
+#include "EVA/ImGui/ImGuiLayer.hpp"
+#include "EVA/Renderer/Buffer.hpp"
+#include "EVA/Renderer/VertexArray.hpp"
+#include "EVA/Renderer/Shader.hpp"
+
 namespace EVA
 {
     class Application

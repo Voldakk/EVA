@@ -19,5 +19,7 @@ namespace EVA
 
 		[[nodiscard]] std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
 		[[nodiscard]] std::vector<Layer*>::iterator end() { return m_Layers.end(); }
+		[[nodiscard]] std::vector<Layer*>::const_iterator begin() const { return m_Layers.begin(); }
+		[[nodiscard]] std::vector<Layer*>::const_iterator end() const { return m_Layers.end(); }
 	};
 }

@@ -1,9 +1,8 @@
 #include "Application.hpp"
 
-#include "Core.hpp"
-#include "Input.hpp"
-
-#include <glad/glad.h>
+#include "EVA/Core.hpp"
+#include "EVA/Input.hpp"
+#include "EVA/Renderer/Renderer.hpp"
 
 namespace EVA
 {
@@ -35,9 +34,6 @@ namespace EVA
     {
         while(m_Running)
         {
-			glClearColor(0.1, 0.1, 0.1, 1);
-			glClear(GL_COLOR_BUFFER_BIT);
-
 			for (auto layer : m_LayerStack)
 				layer->OnUpdate();
 
@@ -69,7 +65,6 @@ namespace EVA
 
 	void Application::OnEvent(Event& event)
 	{
-		EVA_INTERNAL_TRACE("{0}", event);
 		EventDispatcher dispatcher(event);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClosed));
 
