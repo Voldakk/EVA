@@ -33,8 +33,8 @@ namespace EVA
 
 	public:
 
-		inline static std::shared_ptr<spdlog::logger>& GetEngineLogger() { return s_EngineLogger; };
-		inline static std::shared_ptr<spdlog::logger>& GetAppLogger() { return s_AppLogger; };
+		[[nodiscard]] inline static std::shared_ptr<spdlog::logger>& GetEngineLogger() { return s_EngineLogger; };
+		[[nodiscard]] inline static std::shared_ptr<spdlog::logger>& GetAppLogger() { return s_AppLogger; };
 
 		static void Init()
 		{
@@ -50,7 +50,7 @@ namespace EVA
 			s_AppLogger = spdlog::stderr_color_mt("APP");
 			s_AppLogger->set_level(spdlog::level::trace);
 
-			s_EngineLogger->info("Initialized log");
+			s_EngineLogger->trace("Initialized log");
 		}
 	};
 

@@ -9,11 +9,11 @@ namespace EVA {
 	class Input
 	{
 	public:
-		static bool IsKeyPressed(KeyCode key);
+		[[nodiscard]] static bool IsKeyPressed(KeyCode key);
 
-		static bool IsMouseButtonPressed(MouseCode button);
-		static glm::vec2 GetMousePosition();
-		static float GetMouseX();
-		static float GetMouseY();
+		[[nodiscard]] static bool IsMouseButtonPressed(MouseCode button);
+		[[nodiscard]] static glm::vec2 GetMousePosition();
+		[[nodiscard]] static float GetMouseX();
+		[[nodiscard]] static float GetMouseY();
 	};
 }

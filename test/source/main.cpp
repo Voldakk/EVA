@@ -7,14 +7,13 @@ public:
 
 	void OnUpdate() override
 	{
-		EVA_TRACE("Example layer: OnUpdate");
 		if(EVA::Input::IsKeyPressed(EVA::KeyCode::Tab))
 			EVA_TRACE("Example layer: TAB");
 	}
 
 	void OnEvent(EVA::Event& e) override
 	{
-		EVA_INFO("Example layer: {0}", e);
+		//EVA_INFO("Example layer: {0}", e);
 	}
 
 	void OnImGuiRender() override

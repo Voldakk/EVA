@@ -4,8 +4,7 @@
 #include "EVA/Events/Key.hpp"
 #include "EVA/Events/Mouse.hpp"
 #include "EVA/Events/Window.hpp"
-
-#include <glad/glad.h>
+#include "Platform/OpenGL/OpenGLContext.hpp"
 
 namespace EVA
 {
@@ -49,9 +48,9 @@ namespace EVA
 
         m_Window = glfwCreateWindow(m_Data.width, m_Data.height, m_Data.title.c_str(), nullptr, nullptr);
 
-        glfwMakeContextCurrent(m_Window);
-        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-        EVA_INTERNAL_ASSERT(status, "Failed to initialize GLAD");
+        m_Context = new OpenGLContext(m_Window);
+        m_Context->Init();
+
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
         SetVSync(true);
@@ -159,7 +158,7 @@ namespace EVA
     void WindowsWindow::OnUpdate()
     {
         glfwPollEvents();
-        glfwSwapBuffers(m_Window);
+        m_Context->SwapBuffers();
     }
 
     void WindowsWindow::SetVSync(bool enabled)

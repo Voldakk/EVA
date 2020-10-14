@@ -27,9 +27,9 @@ namespace EVA
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
 
-        inline Window& GetWindow() { return *m_Window.get(); }
+        [[nodiscard]] inline Window& GetWindow() { return *m_Window.get(); }
 
-        inline static Application& Get() { return *s_Instance; }
+        [[nodiscard]] inline static Application& Get() { return *s_Instance; }
 
     private:
         void OnEvent(Event& event);

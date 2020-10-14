@@ -1,7 +1,9 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
+
 #include "EVA/Window.hpp"
+#include "EVA/Renderer/GraphicsContext.hpp"
 
 namespace EVA
 {
@@ -17,6 +19,9 @@ namespace EVA
 
         GLFWwindow* m_Window;
         WindowData m_Data;
+
+        GraphicsContext* m_Context;
+
     public:
 
         explicit WindowsWindow(const WindowProperties& properties);

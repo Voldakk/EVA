@@ -35,7 +35,7 @@ namespace EVA
     {
         while(m_Running)
         {
-			glClearColor(0, 0, 0, 1);
+			glClearColor(0.1, 0.1, 0.1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			for (auto layer : m_LayerStack)

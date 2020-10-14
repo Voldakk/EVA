@@ -46,6 +46,7 @@ add_subdirectory(dependencies/spdlog)
 target_link_libraries(eva PUBLIC spdlog)
 
 # IMGUI
+add_compile_definitions(IMGUI_IMPL_OPENGL_LOADER_GLAD)
 FILE(GLOB IMGUI_SOURCES 
 	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui/*.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui/examples/imgui_impl_opengl3.cpp"
@@ -71,6 +72,10 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	add_compile_definitions(EVA_PLATFORM_LINUX)
 	add_compile_definitions(EVA_PLATFORM="linux")
 endif()
+
+# Render API
+FILE(GLOB OPENGL_SOURCES "source/Platform/OpenGL/**")
+list(APPEND EXTRA_SOURCES ${OPENGL_SOURCES})
 
 # Include paths
 target_include_directories(eva 
