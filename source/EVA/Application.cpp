@@ -2,6 +2,8 @@
 
 #include "EVA/Core.hpp"
 #include "EVA/Input.hpp"
+#include "EVA/Core/Timestep.hpp"
+#include "EVA/Core/Platform.hpp"
 #include "EVA/Renderer/Renderer.hpp"
 
 namespace EVA
@@ -32,8 +34,14 @@ namespace EVA
 
 	void Application::Run()
     {
+		float lastFrameTime = Platform::GetTime();
+
         while(m_Running)
         {
+			float time = Platform::GetTime();
+			Platform::SetDeltaTime(time - lastFrameTime);
+			lastFrameTime = time;
+
 			for (auto layer : m_LayerStack)
 				layer->OnUpdate();
 
