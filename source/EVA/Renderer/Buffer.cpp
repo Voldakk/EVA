@@ -1,8 +1,6 @@
 #include "Buffer.hpp"
 
-#include "EVA/Core.hpp"
 #include "Renderer.hpp"
-
 #include "Platform/OpenGL/OpenGLBuffer.hpp"
 
 namespace EVA

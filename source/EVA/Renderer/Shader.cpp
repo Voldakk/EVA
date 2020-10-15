@@ -1,6 +1,5 @@
 #include "Shader.hpp"
 
-#include "EVA/Core.hpp"
 #include "Renderer.hpp"
 #include "Platform/OpenGL/OpenGLShader.hpp"
 

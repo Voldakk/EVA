@@ -11,3 +11,6 @@
 
 #include <iostream>
 #include <sstream>
+
+#include "EVA/Core.hpp"
+#include "EVA/Log.hpp"

@@ -1,6 +1,5 @@
 #include "VertexArray.hpp"
 
-#include "EVA/Core.hpp"
 #include "Renderer.hpp"
 #include "Platform/OpenGL/OpenGLVertexArray.hpp"
 

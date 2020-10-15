@@ -8,8 +8,8 @@ namespace EVA
 	{
 		uint32_t m_RendererId;
 
-		std::vector<std::shared_ptr<VertexBuffer>> m_VertexBuffers;
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;
+		std::vector<Ref<VertexBuffer>> m_VertexBuffers;
+		Ref<IndexBuffer> m_IndexBuffer;
 
 	public:
 		OpenGLVertexArray();
@@ -18,10 +18,10 @@ namespace EVA
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
 
-		virtual void AddVertexBuffer(const std::shared_ptr<VertexBuffer>& buffer) override;
-		virtual void SetIndexBuffer(const std::shared_ptr<IndexBuffer>& buffer) override;
+		virtual void AddVertexBuffer(const Ref<VertexBuffer>& buffer) override;
+		virtual void SetIndexBuffer(const Ref<IndexBuffer>& buffer) override;
 
-		inline virtual const std::vector<std::shared_ptr<VertexBuffer>>& GetVertexBuffers() const override { return m_VertexBuffers; }
-		inline virtual const std::shared_ptr<IndexBuffer>& GetIndexBuffer() const override { return m_IndexBuffer; }
+		inline virtual const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const override { return m_VertexBuffers; }
+		inline virtual const Ref<IndexBuffer>& GetIndexBuffer() const override { return m_IndexBuffer; }
 	};
 }

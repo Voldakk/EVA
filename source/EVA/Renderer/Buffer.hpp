@@ -1,7 +1,5 @@
 #pragma once
 
-#include "EVA/Core.hpp"
-
 namespace EVA
 {
 	enum class ShaderDataType

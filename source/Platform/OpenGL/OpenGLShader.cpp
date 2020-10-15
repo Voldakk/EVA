@@ -3,8 +3,6 @@
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "EVA/Core.hpp"
-
 namespace EVA
 {
 	OpenGLShader::OpenGLShader(const std::string& vertexSource, const std::string& fragmentSource)

@@ -7,11 +7,11 @@
 
 class ExampleLayer : public EVA::Layer
 {
-	std::shared_ptr<EVA::VertexArray> m_VertexArray;
-	std::shared_ptr<EVA::VertexArray> m_SquareVertexArray;
+	EVA::Ref<EVA::VertexArray> m_VertexArray;
+	EVA::Ref<EVA::VertexArray> m_SquareVertexArray;
 
-	std::shared_ptr<EVA::Shader> m_Shader;
-	std::shared_ptr<EVA::Shader> m_FlatColorShader;
+	EVA::Ref<EVA::Shader> m_Shader;
+	EVA::Ref<EVA::Shader> m_FlatColorShader;
 
 	EVA::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition = glm::vec3(0.0f);
@@ -37,7 +37,7 @@ public:
 				 0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
 				 0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f,
 			};
-			std::shared_ptr<EVA::VertexBuffer> vb;
+			EVA::Ref<EVA::VertexBuffer> vb;
 			vb.reset(EVA::VertexBuffer::Create(vertices, sizeof(vertices)));
 			EVA::BufferLayout layout = {
 				{ EVA::ShaderDataType::Float3, "a_Position" },
@@ -50,7 +50,7 @@ public:
 			uint32_t indices[3] = {
 				0, 1, 2
 			};
-			std::shared_ptr<EVA::IndexBuffer> ib;
+			EVA::Ref<EVA::IndexBuffer> ib;
 			ib.reset(EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 			m_VertexArray->SetIndexBuffer(ib);
 		}
@@ -64,7 +64,7 @@ public:
 				 0.5f,  0.5f, 0.0f,
 				-0.5f,  0.5f, 0.0f
 			};
-			std::shared_ptr<EVA::VertexBuffer> vb;
+			EVA::Ref<EVA::VertexBuffer> vb;
 			vb.reset(EVA::VertexBuffer::Create(vertices, sizeof(vertices)));
 			vb->SetLayout({
 				{ EVA::ShaderDataType::Float3, "a_Position" }
@@ -75,7 +75,7 @@ public:
 				0, 1, 2,
 				2, 3, 0,
 			};
-			std::shared_ptr<EVA::IndexBuffer> ib;
+			EVA::Ref<EVA::IndexBuffer> ib;
 			ib.reset(EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 			m_SquareVertexArray->SetIndexBuffer(ib);
 		}

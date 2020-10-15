@@ -1,6 +1,5 @@
 #include "WindowsWindow.hpp"
 
-#include "EVA/Core.hpp"
 #include "EVA/Events/Key.hpp"
 #include "EVA/Events/Mouse.hpp"
 #include "EVA/Events/Window.hpp"
