@@ -14,5 +14,6 @@
 #include "EVA/Renderer/Buffer.hpp"
 
 #include "EVA/Renderer/OrthographicCamera.hpp"
+#include "EVA/Renderer/OrthographicCameraController.hpp"
 
 #include <imgui.h>

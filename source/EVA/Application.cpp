@@ -42,8 +42,11 @@ namespace EVA
 			Platform::SetDeltaTime(time - lastFrameTime);
 			lastFrameTime = time;
 
-			for (auto layer : m_LayerStack)
-				layer->OnUpdate();
+			if (!m_Minimized)
+			{
+				for (auto layer : m_LayerStack)
+					layer->OnUpdate();
+			}
 
 			m_ImGuiLayer->Begin();
 			for (auto layer : m_LayerStack)
@@ -75,6 +78,7 @@ namespace EVA
 	{
 		EventDispatcher dispatcher(event);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResized));
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
 		{
@@ -84,9 +88,23 @@ namespace EVA
 		}
 	}
 
-	bool Application::OnWindowClosed(WindowCloseEvent& event)
+	bool Application::OnWindowClosed(WindowCloseEvent& e)
 	{
 		m_Running = false;
 		return true;
+	}
+
+	bool Application::OnWindowResized(WindowResizeEvent& e)
+	{
+		if (e.GetWidth() == 0 || e.GetHeight() == 0) 
+		{
+			m_Minimized = true;
+			return false;
+		}
+
+		m_Minimized = false;
+		Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+
+		return false;
 	}
 }

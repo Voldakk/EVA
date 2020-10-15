@@ -7,13 +7,13 @@ project(eva VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+###################################### EVA #####################################
+
 file(GLOB SOURCES
 	source/**
 	source/EVA/**
 	source/EVA/*/**
 )
-
-# Add the library
 add_library(eva STATIC ${SOURCES})
 
 # GLFW
@@ -104,11 +104,21 @@ elseif (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
 	add_compile_definitions(EVA_CONFIGURATION="release")
 endif()
 
-# Test
+##################################### Test #####################################
+
 add_executable(eva_test "test/source/main.cpp")
-target_precompile_headers(eva_test PUBLIC "source/pch.hpp")
+
+set_target_properties(
+    eva_test
+    PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
 target_link_libraries(eva_test PRIVATE eva)
 
 # Copy assets
-file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/assets)
-file(COPY  ${PROJECT_SOURCE_DIR}/test/assets DESTINATION ${PROJECT_BINARY_DIR})
+file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/bin/assets)
+file(COPY  ${PROJECT_SOURCE_DIR}/test/assets DESTINATION ${PROJECT_BINARY_DIR}/bin)

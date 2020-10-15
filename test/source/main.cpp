@@ -14,19 +14,15 @@ class ExampleLayer : public EVA::Layer
 
 	EVA::Ref<EVA::Texture2D> m_Texture;
 
-	EVA::OrthographicCamera m_Camera;
-	glm::vec3 m_CameraPosition = glm::vec3(0.0f);
-	float m_CameraRotation = 0.0f;
-
-	float m_CameraSpeed = 2.0f;
-	float m_CameraRotationSpeed = 90.0f;
+	EVA::OrthographicCameraController m_CameraController;
 
 	EVA::SlidingWindow<float> m_FrameTimes;
 
 	glm::vec3 m_SquareColor = glm::vec3(0.2f, 0.3f, 0.8f);
 
 public:
-	ExampleLayer() : Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_FrameTimes(10)
+	ExampleLayer() : Layer("Example"), m_FrameTimes(10),
+		m_CameraController(EVA::Application::Get().GetWindow().GetWidth() / EVA::Application::Get().GetWindow().GetHeight())
 	{
 		{
 			// Triangle
@@ -99,31 +95,13 @@ public:
 		auto dt = EVA::Platform::GetDeltaTime();
 		m_FrameTimes.Add(dt);
 
-		// Camera
-		if (EVA::Input::IsKeyPressed(EVA::KeyCode::W))
-			m_CameraPosition.y += m_CameraSpeed * dt;
-		if (EVA::Input::IsKeyPressed(EVA::KeyCode::S))
-			m_CameraPosition.y -= m_CameraSpeed * dt;
-
-		if (EVA::Input::IsKeyPressed(EVA::KeyCode::A))
-			m_CameraPosition.x -= m_CameraSpeed * dt;
-		if (EVA::Input::IsKeyPressed(EVA::KeyCode::D))
-			m_CameraPosition.x += m_CameraSpeed * dt;
-
-		if (EVA::Input::IsKeyPressed(EVA::KeyCode::Q))
-			m_CameraRotation += m_CameraRotationSpeed * dt;
-		if (EVA::Input::IsKeyPressed(EVA::KeyCode::E))
-			m_CameraRotation -= m_CameraRotationSpeed * dt;
-
-		m_Camera.SetPosition(m_CameraPosition);
-		m_Camera.SetRotation(m_CameraRotation);
-		
+		m_CameraController.OnUpdate();
 
 		// Render
 		EVA::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 		EVA::RenderCommand::Clear();
 
-		EVA::Renderer::BeginScene(m_Camera);
+		EVA::Renderer::BeginScene(m_CameraController.GetCamera());
 
 		// Squares
 		m_FlatColorShader->Bind();
@@ -147,7 +125,7 @@ public:
 
 	void OnEvent(EVA::Event& e) override
 	{
-		
+		m_CameraController.OnEvent(e);
 	}
 
 	void OnImGuiRender() override
@@ -168,7 +146,7 @@ int main()
 {
 	EVA::Application app;
 	app.PushLayer(new ExampleLayer());
-	app.GetWindow().SetVSync(true);
+	app.GetWindow().SetVSync(false);
 	app.Run();
 
 	return 0;

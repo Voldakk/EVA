@@ -17,6 +17,7 @@ namespace EVA
         std::unique_ptr<Window> m_Window;
         ImGuiLayer* m_ImGuiLayer;
         bool m_Running = true;
+        bool m_Minimized = false;
 
         LayerStack m_LayerStack;
 
@@ -36,7 +37,8 @@ namespace EVA
         [[nodiscard]] inline static Application& Get() { return *s_Instance; }
 
     private:
-        void OnEvent(Event& event);
-        bool OnWindowClosed(WindowCloseEvent& event);
+        void OnEvent(Event& e);
+        bool OnWindowClosed(WindowCloseEvent& e);
+        bool OnWindowResized(WindowResizeEvent& e);
     };
 }
