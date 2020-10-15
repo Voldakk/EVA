@@ -7,10 +7,9 @@
 
 class ExampleLayer : public EVA::Layer
 {
-	EVA::Ref<EVA::VertexArray> m_VertexArray;
+	EVA::Ref<EVA::VertexArray> m_TriangleVertexArray;
 	EVA::Ref<EVA::VertexArray> m_SquareVertexArray;
 
-	EVA::Ref<EVA::Shader> m_Shader;
 	EVA::Ref<EVA::Shader> m_FlatColorShader, m_TextureShader;
 
 	EVA::Ref<EVA::Texture2D> m_Texture;
@@ -31,7 +30,7 @@ public:
 	{
 		{
 			// Triangle
-			m_VertexArray.reset(EVA::VertexArray::Create());
+			m_TriangleVertexArray.reset(EVA::VertexArray::Create());
 
 			// Vertex buffer
 			float vertices[3 * 7] = {
@@ -46,7 +45,7 @@ public:
 				{ EVA::ShaderDataType::Float4, "a_Color" }
 			};
 			vb->SetLayout(layout);
-			m_VertexArray->AddVertexBuffer(vb);
+			m_TriangleVertexArray->AddVertexBuffer(vb);
 
 			// Index buffer
 			uint32_t indices[3] = {
@@ -54,7 +53,7 @@ public:
 			};
 			EVA::Ref<EVA::IndexBuffer> ib;
 			ib.reset(EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
-			m_VertexArray->SetIndexBuffer(ib);
+			m_TriangleVertexArray->SetIndexBuffer(ib);
 		}
 		{
 			// Square
@@ -82,113 +81,13 @@ public:
 			ib.reset(EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 			m_SquareVertexArray->SetIndexBuffer(ib);
 		}
-		// Shader
-		std::string vertexSource =
-			R"(
-#version 330 core
 
-layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec4 a_Color;
-
-out vec4 v_Color;
-
-uniform mat4 u_ViewProjection;
-uniform mat4 u_Model;
-
-void main()
-{
-	v_Color = a_Color;
-	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
-}
-)";
-
-		std::string fragmentSource =
-			R"(
-#version 330 core
-
-layout(location = 0) out vec4 color;
-
-in vec4 v_Color;
-
-
-void main()
-{
-	color = v_Color;
-}
-)";
-		m_Shader.reset(EVA::Shader::Create(vertexSource, fragmentSource));
-
-		// Shader
-		std::string vertexSourceFlatColor =
-			R"(
-#version 330 core
-
-layout(location = 0) in vec3 a_Position;
-
-uniform mat4 u_ViewProjection;
-uniform mat4 u_Model;
-
-void main()
-{
-	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
-}
-)";
-
-		std::string fragmentSourceFlatColor =
-			R"(
-#version 330 core
-
-layout(location = 0) out vec4 color;
-
-uniform vec3 u_Color;
-
-void main()
-{
-	color = vec4(u_Color, 1.0);
-}
-)";
-		m_FlatColorShader.reset(EVA::Shader::Create(vertexSourceFlatColor, fragmentSourceFlatColor));
-
-		// Shader
-		std::string vertexSourceTexture =
-			R"(
-#version 330 core
-
-layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec2 a_TexCoord;
-
-out vec2 v_TexCoord;
-
-uniform mat4 u_ViewProjection;
-uniform mat4 u_Model;
-
-void main()
-{
-	v_TexCoord = a_TexCoord;
-	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
-}
-)";
-
-		std::string fragmentSourceTexture =
-			R"(
-#version 330 core
-
-layout(location = 0) out vec4 color;
-
-in vec2 v_TexCoord;
-
-uniform sampler2D u_Texture;
-
-void main()
-{
-	color = texture(u_Texture, v_TexCoord);
-}
-)";
-		m_TextureShader.reset(EVA::Shader::Create(vertexSourceTexture, fragmentSourceTexture));
-
+		// Shaders
+		m_FlatColorShader = EVA::Shader::Create("./assets/shaders/color.glsl");
+		m_TextureShader = EVA::Shader::Create("./assets/shaders/texture.glsl");
 
 		// Texture
-		m_Texture = EVA::Texture2D::Create("assets/uv.png");
+		m_Texture = EVA::Texture2D::Create("assets/textures/uv.png");
 		m_Texture->Bind(0);
 
 		m_TextureShader->Bind();
@@ -243,15 +142,12 @@ void main()
 		auto scale2 = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
 		EVA::Renderer::Submit(m_TextureShader, m_SquareVertexArray, scale2);
 
-		// Triangle
-		//EVA::Renderer::Submit(m_Shader, m_VertexArray);
-
 		EVA::Renderer::EndScene();
 	}
 
 	void OnEvent(EVA::Event& e) override
 	{
-		//EVA_INFO("Example layer: {0}", e);
+		
 	}
 
 	void OnImGuiRender() override
