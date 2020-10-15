@@ -15,7 +15,6 @@ namespace EVA
 		EVA_INTERNAL_ASSERT(s_Instance == nullptr, "Application already exists");
 		s_Instance = this;
 		EVA_LOG_INIT();
-		EVA_INTERNAL_TRACE("Initializing application");
 		EVA_INTERNAL_INFO("Platform: {}", EVA_PLATFORM);
 		EVA_INTERNAL_INFO("Architecture: {}", EVA_ARCHITECTURE);
 		EVA_INTERNAL_INFO("Configuration: {}", EVA_CONFIGURATION);
@@ -25,6 +24,8 @@ namespace EVA
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
+
+		EVA_INTERNAL_TRACE("Initialized application");
 	}
 
 	Application::~Application()

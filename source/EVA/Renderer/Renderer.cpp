@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+#include <Platform\OpenGL\OpenGLShader.hpp>
 
 namespace EVA
 {
@@ -14,10 +15,11 @@ namespace EVA
 
 	}
 
-	void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray)
+	void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const glm::mat4& model)
 	{
 		shader->Bind();
-		shader->UploadUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
+		std::dynamic_pointer_cast<OpenGLShader>(shader)->SetUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
+		std::dynamic_pointer_cast<OpenGLShader>(shader)->SetUniformMat4("u_Model", model);
 
 		vertexArray->Bind();
 		RenderCommand::DrawIndexed(vertexArray);

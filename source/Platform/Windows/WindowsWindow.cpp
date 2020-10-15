@@ -36,7 +36,7 @@ namespace EVA
         m_Data.width = properties.width;
         m_Data.height = properties.height;
 
-        EVA_INTERNAL_INFO("Creating window {0} ({1}x{2})", m_Data.title, m_Data.width, m_Data.height);
+        EVA_INTERNAL_INFO("Creating window: {0} ({1}x{2})", m_Data.title, m_Data.width, m_Data.height);
 
         if (!s_GLFWInitialized)
         {
