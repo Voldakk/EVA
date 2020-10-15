@@ -87,11 +87,6 @@ target_include_directories(eva
 target_sources(eva PRIVATE ${EXTRA_SOURCES})
 target_precompile_headers(eva PUBLIC "source/pch.hpp")
 
-# Test
-add_executable(eva_test "test/source/main.cpp")
-target_precompile_headers(eva_test PUBLIC "source/pch.hpp")
-target_link_libraries(eva_test PRIVATE eva)
-
 # Definitions
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     add_compile_definitions(EVA_ARCHITECTURE_64)
@@ -108,3 +103,12 @@ elseif (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
 	add_compile_definitions(EVA_RELEASE)
 	add_compile_definitions(EVA_CONFIGURATION="release")
 endif()
+
+# Test
+add_executable(eva_test "test/source/main.cpp")
+target_precompile_headers(eva_test PUBLIC "source/pch.hpp")
+target_link_libraries(eva_test PRIVATE eva)
+
+# Copy assets
+file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/assets)
+file(COPY  ${PROJECT_SOURCE_DIR}/test/assets DESTINATION ${PROJECT_BINARY_DIR})

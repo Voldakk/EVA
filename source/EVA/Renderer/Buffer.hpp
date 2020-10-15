@@ -15,13 +15,13 @@ namespace EVA
 	{
 		switch (type)
 		{
-		case EVA::ShaderDataType::Float:  return 4;
+		case EVA::ShaderDataType::Float:  return 4 * 1;
 		case EVA::ShaderDataType::Float2: return 4 * 2;
 		case EVA::ShaderDataType::Float3: return 4 * 3;
 		case EVA::ShaderDataType::Float4: return 4 * 4;
 		case EVA::ShaderDataType::Mat3:   return 4 * 3 * 3;
 		case EVA::ShaderDataType::Mat4:   return 4 * 4 * 4;
-		case EVA::ShaderDataType::Int:    return 4;
+		case EVA::ShaderDataType::Int:    return 4 * 1;
 		case EVA::ShaderDataType::Int2:   return 4 * 2;
 		case EVA::ShaderDataType::Int3:   return 4 * 3;
 		case EVA::ShaderDataType::Int4:   return 4 * 4;
