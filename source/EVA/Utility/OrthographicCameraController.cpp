@@ -1,6 +1,6 @@
 #include "OrthographicCameraController.hpp"
 
-#include "EVA/Input.hpp"
+#include "EVA/Core/Input.hpp"
 #include "EVA/Core/Platform.hpp"
 #include "EVA/Core/Timestep.hpp"
 

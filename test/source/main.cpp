@@ -1,9 +1,9 @@
 ﻿#include <glm/gtc/matrix_transform.hpp>
-
-#include <EVA.hpp>
-#include <EVA/Utility/SlidingWindow.hpp>
-#include <Platform\OpenGL\OpenGLShader.hpp>
 #include <glm\gtc\type_ptr.hpp>
+
+#include "EVA.hpp"
+#include "EVA/Utility/SlidingWindow.hpp"
+#include "Platform\OpenGL\OpenGLShader.hpp"
 
 class ExampleLayer : public EVA::Layer
 {
@@ -26,7 +26,7 @@ public:
 	{
 		{
 			// Triangle
-			m_TriangleVertexArray.reset(EVA::VertexArray::Create());
+			m_TriangleVertexArray = EVA::VertexArray::Create();
 
 			// Vertex buffer
 			float vertices[3 * 7] = {
@@ -35,7 +35,7 @@ public:
 				 0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f,
 			};
 			EVA::Ref<EVA::VertexBuffer> vb;
-			vb.reset(EVA::VertexBuffer::Create(vertices, sizeof(vertices)));
+			vb = EVA::VertexBuffer::Create(vertices, sizeof(vertices));
 			EVA::BufferLayout layout = {
 				{ EVA::ShaderDataType::Float3, "a_Position" },
 				{ EVA::ShaderDataType::Float4, "a_Color" }
@@ -48,12 +48,12 @@ public:
 				0, 1, 2
 			};
 			EVA::Ref<EVA::IndexBuffer> ib;
-			ib.reset(EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+			ib = EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
 			m_TriangleVertexArray->SetIndexBuffer(ib);
 		}
 		{
 			// Square
-			m_SquareVertexArray.reset(EVA::VertexArray::Create());
+			m_SquareVertexArray = EVA::VertexArray::Create();
 
 			float vertices[5 * 4] = {
 				-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
@@ -62,7 +62,7 @@ public:
 				-0.5f,  0.5f, 0.0f, 0.0f, 1.0f
 			};
 			EVA::Ref<EVA::VertexBuffer> vb;
-			vb.reset(EVA::VertexBuffer::Create(vertices, sizeof(vertices)));
+			vb = EVA::VertexBuffer::Create(vertices, sizeof(vertices));
 			vb->SetLayout({
 				{ EVA::ShaderDataType::Float3, "a_Position" },
 				{ EVA::ShaderDataType::Float2, "a_TexCoord" }
@@ -74,7 +74,7 @@ public:
 				2, 3, 0,
 			};
 			EVA::Ref<EVA::IndexBuffer> ib;
-			ib.reset(EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+			ib = EVA::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
 			m_SquareVertexArray->SetIndexBuffer(ib);
 		}
 

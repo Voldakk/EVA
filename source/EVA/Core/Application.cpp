@@ -1,6 +1,6 @@
 #include "Application.hpp"
 
-#include "EVA/Input.hpp"
+#include "EVA/Core/Input.hpp"
 #include "EVA/Core/Timestep.hpp"
 #include "EVA/Core/Platform.hpp"
 #include "EVA/Renderer/Renderer.hpp"

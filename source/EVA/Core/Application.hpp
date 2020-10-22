@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "EVA/LayerStack.hpp"
-#include "EVA/Window.hpp"
+#include "EVA/Core/LayerStack.hpp"
+#include "EVA/Core/Window.hpp"
 #include "EVA/Events/Window.hpp"
 #include "EVA/ImGui/ImGuiLayer.hpp"
 #include "EVA/Renderer/Buffer.hpp"

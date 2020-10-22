@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "KeyCodes.hpp"
+#include "EVA/Core/KeyCodes.hpp"
 
 namespace EVA {
 

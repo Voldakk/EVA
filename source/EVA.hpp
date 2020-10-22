@@ -1,7 +1,6 @@
-#include "EVA/Application.hpp"
-#include "EVA/Layer.hpp"
-#include "EVA/Input.hpp"
-
+#include "EVA/Core/Application.hpp"
+#include "EVA/Core/Layer.hpp"
+#include "EVA/Core/Input.hpp"
 #include "EVA/Core/Platform.hpp"
 #include "EVA/Core/Timestep.hpp"
 
@@ -14,6 +13,6 @@
 #include "EVA/Renderer/Buffer.hpp"
 
 #include "EVA/Renderer/OrthographicCamera.hpp"
-#include "EVA/Renderer/OrthographicCameraController.hpp"
+#include "EVA/Utility/OrthographicCameraController.hpp"
 
 #include <imgui.h>

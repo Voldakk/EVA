@@ -2,10 +2,10 @@
 
 #include <glm/glm.hpp>
 
-#include "OrthographicCamera.hpp"
-#include <EVA/Core/Timestep.hpp>
-#include <EVA/Events/Window.hpp>
-#include <EVA/Events/Mouse.hpp>
+#include "EVA/Renderer/OrthographicCamera.hpp"
+#include "EVA/Core/Timestep.hpp"
+#include "EVA/Events/Window.hpp"
+#include "EVA/Events/Mouse.hpp"
 
 namespace EVA
 {

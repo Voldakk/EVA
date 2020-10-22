@@ -1,5 +1,5 @@
-#include "EVA/Input.hpp"
-#include "EVA/Application.hpp"
+#include "EVA/Core/Input.hpp"
+#include "EVA/Core/Application.hpp"
 
 #include <GLFW/glfw3.h>
 

@@ -2,7 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "EVA/Window.hpp"
+#include "EVA/Core/Window.hpp"
 #include "EVA/Renderer/GraphicsContext.hpp"
 
 namespace EVA

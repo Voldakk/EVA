@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Log.hpp"
+#include "EVA/Core/Log.hpp"
 
 #ifdef EVA_DEBUG
 	#ifdef EVA_PLATFORM_WINDOWS
