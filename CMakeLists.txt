@@ -9,29 +9,30 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 ###################################### EVA #####################################
 
-file(GLOB SOURCES
-	source/**
-	source/EVA/**
-	source/EVA/*/**
+file(GLOB_RECURSE SOURCES
+	source/EVA/*
 )
 add_library(eva STATIC ${SOURCES})
 
-# GLFW
+#OpenGL
 find_package(OpenGL REQUIRED)
 list(APPEND EXTRA_INCLUDES ${OPENGL_INCLUDE_DIRS})
+FILE(GLOB OPENGL_SOURCES "source/Platform/OpenGL/**")
+list(APPEND EXTRA_SOURCES ${OPENGL_SOURCES})
 
+# GLFW
+add_subdirectory(dependencies/glfw)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set( GLFW_BUILD_INSTALL OFF CACHE BOOL  "GLFW lib only" )
-add_subdirectory(dependencies/glfw)
 
 if(WIN32)
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
 endif()
 
 add_compile_definitions(GLFW_INCLUDE_NONE)
-target_link_libraries(eva PUBLIC glfw)
+target_link_libraries(eva PUBLIC glfw ${GLFW_LIBRARIES})
 
 # GLAD
 add_subdirectory(dependencies/glad)
@@ -46,18 +47,12 @@ add_subdirectory(dependencies/spdlog)
 target_link_libraries(eva PUBLIC spdlog)
 
 # IMGUI
-add_compile_definitions(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-FILE(GLOB IMGUI_SOURCES 
-	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui/*.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui/examples/imgui_impl_opengl3.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui/examples/imgui_impl_glfw.cpp")
-list(APPEND EXTRA_SOURCES ${IMGUI_SOURCES})
-list(APPEND EXTRA_INCLUDES "dependencies/imgui")
+add_subdirectory(dependencies/imgui)
+target_link_libraries(eva PUBLIC imgui)
 
 # stb
-FILE(GLOB STB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/stb/*.cpp")
-list(APPEND EXTRA_SOURCES ${STB_SOURCES})
-list(APPEND EXTRA_INCLUDES "dependencies/stb")
+add_subdirectory(dependencies/stb)
+target_link_libraries(eva PUBLIC stb)
 
 # Platforms
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
@@ -71,11 +66,11 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	add_compile_definitions(EVA_PLATFORM_LINUX)
 	add_compile_definitions(EVA_PLATFORM="linux")
-endif()
 
-# Render API
-FILE(GLOB OPENGL_SOURCES "source/Platform/OpenGL/**")
-list(APPEND EXTRA_SOURCES ${OPENGL_SOURCES})
+	FILE(GLOB WINDOWS_SOURCES "source/Platform/Linux/**")
+	list(APPEND EXTRA_SOURCES ${WINDOWS_SOURCES})
+	list(APPEND EXTRA_INCLUDES PRIVATE "source/Platform/Linux")
+endif()
 
 # Include paths
 target_include_directories(eva 
