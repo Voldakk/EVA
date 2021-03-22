@@ -11,6 +11,7 @@
 #include "EVA/Renderer/Texture.hpp"
 #include "EVA/Renderer/VertexArray.hpp"
 #include "EVA/Renderer/Buffer.hpp"
+#include "EVA/Renderer/Framebuffer.hpp"
 
 #include "EVA/Renderer/OrthographicCamera.hpp"
 #include "EVA/Utility/OrthographicCameraController.hpp"

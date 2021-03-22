@@ -20,9 +20,12 @@ class ExampleLayer : public EVA::Layer
 
 	glm::vec3 m_SquareColor = glm::vec3(0.2f, 0.3f, 0.8f);
 
+	glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+	EVA::Ref<EVA::Framebuffer> m_ViewportFramebuffer;
+
 public:
 	ExampleLayer() : Layer("Example"), m_FrameTimes(10),
-		m_CameraController(EVA::Application::Get().GetWindow().GetWidth() / EVA::Application::Get().GetWindow().GetHeight())
+		m_CameraController((float)EVA::Application::Get().GetWindow().GetWidth() / (float)EVA::Application::Get().GetWindow().GetHeight())
 	{
 		{
 			// Triangle
@@ -88,6 +91,12 @@ public:
 
 		m_TextureShader->Bind();
 		std::dynamic_pointer_cast<EVA::OpenGLShader>(m_TextureShader)->SetUniformInt("u_Texture", 0);
+
+		// Framebuffer
+		EVA::FramebufferSpecification spec;
+		spec.width = 1200;
+		spec.height = 600;
+		m_ViewportFramebuffer = EVA::Framebuffer::Create(spec);
 	}
 
 	void OnUpdate() override
@@ -98,6 +107,7 @@ public:
 		m_CameraController.OnUpdate();
 
 		// Render
+		m_ViewportFramebuffer->Bind();
 		EVA::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 		EVA::RenderCommand::Clear();
 
@@ -118,9 +128,11 @@ public:
 		}
 
 		auto scale2 = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
+		m_Texture->Bind(0);
 		EVA::Renderer::Submit(m_TextureShader, m_SquareVertexArray, scale2);
 
 		EVA::Renderer::EndScene();
+		m_ViewportFramebuffer->Unbind();
 	}
 
 	void OnEvent(EVA::Event& e) override
@@ -139,6 +151,20 @@ public:
 		ImGui::Begin("Settings");
 		ImGui::ColorEdit3("Square color", glm::value_ptr(m_SquareColor));
 		ImGui::End();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+		ImGui::Begin("Scene");
+		auto viewportPanelSize = ImGui::GetContentRegionAvail();
+		if (m_ViewportSize != *reinterpret_cast<glm::vec2*>(&viewportPanelSize))
+		{
+			m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+			m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+			m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+		}
+		auto viewportTextureId = m_ViewportFramebuffer->GetColorAttachmentRendererId();
+		ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+		ImGui::End();
+		ImGui::PopStyleVar(ImGuiStyleVar_WindowPadding);
 	}
 };
 
