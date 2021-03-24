@@ -65,7 +65,6 @@ namespace EVA
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 	}
 
 	void ImGuiLayer::End()
@@ -89,12 +88,16 @@ namespace EVA
 
 	void ImGuiLayer::OnImGuiRender()
 	{
-		//static bool show = true;
-		//ImGui::ShowDemoWindow(&show);
+		
 	}
 
 	void ImGuiLayer::OnEvent(Event& event)
 	{
-
+		if (m_BlockEvents)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			event.handled |= event.IsInCategory(Event::Category::Mouse) & io.WantCaptureMouse;
+			event.handled |= event.IsInCategory(Event::Category::Keyboard) & io.WantCaptureKeyboard;
+		}
 	}
 }

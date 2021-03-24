@@ -12,11 +12,25 @@ namespace EVA
 			MouseButtonPressed, MouseButtonReleased, MouseScrolled, MouseMoved
 		};
 
+		enum Category
+		{
+			None = 0,
+			Application = BIT(0),
+			Input = BIT(1),
+			Keyboard = BIT(2),
+			Mouse = BIT(3),
+			MouseButton = BIT(4)
+		};
+
 		bool handled = false;
 
-		[[nodiscard]] virtual Type GetType() const = 0;
-        [[nodiscard]] virtual const char* GetName() const = 0;
-        [[nodiscard]] virtual std::string ToString() const { return GetName(); }
+		virtual Type GetType() const = 0;
+        virtual const char* GetName() const = 0;
+
+		virtual int GetCategoryFlags() const = 0;
+		bool IsInCategory(Category category) { return GetCategoryFlags() & category; }
+
+        virtual std::string ToString() const { return GetName(); }
 	};
 
 	inline std::ostream& operator<<(std::ostream& os, const Event& e)
@@ -24,10 +38,11 @@ namespace EVA
 		return os << e.ToString();
 	}
 
-#define IMPL_EVENT(type) \
+#define IMPL_EVENT(type, category) \
 	static Event::Type GetStaticType() { return Event::Type::type; }\
 	virtual Event::Type GetType() const override { return GetStaticType(); }\
-	virtual const char* GetName() const override { return #type; }
+	virtual const char* GetName() const override { return #type; }\
+	virtual int GetCategoryFlags() const override { return (category); }
 
 	class EventDispatcher
 	{

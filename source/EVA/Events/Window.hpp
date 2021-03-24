@@ -9,7 +9,7 @@ namespace EVA
 	public:
 		WindowOpenEvent() = default;
 
-		IMPL_EVENT(WindowOpen)
+		IMPL_EVENT(WindowOpen, Category::Application)
 	};
 
 	class WindowCloseEvent : public Event
@@ -17,7 +17,7 @@ namespace EVA
 	public:
 		WindowCloseEvent() = default;
 
-		IMPL_EVENT(WindowClose)
+		IMPL_EVENT(WindowClose, Category::Application)
 	};
 
 	class WindowFocusEvent : public Event
@@ -25,7 +25,7 @@ namespace EVA
 	public:
 		WindowFocusEvent() = default;
 
-		IMPL_EVENT(WindowFocus)
+		IMPL_EVENT(WindowFocus, Category::Application)
 	};
 
 	class WindowLostFocusEvent : public Event
@@ -33,7 +33,7 @@ namespace EVA
 	public:
 		WindowLostFocusEvent() = default;
 
-		IMPL_EVENT(WindowLostFocus)
+		IMPL_EVENT(WindowLostFocus, Category::Application)
 	};
 
 	class WindowResizeEvent : public Event
@@ -43,17 +43,17 @@ namespace EVA
 	public:
 		WindowResizeEvent(int width, int height) : m_Width(width), m_Height(height) {}
 
-        [[nodiscard]] int GetWidth() const { return m_Width; }
-        [[nodiscard]] int GetHeight() const { return m_Height; }
+        int GetWidth() const { return m_Width; }
+        int GetHeight() const { return m_Height; }
 
-        [[nodiscard]] std::string ToString() const override
+        std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "WindowResizeEvent: " << m_Width << ", " << m_Height;
 			return ss.str();
 		}
 
-		IMPL_EVENT(WindowResize)
+		IMPL_EVENT(WindowResize, Category::Application)
 	};
 
 	class WindowMovedEvent : public Event
@@ -61,6 +61,6 @@ namespace EVA
 	public:
 		WindowMovedEvent() = default;
 
-		IMPL_EVENT(WindowMoved)
+		IMPL_EVENT(WindowMoved, Category::Application)
 	};
 }

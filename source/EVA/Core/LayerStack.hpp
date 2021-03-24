@@ -17,9 +17,9 @@ namespace EVA
 		void PopLayer(Layer* layer);
 		void PopOverlay(Layer* overlay);
 
-		[[nodiscard]] std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
-		[[nodiscard]] std::vector<Layer*>::iterator end() { return m_Layers.end(); }
-		[[nodiscard]] std::vector<Layer*>::const_iterator begin() const { return m_Layers.begin(); }
-		[[nodiscard]] std::vector<Layer*>::const_iterator end() const { return m_Layers.end(); }
+		std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
+		std::vector<Layer*>::iterator end() { return m_Layers.end(); }
+		std::vector<Layer*>::const_iterator begin() const { return m_Layers.begin(); }
+		std::vector<Layer*>::const_iterator end() const { return m_Layers.end(); }
 	};
 }

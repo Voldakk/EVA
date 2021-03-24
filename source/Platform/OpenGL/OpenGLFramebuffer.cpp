@@ -58,6 +58,10 @@ namespace EVA
 
 	void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height)
 	{
+		if (width == 0 || height == 0 || width > MaxFramebufferSize || height > MaxFramebufferSize)
+		{
+			EVA_INTERNAL_WARN("Invalid framebuffer size: {0}, {1}", width, height);
+		}
 		m_Specification.width = width;
 		m_Specification.height = height;
 		Invalidate();

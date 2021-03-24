@@ -12,7 +12,7 @@ namespace EVA
         explicit MouseButtonEvent(int button) : m_Button(button) {}
 	
 	public:
-		[[nodiscard]] int GetMouseButton() const { return m_Button; }
+		int GetMouseButton() const { return m_Button; }
 	};
 
 	class MouseButtonPressedEvent : public MouseButtonEvent
@@ -20,14 +20,14 @@ namespace EVA
 	public:
 		explicit MouseButtonPressedEvent(int button) : MouseButtonEvent(button) {}
 
-		[[nodiscard]] std::string ToString() const override
+		std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseButtonPressedEvent: " << m_Button;
 			return ss.str();
 		}
 
-		IMPL_EVENT(MouseButtonPressed)
+		IMPL_EVENT(MouseButtonPressed, Category::Input | Category::Mouse | Category::MouseButton)
 	};
 
 	class MouseButtonReleasedEvent : public MouseButtonEvent
@@ -35,14 +35,14 @@ namespace EVA
 	public:
         explicit MouseButtonReleasedEvent(int button) : MouseButtonEvent(button) {}
 
-		[[nodiscard]] std::string ToString() const override
+		std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseButtonReleasedEvent: " << m_Button;
 			return ss.str();
 		}
 
-		IMPL_EVENT(MouseButtonReleased)
+		IMPL_EVENT(MouseButtonReleased, Category::Input | Category::Mouse | Category::MouseButton)
 	};
 
 	class MouseScrolledEvent : public Event
@@ -52,17 +52,17 @@ namespace EVA
 	public:
         explicit MouseScrolledEvent(float xOffset, float yOffset) : m_XOffset(xOffset), m_YOffset(yOffset) {}
 
-		[[nodiscard]] float GetXOffset() const { return m_XOffset; }
-		[[nodiscard]] float GetYOffset() const { return m_YOffset; }
+		float GetXOffset() const { return m_XOffset; }
+		float GetYOffset() const { return m_YOffset; }
 
-		[[nodiscard]] std::string ToString() const override
+		std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseScrolledEvent: " << GetXOffset() << ", " << GetYOffset();
 			return ss.str();
 		}
 
-		IMPL_EVENT(MouseScrolled)
+		IMPL_EVENT(MouseScrolled, Category::Input | Category::Mouse)
 	};
 
 	class MouseMovedEvent : public Event
@@ -72,16 +72,16 @@ namespace EVA
 	public:
         explicit MouseMovedEvent(float x, float y) : m_MouseX(x), m_MouseY(y) {}
 
-        [[nodiscard]] float GetX() const { return m_MouseX; }
-        [[nodiscard]] float GetY() const { return m_MouseY; }
+        float GetX() const { return m_MouseX; }
+        float GetY() const { return m_MouseY; }
 
-		[[nodiscard]] std::string ToString() const override
+		std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "MouseMovedEvent: " << m_MouseX << ", " << m_MouseY;
 			return ss.str();
 		}
 
-		IMPL_EVENT(MouseMoved)
+		IMPL_EVENT(MouseMoved, Category::Input | Category::Mouse)
 	};
 }

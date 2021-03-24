@@ -32,9 +32,10 @@ namespace EVA
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
 
-        [[nodiscard]] inline Window& GetWindow() { return *m_Window.get(); }
+        inline Window& GetWindow() { return *m_Window.get(); }
+        inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 
-        [[nodiscard]] inline static Application& Get() { return *s_Instance; }
+        inline static Application& Get() { return *s_Instance; }
 
     private:
         void OnEvent(Event& e);

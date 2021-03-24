@@ -34,8 +34,8 @@ namespace EVA
 
 	public:
 
-		[[nodiscard]] inline static std::shared_ptr<spdlog::logger>& GetEngineLogger() { return s_EngineLogger; };
-		[[nodiscard]] inline static std::shared_ptr<spdlog::logger>& GetAppLogger() { return s_AppLogger; };
+		inline static std::shared_ptr<spdlog::logger>& GetEngineLogger() { return s_EngineLogger; };
+		inline static std::shared_ptr<spdlog::logger>& GetAppLogger() { return s_AppLogger; };
 
 		static void Init()
 		{

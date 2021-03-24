@@ -9,19 +9,6 @@ namespace EVA
 {
     class WindowsWindow : public Window
     {
-        struct WindowData
-        {
-            std::string title;
-            int width, height;
-            bool vSync;
-            EventCallbackFn  eventCallback;
-        };
-
-        GLFWwindow* m_Window;
-        WindowData m_Data;
-
-        GraphicsContext* m_Context;
-
     public:
 
         explicit WindowsWindow(const WindowProperties& properties);
@@ -42,5 +29,17 @@ namespace EVA
 
         virtual void Init(const WindowProperties& properties);
         virtual void Shutdown();
+
+        struct WindowData
+        {
+            std::string title;
+            int width, height;
+            bool vSync;
+            EventCallbackFn  eventCallback;
+        };
+        WindowData m_Data;
+
+        GLFWwindow* m_Window;
+        GraphicsContext* m_Context;
     };
 }

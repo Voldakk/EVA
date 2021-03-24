@@ -7,6 +7,7 @@ namespace EVA
 	class ImGuiLayer : public Layer
 	{
 		float m_Time = 0.0f;
+		bool m_BlockEvents;
 
 	public:
 		ImGuiLayer();
@@ -18,5 +19,7 @@ namespace EVA
 		void End();
 		virtual void OnEvent(Event& event) override;
 		virtual void OnImGuiRender() override;
+
+		void BlockEvents(bool block) { m_BlockEvents = block; };
 	};
 }

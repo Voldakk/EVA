@@ -5,6 +5,8 @@
 
 namespace EVA
 {
+	constexpr uint32_t  MaxFramebufferSize = 16384;
+
 	struct FramebufferSpecification
 	{
 		uint32_t width, height;

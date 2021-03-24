@@ -24,7 +24,6 @@ namespace EVA
 			return m_Specification;
 		};
 
-
 	private:
 		uint32_t m_RendererId = 0;
 		uint32_t m_ColorAttachment = 0;
