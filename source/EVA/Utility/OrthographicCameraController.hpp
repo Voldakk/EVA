@@ -2,41 +2,41 @@
 
 #include <glm/glm.hpp>
 
-#include "EVA/Renderer/OrthographicCamera.hpp"
 #include "EVA/Core/Timestep.hpp"
-#include "EVA/Events/Window.hpp"
 #include "EVA/Events/Mouse.hpp"
+#include "EVA/Events/Window.hpp"
+#include "EVA/Renderer/OrthographicCamera.hpp"
 
 namespace EVA
 {
-	class OrthographicCameraController
-	{
-		float m_AspectRatio;
-		float m_ZoomLevel = 1.0f;
-		bool m_Rotation;
+    class OrthographicCameraController
+    {
+        float m_AspectRatio;
+        float m_ZoomLevel = 1.0f;
+        bool m_Rotation;
 
-		glm::vec3 m_CameraPosition = glm::vec3(0.0f);
-		float m_CameraRotation = 0.0f;
+        glm::vec3 m_CameraPosition = glm::vec3(0.0f);
+        float m_CameraRotation     = 0.0f;
 
-		float m_CameraTranslationSpeed = 2.0f;
-		float m_CameraRotationSpeed = 90.0f;
-		float m_CameraZoomSpeed = 0.2f;
+        float m_CameraTranslationSpeed = 2.0f;
+        float m_CameraRotationSpeed    = 90.0f;
+        float m_CameraZoomSpeed        = 0.2f;
 
-		OrthographicCamera m_Camera;
+        OrthographicCamera m_Camera;
 
-	public:
-		OrthographicCameraController(float aspectRatio, bool rotation = true);
+      public:
+        OrthographicCameraController(float aspectRatio, bool rotation = true);
 
-		void OnUpdate();
-		void OnEvent(Event& e);
+        void OnUpdate();
+        void OnEvent(Event& e);
 
-		void OnResize(float width, float height);
+        void OnResize(float width, float height);
 
-		OrthographicCamera& GetCamera() { return m_Camera; }
-		const OrthographicCamera& GetCamera() const { return m_Camera; }
+        OrthographicCamera& GetCamera() { return m_Camera; }
+        const OrthographicCamera& GetCamera() const { return m_Camera; }
 
-	private:
-		bool OnMouseScrolled(MouseScrolledEvent& e);
-		bool OnWindowResized(WindowResizeEvent& e);
-	};
-}
+      private:
+        bool OnMouseScrolled(MouseScrolledEvent& e);
+        bool OnWindowResized(WindowResizeEvent& e);
+    };
+} // namespace EVA

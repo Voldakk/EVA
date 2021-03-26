@@ -2,34 +2,34 @@
 
 namespace EVA
 {
-	class OpenGLVertexBuffer : public VertexBuffer
-	{
-		uint32_t m_RendererId;
-		BufferLayout m_Layout;
+    class OpenGLVertexBuffer : public VertexBuffer
+    {
+        uint32_t m_RendererId;
+        BufferLayout m_Layout;
 
-	public:
-		OpenGLVertexBuffer(float* vertices, uint32_t size);
-		virtual ~OpenGLVertexBuffer();
+      public:
+        OpenGLVertexBuffer(float* vertices, uint32_t size);
+        virtual ~OpenGLVertexBuffer();
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+        virtual void Bind() const override;
+        virtual void Unbind() const override;
 
-		inline virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; };
-		inline virtual const BufferLayout& GetLayout() const override { return m_Layout; };
-	};
+        inline virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; };
+        inline virtual const BufferLayout& GetLayout() const override { return m_Layout; };
+    };
 
-	class OpenGLIndexBuffer : public IndexBuffer
-	{
-		uint32_t m_RendererId;
-		uint32_t m_Count;
+    class OpenGLIndexBuffer : public IndexBuffer
+    {
+        uint32_t m_RendererId;
+        uint32_t m_Count;
 
-	public:
-		OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
-		virtual ~OpenGLIndexBuffer();
+      public:
+        OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
+        virtual ~OpenGLIndexBuffer();
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+        virtual void Bind() const override;
+        virtual void Unbind() const override;
 
-		inline virtual uint32_t GetCount() const override { return m_Count; }
-	};
-}
+        inline virtual uint32_t GetCount() const override { return m_Count; }
+    };
+} // namespace EVA

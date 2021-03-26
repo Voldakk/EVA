@@ -9,24 +9,22 @@ namespace EVA
 {
     class WindowsWindow : public Window
     {
-    public:
-
+      public:
         explicit WindowsWindow(const WindowProperties& properties);
         ~WindowsWindow() override;
 
         void OnUpdate() override;
 
-        [[nodiscard]] int GetWidth() const override {return m_Data.width;}
-        [[nodiscard]] int GetHeight() const override {return m_Data.height;}
+        [[nodiscard]] int GetWidth() const override { return m_Data.width; }
+        [[nodiscard]] int GetHeight() const override { return m_Data.height; }
 
-        void SetEventCallback(const EventCallbackFn &callback) override { m_Data.eventCallback = callback; }
+        void SetEventCallback(const EventCallbackFn& callback) override { m_Data.eventCallback = callback; }
         void SetVSync(bool enabled) override;
         [[nodiscard]] bool IsVSync() const override { return m_Data.vSync; };
 
         virtual void* GetNativeWindow() const { return m_Window; }
 
-    private:
-
+      private:
         virtual void Init(const WindowProperties& properties);
         virtual void Shutdown();
 
@@ -35,11 +33,11 @@ namespace EVA
             std::string title;
             int width, height;
             bool vSync;
-            EventCallbackFn  eventCallback;
+            EventCallbackFn eventCallback;
         };
         WindowData m_Data;
 
         GLFWwindow* m_Window;
         GraphicsContext* m_Context;
     };
-}
+} // namespace EVA

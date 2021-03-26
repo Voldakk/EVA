@@ -4,23 +4,16 @@
 
 namespace EVA
 {
-	class Platform
-	{
-		inline static Timestep m_DeltaTime;
+    class Platform
+    {
+        inline static Timestep m_DeltaTime;
 
-	public:
+      public:
+        inline static Timestep GetDeltaTime() { return m_DeltaTime; }
 
-		inline static Timestep GetDeltaTime()
-		{
-			return m_DeltaTime;
-		}
+        inline static void SetDeltaTime(Timestep timestep) { m_DeltaTime = timestep; }
 
-		inline static void SetDeltaTime(Timestep timestep)
-		{
-			m_DeltaTime = timestep;
-		}
-
-		// Platform dependent
-		static float GetTime();
-	};
-}
+        // Platform dependent
+        static float GetTime();
+    };
+} // namespace EVA

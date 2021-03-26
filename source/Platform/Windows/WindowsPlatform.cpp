@@ -4,8 +4,5 @@
 
 namespace EVA
 {
-	float Platform::GetTime()
-	{
-		return (float)glfwGetTime();
-	}
-}
+    float Platform::GetTime() { return (float)glfwGetTime(); }
+} // namespace EVA

@@ -1,0 +1,5 @@
+---
+Checks: '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-llvm-*,-modernize-use-trailing-return-type,-misc-non-private-member-variables-in-classes,-clang-diagnostic-c++17-extensions,-readability-avoid-const-params-in-decls,-cppcoreguidelines-owning-memory'
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+FormatStyle: none

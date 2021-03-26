@@ -6,13 +6,13 @@
 
 namespace EVA
 {
-	class OpenGLContext : public GraphicsContext
-	{
-		GLFWwindow* m_WindowHandle;
+    class OpenGLContext : public GraphicsContext
+    {
+        GLFWwindow* m_WindowHandle;
 
-	public:
-		OpenGLContext(GLFWwindow* windowHandle);
-		virtual void Init() override;
-		virtual void SwapBuffers() override;
-	};
-}
+      public:
+        OpenGLContext(GLFWwindow* windowHandle);
+        virtual void Init() override;
+        virtual void SwapBuffers() override;
+    };
+} // namespace EVA

@@ -5,8 +5,8 @@
 #include "EVA/Events/Window.hpp"
 #include "EVA/ImGui/ImGuiLayer.hpp"
 #include "EVA/Renderer/Buffer.hpp"
-#include "EVA/Renderer/VertexArray.hpp"
 #include "EVA/Renderer/Shader.hpp"
+#include "EVA/Renderer/VertexArray.hpp"
 
 namespace EVA
 {
@@ -16,13 +16,12 @@ namespace EVA
 
         std::unique_ptr<Window> m_Window;
         ImGuiLayer* m_ImGuiLayer;
-        bool m_Running = true;
+        bool m_Running   = true;
         bool m_Minimized = false;
 
         LayerStack m_LayerStack;
 
-    public:
-
+      public:
         Application();
         ~Application();
 
@@ -37,9 +36,9 @@ namespace EVA
 
         inline static Application& Get() { return *s_Instance; }
 
-    private:
+      private:
         void OnEvent(Event& e);
         bool OnWindowClosed(WindowCloseEvent& e);
         bool OnWindowResized(WindowResizeEvent& e);
     };
-}
+} // namespace EVA
