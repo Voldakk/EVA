@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
 
 namespace EVA
 {
@@ -212,5 +213,22 @@ namespace EVA
     {
         auto location = glGetUniformLocation(m_RendererId, name.c_str());
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+    }
+
+    void OpenGLShader::BindTexture(const std::string& name, Ref<Texture> texture)
+    {
+        auto unit = m_TextureUnit++;
+        SetUniformInt(name, unit);
+        glActiveTexture(GL_TEXTURE0 + unit);
+        glBindTexture(GL_TEXTURE_2D, texture->GetRendererId());
+    }
+    void OpenGLShader::BindImageTexture(const std::string& name, Ref<Texture> texture)
+    {
+        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+    }
+    void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ)
+    {
+        glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
     }
 } // namespace EVA

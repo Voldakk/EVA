@@ -32,6 +32,8 @@ namespace EVA
         glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
         glTextureStorage2D(m_RendererId, 1, internalFormat, m_Width, m_Height);
 
+        glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -40,7 +42,27 @@ namespace EVA
         stbi_image_free(data);
     }
 
+    OpenGLTexture2D::OpenGLTexture2D(const uint32_t width, const uint32_t height) { Resize(width, height); }
+
     OpenGLTexture2D::~OpenGLTexture2D() { glDeleteTextures(1, &m_RendererId); }
 
-    void OpenGLTexture2D::Bind(uint32_t slot) const { glBindTextureUnit(slot, m_RendererId); }
+    void OpenGLTexture2D::Resize(const uint32_t width, const uint32_t height)
+    {
+        m_Width  = width;
+        m_Height = height;
+
+        if (m_RendererId != 0) { glDeleteTextures(1, &m_RendererId); }
+
+        glGenTextures(1, &m_RendererId);
+        glBindTexture(GL_TEXTURE_2D, m_RendererId);
+
+        glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    }
+
+
 } // namespace EVA

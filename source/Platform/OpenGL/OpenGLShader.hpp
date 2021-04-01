@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "EVA/Renderer/Shader.hpp"
+#include "EVA/Renderer/Texture.hpp"
 
 namespace EVA
 {
@@ -31,9 +32,17 @@ namespace EVA
         void SetUniformMat3(const std::string& name, const glm::mat3& matrix);
         void SetUniformMat4(const std::string& name, const glm::mat4& matrix);
 
+        void BindTexture(const std::string& name, Ref<Texture> texture);
+        void BindImageTexture(const std::string& name, Ref<Texture> texture);
+        void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ);
+
+        void ResetTextureUnit() { m_TextureUnit = 0; }
+
       private:
         std::string ReadFile(const std::string& filepath);
         std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
+        uint32_t m_TextureUnit = 0;
+
         void Compile(const std::unordered_map<GLenum, std::string>& sources);
     };
 } // namespace EVA
