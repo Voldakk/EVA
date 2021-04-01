@@ -1,5 +1,5 @@
 #include "Renderer.hpp"
-#include <Platform\OpenGL\OpenGLShader.hpp>
+#include "Platform/OpenGL/OpenGLShader.hpp"
 
 namespace EVA
 {

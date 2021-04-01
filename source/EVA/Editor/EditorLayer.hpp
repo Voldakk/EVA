@@ -1,11 +1,11 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm\gtc\type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "EVA.hpp"
 #include "EVA/Utility/SlidingWindow.hpp"
-#include "Platform\OpenGL\OpenGLShader.hpp"
+#include "Platform/OpenGL/OpenGLShader.hpp"
 
 namespace EVA
 {
@@ -29,6 +29,7 @@ namespace EVA
 
         bool m_ViewportFocused = false;
         bool m_ViewportHovered = false;
+        bool m_ResizeViewport  = false;
 
       public:
         EditorLayer() :
@@ -98,6 +99,11 @@ namespace EVA
             if (m_ViewportFocused) { m_CameraController.OnUpdate(); }
 
             // Render
+            if (m_ResizeViewport)
+            {
+                m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+                m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+            }
             m_ViewportFramebuffer->Bind();
             EVA::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
             EVA::RenderCommand::Clear();
@@ -154,9 +160,8 @@ namespace EVA
             auto viewportPanelSize = ImGui::GetContentRegionAvail();
             if (m_ViewportSize != *reinterpret_cast<glm::vec2*>(&viewportPanelSize) && viewportPanelSize.x > 0 && viewportPanelSize.y > 0)
             {
-                m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
-                m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-                m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+                m_ViewportSize   = {viewportPanelSize.x, viewportPanelSize.y};
+                m_ResizeViewport = true;
             }
             auto viewportTextureId = m_ViewportFramebuffer->GetColorAttachmentRendererId();
             ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EVA/Renderer/FrameBuffer.hpp"
+#include "EVA/Renderer/Framebuffer.hpp"
 
 namespace EVA
 {

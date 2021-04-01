@@ -1,4 +1,4 @@
-#include "WindowsWindow.hpp"
+#include "GLFWWindow.hpp"
 
 #include "EVA/Events/Key.hpp"
 #include "EVA/Events/Mouse.hpp"
@@ -11,13 +11,13 @@ namespace EVA
 
     static void GLFWErrorCallback(int error, const char* description) { EVA_INTERNAL_ERROR("GLFW error ({0}): {1}", error, description); }
 
-    std::unique_ptr<Window> Window::Create(const WindowProperties& properties) { return std::make_unique<WindowsWindow>(properties); }
+    std::unique_ptr<Window> Window::Create(const WindowProperties& properties) { return std::make_unique<GLFWWindow>(properties); }
 
-    WindowsWindow::WindowsWindow(const WindowProperties& properties) { Init(properties); }
+    GLFWWindow::GLFWWindow(const WindowProperties& properties) { Init(properties); }
 
-    WindowsWindow::~WindowsWindow() { Shutdown(); }
+    GLFWWindow::~GLFWWindow() { Shutdown(); }
 
-    void WindowsWindow::Init(const WindowProperties& properties)
+    void GLFWWindow::Init(const WindowProperties& properties)
     {
         m_Data.title  = properties.title;
         m_Data.width  = properties.width;
@@ -117,15 +117,15 @@ namespace EVA
         });
     }
 
-    void WindowsWindow::Shutdown() { glfwDestroyWindow(m_Window); }
+    void GLFWWindow::Shutdown() { glfwDestroyWindow(m_Window); }
 
-    void WindowsWindow::OnUpdate()
+    void GLFWWindow::OnUpdate()
     {
         glfwPollEvents();
         m_Context->SwapBuffers();
     }
 
-    void WindowsWindow::SetVSync(bool enabled)
+    void GLFWWindow::SetVSync(bool enabled)
     {
         if (enabled)
             glfwSwapInterval(1);

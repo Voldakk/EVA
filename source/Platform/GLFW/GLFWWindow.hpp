@@ -7,22 +7,22 @@
 
 namespace EVA
 {
-    class WindowsWindow : public Window
+    class GLFWWindow : public Window
     {
       public:
-        explicit WindowsWindow(const WindowProperties& properties);
-        ~WindowsWindow() override;
+        explicit GLFWWindow(const WindowProperties& properties);
+        ~GLFWWindow() override;
 
         void OnUpdate() override;
 
-        [[nodiscard]] int GetWidth() const override { return m_Data.width; }
-        [[nodiscard]] int GetHeight() const override { return m_Data.height; }
+        int GetWidth() const override { return m_Data.width; }
+        int GetHeight() const override { return m_Data.height; }
 
         void SetEventCallback(const EventCallbackFn& callback) override { m_Data.eventCallback = callback; }
         void SetVSync(bool enabled) override;
-        [[nodiscard]] bool IsVSync() const override { return m_Data.vSync; };
+        bool IsVSync() const override { return m_Data.vSync; };
 
-        virtual void* GetNativeWindow() const { return m_Window; }
+        virtual void* GetNativeWindow() const override { return m_Window; }
 
       private:
         virtual void Init(const WindowProperties& properties);

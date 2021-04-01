@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 file(GLOB_RECURSE SOURCES
 	source/EVA/*
+	source/pch.cpp
 )
 add_library(eva STATIC ${SOURCES})
 
@@ -67,9 +68,16 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	add_compile_definitions(EVA_PLATFORM_LINUX)
 	add_compile_definitions(EVA_PLATFORM="linux")
 
-	FILE(GLOB WINDOWS_SOURCES "source/Platform/Linux/**")
+	FILE(GLOB WINDOWS_SOURCES "source/Platform/Windows/**")
 	list(APPEND EXTRA_SOURCES ${WINDOWS_SOURCES})
-	list(APPEND EXTRA_INCLUDES PRIVATE "source/Platform/Linux")
+	list(APPEND EXTRA_INCLUDES PRIVATE "source/Platform/Windows")
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "Windows" OR CMAKE_SYSTEM_NAME MATCHES "Linux")
+add_compile_definitions(EVA_PLATFORM_GLFW)
+	FILE(GLOB GLFW_SOURCES "source/Platform/GLFW/**")
+	list(APPEND EXTRA_SOURCES ${GLFW_SOURCES})
+	list(APPEND EXTRA_INCLUDES PRIVATE "source/Platform/GLFW")
 endif()
 
 # Include paths
@@ -80,7 +88,7 @@ target_include_directories(eva
 
 # Target
 target_sources(eva PRIVATE ${EXTRA_SOURCES})
-target_precompile_headers(eva PUBLIC "source/pch.hpp")
+target_precompile_headers(eva PRIVATE "source/pch.hpp")
 
 # Definitions
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -113,6 +121,7 @@ set_target_properties(
 )
 
 target_link_libraries(eva_test PRIVATE eva)
+target_precompile_headers(eva_test REUSE_FROM eva)
 
 # Copy assets
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/bin/assets)
