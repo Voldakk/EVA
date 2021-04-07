@@ -10,6 +10,7 @@
 #include "EVA/Renderer/Buffer.hpp"
 #include "EVA/Renderer/Framebuffer.hpp"
 #include "EVA/Renderer/Shader.hpp"
+#include "EVA/Renderer/ShaderStorageBuffer.hpp"
 #include "EVA/Renderer/Texture.hpp"
 #include "EVA/Renderer/VertexArray.hpp"
 

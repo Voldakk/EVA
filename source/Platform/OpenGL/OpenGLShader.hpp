@@ -10,9 +10,6 @@ namespace EVA
 {
     class OpenGLShader : public Shader
     {
-        uint32_t m_RendererId;
-        std::string m_Name;
-
       public:
         explicit OpenGLShader(const std::string& filepath);
         explicit OpenGLShader(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource);
@@ -41,8 +38,14 @@ namespace EVA
       private:
         std::string ReadFile(const std::string& filepath);
         std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
-        uint32_t m_TextureUnit = 0;
-
         void Compile(const std::unordered_map<GLenum, std::string>& sources);
+
+        GLint GetUniformLocation(const std::string& name);
+        void ResetUniformLocations() { m_UniformLocationMap.clear(); }
+
+        uint32_t m_RendererId;
+        std::string m_Name;
+        std::unordered_map<std::string, GLint> m_UniformLocationMap;
+        uint32_t m_TextureUnit = 0;
     };
 } // namespace EVA

@@ -7,6 +7,8 @@
 #include "EVA/Utility/SlidingWindow.hpp"
 #include "Platform/OpenGL/OpenGLShader.hpp"
 
+#include <glad/glad.h>
+
 namespace EVA
 {
     class EditorLayer : public EVA::Layer
@@ -34,6 +36,8 @@ namespace EVA
         //
         EVA::Ref<EVA::Texture2D> m_ComputeTexture;
         EVA::Ref<EVA::Shader> m_ComputeShader;
+        EVA::Ref<EVA::ShaderStorageBuffer> m_Ssbo;
+        std::vector<glm::vec2> ssboData;
 
       public:
         EditorLayer() :
@@ -90,12 +94,16 @@ namespace EVA
             spec.height           = 600;
             m_ViewportFramebuffer = EVA::Framebuffer::Create(spec);
 
-
             // Compute
             m_ComputeShader  = EVA::Shader::Create("./assets/shaders/compute.glsl");
             m_ComputeTexture = EVA::Texture2D::Create(512, 512);
-        }
 
+            ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
+            ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
+            m_Ssbo = EVA::ShaderStorageBuffer::Create(ssboData.data(), ssboData.size() * sizeof(glm::vec2));
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_Ssbo->GetRendererId());
+        }
+        inline static float timer = 0.0f;
         void OnUpdate() override
         {
             auto dt = EVA::Platform::GetDeltaTime();
@@ -139,6 +147,18 @@ namespace EVA
             m_ViewportFramebuffer->Unbind();
 
             // Compute
+            timer += dt;
+            if (timer > 0.1f)
+            {
+                timer -= 0.1f;
+                if (ssboData.size() < 100) { ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400)); }
+                else
+                {
+                    ssboData.erase(ssboData.begin(), ssboData.begin() + 95);
+                }
+                m_Ssbo->BufferData(ssboData.data(), ssboData.size() * sizeof(glm::vec2));
+            }
+
             m_ComputeShader->Bind();
             std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
             std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("img_output", m_ComputeTexture);

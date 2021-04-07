@@ -175,43 +175,43 @@ namespace EVA
 
     void OpenGLShader::SetUniformInt(const std::string& name, const int value)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glUniform1i(location, value);
     }
 
     void OpenGLShader::SetUniformFloat(const std::string& name, const float value)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glUniform1f(location, value);
     }
 
     void OpenGLShader::SetUniformFloat2(const std::string& name, const glm::vec2& value)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glUniform2f(location, value.x, value.y);
     }
 
     void OpenGLShader::SetUniformFloat3(const std::string& name, const glm::vec3& value)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glUniform3f(location, value.x, value.y, value.z);
     }
 
     void OpenGLShader::SetUniformFloat4(const std::string& name, const glm::vec4& value)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glUniform4f(location, value.x, value.y, value.z, value.w);
     }
 
     void OpenGLShader::SetUniformMat3(const std::string& name, const glm::mat3& matrix)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
     void OpenGLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
@@ -222,13 +222,28 @@ namespace EVA
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_2D, texture->GetRendererId());
     }
+
     void OpenGLShader::BindImageTexture(const std::string& name, Ref<Texture> texture)
     {
-        auto location = glGetUniformLocation(m_RendererId, name.c_str());
+        auto location = GetUniformLocation(name);
         glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
     }
+
     void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ)
     {
         glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+    }
+
+    GLint OpenGLShader::GetUniformLocation(const std::string& name)
+    {
+        auto it = m_UniformLocationMap.find(name);
+        if (it != m_UniformLocationMap.end()) { return (*it).second; }
+
+        const GLint location = glGetUniformLocation(m_RendererId, name.c_str());
+#ifdef EVA_DEBUG
+        if (location == -1) { EVA_INTERNAL_ERROR("Invalid uniform name: {}", name); }
+#endif
+        m_UniformLocationMap[name] = location;
+        return location;
     }
 } // namespace EVA
