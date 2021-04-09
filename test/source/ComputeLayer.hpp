@@ -34,12 +34,16 @@ namespace EVA
           m_FrameTimes(10),
           m_CameraController((float)EVA::Application::Get().GetWindow().GetWidth() / (float)EVA::Application::Get().GetWindow().GetHeight())
         {
+            EVA_PROFILE_FUNCTION();
+
             // Compute
             m_ComputeShader  = EVA::Shader::Create("./assets/shaders/compute.glsl");
             m_ComputeTexture = EVA::Texture2D::Create(512, 512);
 
-            ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
-            ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
+            while (ssboData.size() < 200)
+            {
+                ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
+            }
             m_Ssbo = EVA::ShaderStorageBuffer::Create(ssboData.data(), ssboData.size() * sizeof(glm::vec2));
             
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
@@ -48,6 +52,8 @@ namespace EVA
         inline static float timer = 0.0f;
         void OnUpdate() override
         {
+            EVA_PROFILE_FUNCTION();
+
             auto dt = EVA::Platform::GetDeltaTime();
             m_FrameTimes.Add(dt);
 
@@ -56,34 +62,32 @@ namespace EVA
             // Render
             if (m_ResizeViewport)
             {
+                EVA_PROFILE_SCOPE("Resize viewport");
+                m_ResizeViewport = false;
                 m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
                 m_ComputeTexture->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             }
 
-            // Compute
-            /*timer += dt;
-            if (timer > 0.01f)
             {
-                timer -= 0.1f;*/
-                if (ssboData.size() < 1000) { ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400)); }
-                else
-                {
-                    ssboData.erase(ssboData.begin(), ssboData.begin() + 950);
-                }
-                m_Ssbo->BufferData(ssboData.data(), ssboData.size() * sizeof(glm::vec2));
-            //}
+                EVA_PROFILE_SCOPE("Render");
 
-            m_ComputeShader->Bind();
-            std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", ssboData.size());
-            std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
-            std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("imgOutput", m_ComputeTexture);
-            std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->DispatchCompute(m_ComputeTexture->GetWidth(), m_ComputeTexture->GetHeight(), 1);
+                auto start = std::chrono::steady_clock::now();
+
+                m_ComputeShader->Bind();
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", ssboData.size());
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("imgOutput", m_ComputeTexture);
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)
+                  ->DispatchCompute(m_ComputeTexture->GetWidth(), m_ComputeTexture->GetHeight(), 1);
+            }
         }
 
         void OnEvent(EVA::Event& e) override { m_CameraController.OnEvent(e); }
 
         void OnImGuiRender() override
         {
+            EVA_PROFILE_FUNCTION();
+
             ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
             auto avgFrameTime = m_FrameTimes.GetAverage();

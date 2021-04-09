@@ -9,6 +9,8 @@ namespace EVA
 
     void OpenGLContext::Init()
     {
+        EVA_PROFILE_FUNCTION();
+
         glfwMakeContextCurrent(m_WindowHandle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         EVA_INTERNAL_ASSERT(status, "Failed to initialize GLAD");
@@ -19,5 +21,9 @@ namespace EVA
         EVA_INTERNAL_INFO("- Version: {0}", glGetString(GL_VERSION));
     }
 
-    void OpenGLContext::SwapBuffers() { glfwSwapBuffers(m_WindowHandle); }
+    void OpenGLContext::SwapBuffers()
+    {
+        EVA_PROFILE_FUNCTION();
+        glfwSwapBuffers(m_WindowHandle);
+    }
 } // namespace EVA

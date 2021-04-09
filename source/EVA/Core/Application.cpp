@@ -9,6 +9,8 @@ namespace EVA
 {
     Application::Application()
     {
+        EVA_PROFILE_FUNCTION();
+
         EVA_INTERNAL_ASSERT(s_Instance == nullptr, "Application already exists");
         s_Instance = this;
         EVA_LOG_INIT();
@@ -31,10 +33,14 @@ namespace EVA
 
     void Application::Run()
     {
+        EVA_PROFILE_FUNCTION();
+
         float lastFrameTime = Platform::GetTime();
 
         while (m_Running)
         {
+            EVA_PROFILE_SCOPE("Run loop");
+
             float time = Platform::GetTime();
             Platform::SetDeltaTime(time - lastFrameTime);
             lastFrameTime = time;
@@ -58,18 +64,24 @@ namespace EVA
 
     void Application::PushLayer(Layer* layer)
     {
+        EVA_PROFILE_FUNCTION();
+
         m_LayerStack.PushLayer(layer);
         layer->OnAttach();
     }
 
     void Application::PushOverlay(Layer* overlay)
     {
+        EVA_PROFILE_FUNCTION();
+
         m_LayerStack.PushOverlay(overlay);
         overlay->OnAttach();
     }
 
     void Application::OnEvent(Event& event)
     {
+        EVA_PROFILE_FUNCTION();
+
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResized));
@@ -89,6 +101,8 @@ namespace EVA
 
     bool Application::OnWindowResized(WindowResizeEvent& e)
     {
+        EVA_PROFILE_FUNCTION();
+
         if (e.GetWidth() == 0 || e.GetHeight() == 0)
         {
             m_Minimized = true;

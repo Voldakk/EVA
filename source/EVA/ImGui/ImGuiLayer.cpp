@@ -16,6 +16,7 @@ namespace EVA
 
     void ImGuiLayer::OnAttach()
     {
+        EVA_PROFILE_FUNCTION();
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -45,11 +46,12 @@ namespace EVA
 
         // Setup Platform/Renderer bindings
         ImGui_ImplGlfw_InitForOpenGL(window, true);
-        ImGui_ImplOpenGL3_Init("#version 410");
+        ImGui_ImplOpenGL3_Init("#version 430");
     }
 
     void ImGuiLayer::OnDetach()
     {
+        EVA_PROFILE_FUNCTION();
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -57,6 +59,7 @@ namespace EVA
 
     void ImGuiLayer::Begin()
     {
+        EVA_PROFILE_FUNCTION();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -64,16 +67,21 @@ namespace EVA
 
     void ImGuiLayer::End()
     {
+        EVA_PROFILE_FUNCTION();
         ImGuiIO& io      = ImGui::GetIO();
         Application& app = Application::Get();
         io.DisplaySize   = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
 
         // Rendering
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        {
+            EVA_PROFILE_SCOPE("ImGuiLayer::End - Render");
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
+            EVA_PROFILE_SCOPE("ImGuiLayer::End - Viewports");
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();

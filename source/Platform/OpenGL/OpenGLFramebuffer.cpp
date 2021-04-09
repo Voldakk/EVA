@@ -3,7 +3,11 @@
 
 namespace EVA
 {
-    OpenGLFramebuffer::OpenGLFramebuffer(const FramebufferSpecification& spec) : m_Specification(spec) { Invalidate(); }
+    OpenGLFramebuffer::OpenGLFramebuffer(const FramebufferSpecification& spec) : m_Specification(spec)
+    {
+        EVA_PROFILE_FUNCTION();
+        Invalidate();
+    }
 
     OpenGLFramebuffer::~OpenGLFramebuffer()
     {
@@ -52,6 +56,8 @@ namespace EVA
 
     void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height)
     {
+        EVA_PROFILE_FUNCTION();
+
         if (width == 0 || height == 0 || width > MaxFramebufferSize || height > MaxFramebufferSize)
         {
             EVA_INTERNAL_WARN("Invalid framebuffer size: {0}, {1}", width, height);

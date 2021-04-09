@@ -19,6 +19,8 @@ namespace EVA
 
     void GLFWWindow::Init(const WindowProperties& properties)
     {
+        EVA_PROFILE_FUNCTION();
+
         m_Data.title  = properties.title;
         m_Data.width  = properties.width;
         m_Data.height = properties.height;
@@ -121,6 +123,8 @@ namespace EVA
 
     void GLFWWindow::OnUpdate()
     {
+        EVA_PROFILE_FUNCTION();
+
         glfwPollEvents();
         m_Context->SwapBuffers();
     }

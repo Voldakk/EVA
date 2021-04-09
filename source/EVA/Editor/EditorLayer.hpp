@@ -39,6 +39,8 @@ namespace EVA
           m_FrameTimes(10),
           m_CameraController((float)EVA::Application::Get().GetWindow().GetWidth() / (float)EVA::Application::Get().GetWindow().GetHeight())
         {
+            EVA_PROFILE_FUNCTION();
+
             {
                 // Triangle
                 m_TriangleVertexArray = EVA::VertexArray::Create();
@@ -91,6 +93,8 @@ namespace EVA
         inline static float timer = 0.0f;
         void OnUpdate() override
         {
+            EVA_PROFILE_FUNCTION();
+
             auto dt = EVA::Platform::GetDeltaTime();
             m_FrameTimes.Add(dt);
 
@@ -99,6 +103,8 @@ namespace EVA
             // Render
             if (m_ResizeViewport)
             {
+                EVA_PROFILE_SCOPE("Resize viewport");
+                m_ResizeViewport = false;
                 m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
                 m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             }
@@ -135,6 +141,8 @@ namespace EVA
 
         void OnImGuiRender() override
         {
+            EVA_PROFILE_FUNCTION();
+
             ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
             auto avgFrameTime = m_FrameTimes.GetAverage();

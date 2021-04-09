@@ -21,6 +21,8 @@ namespace EVA
 
     OpenGLShader::OpenGLShader(const std::string& filepath)
     {
+        EVA_PROFILE_FUNCTION();
+
         auto source  = ReadFile(filepath);
         auto sources = PreProcess(source);
         Compile(sources);
@@ -34,6 +36,8 @@ namespace EVA
 
     OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource) : m_Name(name)
     {
+        EVA_PROFILE_FUNCTION();
+
         std::unordered_map<GLenum, std::string> sources;
         sources[GL_VERTEX_SHADER]   = vertexSource;
         sources[GL_FRAGMENT_SHADER] = fragmentSource;
@@ -42,6 +46,8 @@ namespace EVA
 
     std::string OpenGLShader::ReadFile(const std::string& filepath)
     {
+        EVA_PROFILE_FUNCTION();
+
         std::string result;
         std::ifstream in(filepath, std::ios::in | std::ios::binary);
         if (in)
@@ -62,6 +68,8 @@ namespace EVA
 
     std::unordered_map<GLenum, std::string> OpenGLShader::PreProcess(const std::string& source)
     {
+        EVA_PROFILE_FUNCTION();
+
         std::unordered_map<GLenum, std::string> sources;
 
         const char* typeToken  = "//#type";
@@ -86,6 +94,8 @@ namespace EVA
 
     void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string>& sources)
     {
+        EVA_PROFILE_FUNCTION();
+
         // Get a program object.
         GLuint program = glCreateProgram();
 
@@ -231,7 +241,11 @@ namespace EVA
 
     void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ)
     {
+        EVA_PROFILE_FUNCTION();
         glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+#ifdef EVA_DEBUG
+        glFinish();
+#endif // EVA_DEBUG
     }
 
     GLint OpenGLShader::GetUniformLocation(const std::string& name)

@@ -15,6 +15,8 @@ namespace EVA
 
     void Renderer::Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const glm::mat4& model)
     {
+        EVA_PROFILE_FUNCTION();
+
         shader->Bind();
         std::dynamic_pointer_cast<OpenGLShader>(shader)->SetUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
         std::dynamic_pointer_cast<OpenGLShader>(shader)->SetUniformMat4("u_Model", model);

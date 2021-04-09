@@ -7,6 +7,8 @@ namespace EVA
 {
     OpenGLTexture2D::OpenGLTexture2D(const std::string& path) : m_Path(path)
     {
+        EVA_PROFILE_FUNCTION();
+
         int width, height, channels;
         stbi_set_flip_vertically_on_load(true);
         auto data = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -42,12 +44,19 @@ namespace EVA
         stbi_image_free(data);
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(const uint32_t width, const uint32_t height) { Resize(width, height); }
+    OpenGLTexture2D::OpenGLTexture2D(const uint32_t width, const uint32_t height)
+    {
+        EVA_PROFILE_FUNCTION();
+
+        Resize(width, height);
+    }
 
     OpenGLTexture2D::~OpenGLTexture2D() { glDeleteTextures(1, &m_RendererId); }
 
     void OpenGLTexture2D::Resize(const uint32_t width, const uint32_t height)
     {
+        EVA_PROFILE_FUNCTION();
+
         m_Width  = width;
         m_Height = height;
 
