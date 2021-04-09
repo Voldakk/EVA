@@ -13,3 +13,6 @@ url=https://github.com/Dav1dde/glad.git
 [submodule "dependencies/imgui/imgui"]
 	path = dependencies/imgui/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "dependencies/ecs"]
+	path = dependencies/ecs
+	url = https://github.com/Voldakk/ECS.git

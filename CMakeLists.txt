@@ -55,6 +55,12 @@ target_link_libraries(eva PUBLIC imgui)
 add_subdirectory(dependencies/stb)
 target_link_libraries(eva PUBLIC stb)
 
+# ECS
+set(EVA_ECS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(EVA_ECS_ENABLE_BENCHMARKS OFF CACHE BOOL "" FORCE)
+add_subdirectory(dependencies/ecs)
+target_link_libraries(eva PUBLIC EVA_ECS)
+
 # Platforms
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	add_compile_definitions(EVA_PLATFORM_WINDOWS)
