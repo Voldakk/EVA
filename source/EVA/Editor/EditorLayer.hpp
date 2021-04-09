@@ -33,12 +33,6 @@ namespace EVA
         bool m_ViewportHovered = false;
         bool m_ResizeViewport  = false;
 
-        //
-        EVA::Ref<EVA::Texture2D> m_ComputeTexture;
-        EVA::Ref<EVA::Shader> m_ComputeShader;
-        EVA::Ref<EVA::ShaderStorageBuffer> m_Ssbo;
-        std::vector<glm::vec2> ssboData;
-
       public:
         EditorLayer() :
           Layer("Editor"),
@@ -93,15 +87,6 @@ namespace EVA
             spec.width            = 1200;
             spec.height           = 600;
             m_ViewportFramebuffer = EVA::Framebuffer::Create(spec);
-
-            // Compute
-            m_ComputeShader  = EVA::Shader::Create("./assets/shaders/compute.glsl");
-            m_ComputeTexture = EVA::Texture2D::Create(512, 512);
-
-            ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
-            ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
-            m_Ssbo = EVA::ShaderStorageBuffer::Create(ssboData.data(), ssboData.size() * sizeof(glm::vec2));
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_Ssbo->GetRendererId());
         }
         inline static float timer = 0.0f;
         void OnUpdate() override
@@ -116,7 +101,6 @@ namespace EVA
             {
                 m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
                 m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-                m_ComputeTexture->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             }
             m_ViewportFramebuffer->Bind();
             EVA::RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
@@ -145,24 +129,6 @@ namespace EVA
 
             EVA::Renderer::EndScene();
             m_ViewportFramebuffer->Unbind();
-
-            // Compute
-            timer += dt;
-            if (timer > 0.1f)
-            {
-                timer -= 0.1f;
-                if (ssboData.size() < 100) { ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400)); }
-                else
-                {
-                    ssboData.erase(ssboData.begin(), ssboData.begin() + 95);
-                }
-                m_Ssbo->BufferData(ssboData.data(), ssboData.size() * sizeof(glm::vec2));
-            }
-
-            m_ComputeShader->Bind();
-            std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
-            std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("img_output", m_ComputeTexture);
-            std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->DispatchCompute(m_ComputeTexture->GetWidth(), m_ComputeTexture->GetHeight(), 1);
         }
 
         void OnEvent(EVA::Event& e) override { m_CameraController.OnEvent(e); }
@@ -199,10 +165,6 @@ namespace EVA
             auto viewportTextureId = m_ViewportFramebuffer->GetColorAttachmentRendererId();
             ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
 
-            ImGui::End();
-            ImGui::Begin("Compute");
-            auto rayTextureId = m_ComputeTexture->GetRendererId();
-            ImGui::Image(*reinterpret_cast<void**>(&rayTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
             ImGui::End();
             ImGui::PopStyleVar(ImGuiStyleVar_WindowPadding);
         }

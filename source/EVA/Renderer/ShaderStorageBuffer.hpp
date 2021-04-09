@@ -7,7 +7,7 @@ namespace EVA
       public:
         virtual ~ShaderStorageBuffer() {};
 
-        virtual void BufferData(void* data, uint32_t size) = 0;
+        virtual void BufferData(void* data, uint32_t size, uint32_t offset = 0) = 0;
 
         virtual uint32_t GetRendererId() const = 0;
 
