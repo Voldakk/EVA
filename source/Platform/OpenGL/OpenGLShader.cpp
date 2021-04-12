@@ -142,9 +142,6 @@ namespace EVA
             shaderIds[shaderIdIndex++] = shader;
         }
 
-        // Vertex and fragment shaders are successfully compiled.
-        // Now time to link them together into a program.
-
         // Link our program
         glLinkProgram(program);
 
@@ -243,6 +240,15 @@ namespace EVA
     {
         EVA_PROFILE_FUNCTION();
         glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+#ifdef EVA_DEBUG
+        glFinish();
+#endif // EVA_DEBUG
+    }
+
+    void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX, uint32_t groupSizeY, uint32_t groupSizeZ)
+    {
+        EVA_PROFILE_FUNCTION();
+        glDispatchComputeGroupSizeARB(numGroupsX, numGroupsY, numGroupsZ, groupSizeX, groupSizeY, groupSizeZ);
 #ifdef EVA_DEBUG
         glFinish();
 #endif // EVA_DEBUG

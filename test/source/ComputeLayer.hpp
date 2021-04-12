@@ -26,7 +26,8 @@ namespace EVA
         EVA::Ref<EVA::Texture2D> m_ComputeTexture;
         EVA::Ref<EVA::Shader> m_ComputeShader;
         EVA::Ref<EVA::ShaderStorageBuffer> m_Ssbo;
-        std::vector<glm::vec2> ssboData;
+        std::vector<glm::vec2> m_SsboData;
+        size_t m_MaxObjects = 1000;
 
       public:
         ComputeLayer() :
@@ -40,11 +41,7 @@ namespace EVA
             m_ComputeShader  = EVA::Shader::Create("./assets/shaders/compute.glsl");
             m_ComputeTexture = EVA::Texture2D::Create(512, 512);
 
-            while (ssboData.size() < 200)
-            {
-                ssboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400));
-            }
-            m_Ssbo = EVA::ShaderStorageBuffer::Create(ssboData.data(), ssboData.size() * sizeof(glm::vec2));
+            m_Ssbo = EVA::ShaderStorageBuffer::Create(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec2));
             
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
         }
@@ -59,6 +56,14 @@ namespace EVA
 
             if (m_ViewportFocused) { m_CameraController.OnUpdate(); }
 
+            // Update
+            if (m_SsboData.size() < 1000) { m_SsboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400)); }
+            else
+            {
+                m_SsboData.erase(m_SsboData.begin(), m_SsboData.begin() + 950);
+            }
+            m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec2));
+
             // Render
             if (m_ResizeViewport)
             {
@@ -71,14 +76,14 @@ namespace EVA
             {
                 EVA_PROFILE_SCOPE("Render");
 
-                auto start = std::chrono::steady_clock::now();
+                auto numObjects = glm::min(m_SsboData.size(), m_MaxObjects);
+                auto numWorkGroups = (size_t) glm::ceil(m_ComputeTexture->GetWidth() * m_ComputeTexture->GetHeight() / (float)numObjects);
 
                 m_ComputeShader->Bind();
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", ssboData.size());
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", numObjects);
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("imgOutput", m_ComputeTexture);
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)
-                  ->DispatchCompute(m_ComputeTexture->GetWidth(), m_ComputeTexture->GetHeight(), 1);
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->DispatchCompute(numWorkGroups, 1, 1, numObjects, 1, 1);
             }
         }
 
@@ -94,6 +99,7 @@ namespace EVA
             ImGui::Begin("Metrics");
             ImGui::Text("FPS: %.2f", 1.0f / avgFrameTime);
             ImGui::Text("Frame time: %.2f ms", avgFrameTime * 1000);
+            ImGui::Text("Objects: %d / %d", m_SsboData.size(), m_MaxObjects);
             ImGui::End();
 
             ImGui::Begin("Settings");

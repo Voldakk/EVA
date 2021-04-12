@@ -31,7 +31,9 @@ namespace EVA
 
         void BindTexture(const std::string& name, Ref<Texture> texture);
         void BindImageTexture(const std::string& name, Ref<Texture> texture);
+
         void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ);
+        void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX, uint32_t groupSizeY, uint32_t groupSizeZ);
 
         void ResetTextureUnit() { m_TextureUnit = 0; }
 
