@@ -14,5 +14,7 @@ namespace EVA
         OpenGLContext(GLFWwindow* windowHandle);
         virtual void Init() override;
         virtual void SwapBuffers() override;
+
+        static glm::ivec3 MaxComputeWorkGroupSize();
     };
 } // namespace EVA

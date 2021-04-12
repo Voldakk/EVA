@@ -10,7 +10,7 @@ namespace EVA
         int width;
         int height;
 
-        explicit WindowProperties(const std::string& title = "EVA Engine", int width = 1200, int height = 600) :
+        explicit WindowProperties(const std::string& title = "EVA Engine", int width = 1920, int height = 1080) :
           title(title), width(width), height(height)
         {
         }

@@ -6,8 +6,26 @@
 #include "EVA.hpp"
 #include "EVA/Utility/SlidingWindow.hpp"
 #include "Platform/OpenGL/OpenGLShader.hpp"
+#include "Platform/OpenGL/OpenGLContext.hpp"
 
 #include <glad/glad.h>
+#include <random>
+
+float randomFloat()
+{
+    static std::random_device rd;
+    static std::mt19937 e2(rd());
+    static std::uniform_real_distribution<float> dist(-5, 5);
+    return dist(e2);
+}
+
+float randomRadius()
+{
+    static std::random_device rd;
+    static std::mt19937 e2(rd());
+    static std::uniform_real_distribution<float> dist(0.1, 0.5);
+    return dist(e2);
+}
 
 namespace EVA
 {
@@ -26,8 +44,8 @@ namespace EVA
         EVA::Ref<EVA::Texture2D> m_ComputeTexture;
         EVA::Ref<EVA::Shader> m_ComputeShader;
         EVA::Ref<EVA::ShaderStorageBuffer> m_Ssbo;
-        std::vector<glm::vec2> m_SsboData;
-        size_t m_MaxObjects = 1000;
+        std::vector<glm::vec4> m_SsboData;
+        size_t m_MaxObjects = 100;
 
       public:
         ComputeLayer() :
@@ -41,7 +59,7 @@ namespace EVA
             m_ComputeShader  = EVA::Shader::Create("./assets/shaders/compute.glsl");
             m_ComputeTexture = EVA::Texture2D::Create(512, 512);
 
-            m_Ssbo = EVA::ShaderStorageBuffer::Create(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec2));
+            m_Ssbo = EVA::ShaderStorageBuffer::Create(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
             
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
         }
@@ -57,12 +75,15 @@ namespace EVA
             if (m_ViewportFocused) { m_CameraController.OnUpdate(); }
 
             // Update
-            if (m_SsboData.size() < 1000) { m_SsboData.push_back(glm::vec2(200 - rand() % 400, 200 - rand() % 400)); }
+            if (m_SsboData.size() < m_MaxObjects) { 
+                m_SsboData.push_back(glm::vec4(randomFloat(), randomFloat(), randomFloat(), randomRadius()));
+                m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
+            }
             else
             {
-                m_SsboData.erase(m_SsboData.begin(), m_SsboData.begin() + 950);
+                //m_SsboData.erase(m_SsboData.begin(), m_SsboData.begin() + 950);
+                //m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
             }
-            m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec2));
 
             // Render
             if (m_ResizeViewport)
@@ -76,14 +97,19 @@ namespace EVA
             {
                 EVA_PROFILE_SCOPE("Render");
 
-                auto numObjects = glm::min(m_SsboData.size(), m_MaxObjects);
-                auto numWorkGroups = (size_t) glm::ceil(m_ComputeTexture->GetWidth() * m_ComputeTexture->GetHeight() / (float)numObjects);
+                size_t numPixels      = m_ComputeTexture->GetWidth() * m_ComputeTexture->GetHeight();
+                size_t numObjects  = glm::min(m_SsboData.size(), m_MaxObjects);
+
+                auto maxWorkGroupSize = OpenGLContext::MaxComputeWorkGroupSize();
+                size_t workGroupSize  = glm::min(numPixels, (size_t)maxWorkGroupSize.x);
+                size_t numWorkGroups  = (size_t)glm::ceil(numPixels / (float)workGroupSize);
 
                 m_ComputeShader->Bind();
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat("time", Platform::GetTime());
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", numObjects);
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("imgOutput", m_ComputeTexture);
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->DispatchCompute(numWorkGroups, 1, 1, numObjects, 1, 1);
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->DispatchCompute(numWorkGroups, 1, 1, workGroupSize, 1, 1);
             }
         }
 

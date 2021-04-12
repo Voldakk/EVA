@@ -13,6 +13,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <glm/glm.hpp>
+
 #include "EVA/Core/Core.hpp"
 #include "EVA/Core/Log.hpp"
 #include "EVA/Utility/Profiler.hpp"
