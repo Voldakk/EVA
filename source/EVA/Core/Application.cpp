@@ -7,7 +7,7 @@
 
 namespace EVA
 {
-    Application::Application()
+    Application::Application(const WindowProperties& properties)
     {
         EVA_PROFILE_FUNCTION();
 
@@ -18,7 +18,7 @@ namespace EVA
         EVA_INTERNAL_INFO("Architecture: {}", EVA_ARCHITECTURE);
         EVA_INTERNAL_INFO("Configuration: {}", EVA_CONFIGURATION);
 
-        m_Window = Window::Create();
+        m_Window = Window::Create(properties);
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();

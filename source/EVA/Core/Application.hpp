@@ -22,7 +22,7 @@ namespace EVA
         LayerStack m_LayerStack;
 
       public:
-        Application();
+        Application(const WindowProperties& properties = WindowProperties());
         ~Application();
 
         void Run();

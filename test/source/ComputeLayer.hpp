@@ -41,11 +41,13 @@ namespace EVA
         bool m_ViewportHovered = false;
         bool m_ResizeViewport  = false;
 
-        EVA::Ref<EVA::Texture2D> m_ComputeTexture;
+        EVA::Ref<EVA::Texture> m_ComputeTexture;
         EVA::Ref<EVA::Shader> m_ComputeShader;
         EVA::Ref<EVA::ShaderStorageBuffer> m_Ssbo;
         std::vector<glm::vec4> m_SsboData;
         size_t m_MaxObjects = 100;
+
+        EVA::Ref<EVA::Texture> m_EnviromentTexture;
 
       public:
         ComputeLayer() :
@@ -55,10 +57,11 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
+            m_EnviromentTexture = EVA::TextureManager::LoadTexture("./assets/textures/canyon.hdr");
+
             // Compute
             m_ComputeShader  = EVA::Shader::Create("./assets/shaders/compute.glsl");
-            m_ComputeTexture = EVA::Texture2D::Create(512, 512);
-
+            m_ComputeTexture = EVA::TextureManager::CreateTexture(512, 512, TextureFormat::RGBA8);
             m_Ssbo = EVA::ShaderStorageBuffer::Create(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
             
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
@@ -81,8 +84,8 @@ namespace EVA
             }
             else
             {
-                //m_SsboData.erase(m_SsboData.begin(), m_SsboData.begin() + 950);
-                //m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
+                m_SsboData.erase(m_SsboData.begin(), m_SsboData.begin() + 5);
+                m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
             }
 
             // Render
@@ -91,7 +94,7 @@ namespace EVA
                 EVA_PROFILE_SCOPE("Resize viewport");
                 m_ResizeViewport = false;
                 m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
-                m_ComputeTexture->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+                m_ComputeTexture = EVA::TextureManager::CreateTexture(m_ViewportSize.x, m_ViewportSize.y, TextureFormat::RGBA8);
             }
 
             {
@@ -105,9 +108,10 @@ namespace EVA
                 size_t numWorkGroups  = (size_t)glm::ceil(numPixels / (float)workGroupSize);
 
                 m_ComputeShader->Bind();
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat("time", Platform::GetTime());
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", numObjects);
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat("time", Platform::GetTime());
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindTexture("envMap", m_EnviromentTexture);
+                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", numObjects);
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("imgOutput", m_ComputeTexture);
                 std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->DispatchCompute(numWorkGroups, 1, 1, workGroupSize, 1, 1);
             }
@@ -148,6 +152,7 @@ namespace EVA
                 m_ResizeViewport = true;
             }
             auto viewportTextureId = m_ComputeTexture->GetRendererId();
+            //auto viewportTextureId = m_EnviromentTexture->GetRendererId();
             ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
 
             ImGui::End();

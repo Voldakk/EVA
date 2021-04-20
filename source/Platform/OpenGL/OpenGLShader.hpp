@@ -29,8 +29,8 @@ namespace EVA
         void SetUniformMat3(const std::string& name, const glm::mat3& matrix);
         void SetUniformMat4(const std::string& name, const glm::mat4& matrix);
 
-        void BindTexture(const std::string& name, Ref<Texture> texture);
-        void BindImageTexture(const std::string& name, Ref<Texture> texture);
+        void BindTexture(const std::string& name, const Ref<Texture>& texture);
+        void BindImageTexture(const std::string& name, const Ref<Texture>& texture);
 
         void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ);
         void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX, uint32_t groupSizeY, uint32_t groupSizeZ);

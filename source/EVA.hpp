@@ -17,4 +17,6 @@
 #include "EVA/Renderer/OrthographicCamera.hpp"
 #include "EVA/Utility/OrthographicCameraController.hpp"
 
+#include "EVA/Assets/TextureManager.hpp"
+
 #include <imgui.h>

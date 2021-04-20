@@ -6,7 +6,7 @@ int main()
 {
     EVA_PROFILE_BEGIN_SESSION("profiler-startup.json");
 
-	auto app = new EVA::Application();
+	auto app = new EVA::Application(EVA::WindowProperties("Ray marching"));
 
     //app->PushLayer(new EVA::EditorLayer());
     app->PushLayer(new EVA::ComputeLayer());

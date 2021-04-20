@@ -5,7 +5,7 @@
 #define INF 1e20
 #define EPS 1e-2
 
-#define MAX_OBJECTS 1000
+#define MAX_OBJECTS 100
 #define MAX_STEPS 100
 #define MAX_DIST 100.0
 #define SURF_DIST 0.01
@@ -15,7 +15,7 @@
 #define ENABLE_GROUND_PLANE 0
 
 layout(local_size_variable) in;
-layout(rgba8) uniform image2D imgOutput;
+layout(binding = 0, rgba8) uniform writeonly image2D imgOutput;
 
 uniform int objectBufferCount;
 layout(std430, binding = 1) buffer sphereBuffer 
@@ -24,6 +24,7 @@ layout(std430, binding = 1) buffer sphereBuffer
 };
 
 uniform float time;
+uniform sampler2D envMap;
 
 shared vec4 sphereData[MAX_OBJECTS];
 
@@ -36,6 +37,15 @@ void bufferShared()
     }
 
     memoryBarrierShared();
+}
+
+const vec2 invAtan = vec2(0.1591, 0.3183);
+vec2 sampleSphericalMap(vec3 v)
+{
+    vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
+    uv *= invAtan;
+    uv += 0.5;
+    return uv;
 }
 
 float getDist(vec3 point)
@@ -124,10 +134,19 @@ void main()
 
     // Ray march
     float dist = rayMarch(ro, rd);
-    vec3 point = ro + rd * dist;
 
-    float diffuse = getLight(point);
-    pixel.rgb = vec3(diffuse);
+    if(dist <= MAX_DIST)
+    {
+        vec3 point = ro + rd * dist;
+
+        float diffuse = getLight(point);
+        pixel.rgb = vec3(diffuse);
+    }
+    else
+    {
+        vec2 uvEnv = sampleSphericalMap(rd);
+        pixel.rgb = texture(envMap, uvEnv).rgb;
+    }
 
     imageStore(imgOutput, pixelCoords, pixel);
 }

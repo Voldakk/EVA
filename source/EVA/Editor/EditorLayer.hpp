@@ -18,7 +18,7 @@ namespace EVA
 
         EVA::Ref<EVA::Shader> m_FlatColorShader, m_TextureShader;
 
-        EVA::Ref<EVA::Texture2D> m_Texture;
+        EVA::Ref<Texture> m_Texture;
 
         EVA::OrthographicCameraController m_CameraController;
 
@@ -82,7 +82,7 @@ namespace EVA
             m_TextureShader   = EVA::Shader::Create("./assets/shaders/texture.glsl");
 
             // Texture
-            m_Texture = EVA::Texture2D::Create("assets/textures/uv.png");
+            m_Texture = EVA::TextureManager::LoadTexture("assets/textures/uv.png");
 
             // Framebuffer
             EVA::FramebufferSpecification spec;

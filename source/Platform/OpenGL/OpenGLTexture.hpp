@@ -2,23 +2,26 @@
 
 #include "EVA/Renderer/Texture.hpp"
 
+#include <glad/glad.h>
+
 namespace EVA
 {
-    class OpenGLTexture2D : public Texture2D
+    class OpenGLTexture
     {
-        uint32_t m_RendererId;
-        uint32_t m_Width, m_Height;
-        std::string m_Path;
-
       public:
-        OpenGLTexture2D(const std::string& path);
-        OpenGLTexture2D(const uint32_t width, const uint32_t height);
-        virtual ~OpenGLTexture2D();
+        static uint32_t CreateGLTextureId(const Texture& texture, void* data, const std::string& id = "");
+        static uint32_t CreateGLTextureId(const Texture& texture, const std::string& id = "");
 
-        virtual void Resize(const uint32_t width, const uint32_t height) override;
+        static void DeleteGLTexture(const Texture& texture);
 
-        inline virtual uint32_t GetWidth() const override { return m_Width; }
-        inline virtual uint32_t GetHeight() const override { return m_Height; }
-        inline virtual uint32_t GetRendererId() const override { return m_RendererId; }
+        static GLenum GetGLTarget(const TextureTarget value);
+
+        static GLenum GetGLFormat(const TextureFormat format);
+        static GLenum GetGLDataType(const TextureDataType dataType);
+
+        static GLint GetGLMinFilter(const TextureMinFilter value);
+        static GLint GetGLMagFilter(const TextureMagFilter value);
+        static GLint GetGLWrapping(const TextureWrapping value);
+
     };
 } // namespace EVA

@@ -4,6 +4,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 
+#include "OpenGLTexture.hpp"
+
 namespace EVA
 {
     static GLenum ShaderTypeFromString(const std::string& type)
@@ -222,18 +224,19 @@ namespace EVA
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
-    void OpenGLShader::BindTexture(const std::string& name, Ref<Texture> texture)
+    void OpenGLShader::BindTexture(const std::string& name, const Ref<Texture>& texture)
     {
         auto unit = m_TextureUnit++;
         SetUniformInt(name, unit);
         glActiveTexture(GL_TEXTURE0 + unit);
-        glBindTexture(GL_TEXTURE_2D, texture->GetRendererId());
+        glBindTexture(OpenGLTexture::GetGLTarget(texture->GetTarget()), texture->GetRendererId());
     }
 
-    void OpenGLShader::BindImageTexture(const std::string& name, Ref<Texture> texture)
+    void OpenGLShader::BindImageTexture(const std::string& name, const Ref<Texture>& texture)
     {
         auto location = GetUniformLocation(name);
-        glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+        location      = 0;
+        glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, OpenGLTexture::GetGLFormat(texture->GetFormat()));
     }
 
     void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ)

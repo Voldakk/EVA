@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <utility>
+#include <filesystem>
 
 #include <string>
 #include <unordered_map>
