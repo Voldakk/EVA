@@ -4,14 +4,15 @@
 
 #define INF 1e20
 #define EPS 1e-2
+#define PI 3.14
 
 #define MAX_OBJECTS 100
-#define MAX_STEPS 100
-#define MAX_DIST 100.0
-#define SURF_DIST 0.01
-#define ESCAPE_SURF_DIST 0.02
+#define MAX_STEPS 200
+#define MAX_DIST 200.0
+#define SURF_DIST 1e-2
+#define ESCAPE_SURF_DIST 2e-2
 
-#define ENABLE_SHADOWS 1
+#define ENABLE_SHADOWS 0
 #define ENABLE_GROUND_PLANE 0
 
 layout(local_size_variable) in;
@@ -25,6 +26,12 @@ layout(std430, binding = 1) buffer sphereBuffer
 
 uniform float time;
 uniform sampler2D envMap;
+
+uniform vec3 cameraPosition;
+uniform vec3 cameraForward;
+uniform vec3 cameraUp;
+uniform vec3 cameraRight;
+uniform float cameraFov;
 
 shared vec4 sphereData[MAX_OBJECTS];
 
@@ -48,18 +55,86 @@ vec2 sampleSphericalMap(vec3 v)
     return uv;
 }
 
+float opSubtraction( float d1, float d2 ) 
+{ 
+    return max(-d1, d2); 
+}
+
+float opSmoothSubtraction( float d1, float d2, float k ) 
+{
+    float h = clamp( 0.5 - 0.5 * (d2 + d1) / k, 0.0, 1.0 );
+    return mix( d2, -d1, h ) + k * h * (1.0 - h); 
+    }
+
+float sdMandelbulb(vec3 point) 
+{
+    const int RECURSE_NUM = 10;
+    const float POWER = 8;
+    const float SCALE = 3;
+
+    vec4 p = vec4(point, 0) / SCALE;
+	vec4 z = p;
+	float dr = 1.0;
+	float r = 0.0;
+	for (int i = 0; i < RECURSE_NUM; i++) {
+		r = length(z);
+		if (r > 10) break;
+
+		float theta = acos(z.z / r);
+		float phi = atan(z.y, z.x);
+		dr = pow(r, POWER - 1.0) * POWER * dr + 1.0;
+
+		float zr = pow(r, POWER);
+		theta = theta * POWER;
+		phi = phi * POWER;
+
+		z = zr * vec4(
+			sin(theta) * cos(phi),
+			sin(phi) * sin(theta),
+			cos(theta),
+			1.0);
+		z += p;
+	}
+	return SCALE * 0.5 * log(r) * r / dr;
+}
+
+float sdTetrahedron(vec3 z)
+{
+    const int Iterations = 15;
+    const float Scale = 2;
+    const float Offset = 2;
+
+	float r;
+    int n = 0;
+    while (n < Iterations) 
+    {
+       if(z.x + z.y < 0) z.xy = -z.yx;
+       if(z.x + z.z < 0) z.xz = -z.zx;
+       if(z.y + z.z < 0) z.zy = -z.yz;
+       z = z*Scale - Offset*(Scale-1.0);
+       n++;
+    }
+    return length(z) * pow(Scale, -float(n));
+}
+
 float getDist(vec3 point)
 {
     float minDist = INF;
+
+    minDist = min(minDist, sdMandelbulb(point));
+
+    float sphereDist = INF;
     for (int i = 0; i < objectBufferCount; i++)
     {
         float dist = length(point - sphereData[i].xyz) - sphereData[i].w;
-        minDist = min(minDist, dist);
+        sphereDist = min(sphereDist, dist);
     }
+    minDist = opSmoothSubtraction(sphereDist, minDist, 0.5);
 
     #if ENABLE_GROUND_PLANE
     minDist = min(minDist, point.y);
     #endif
+
 
     return minDist;
 }
@@ -92,8 +167,8 @@ vec3 getNormal(vec3 point)
 
 float getLight(vec3 point)
 {
-    vec3 lightPos = vec3(0, 5, 6);
-    lightPos.xz += vec2(sin(time), cos(time)) * 15;
+    vec3 lightPos = vec3(2, 5, -6);
+    //lightPos.xz += vec2(sin(time), cos(time)) * 15;
     vec3 pointToLight = normalize(lightPos - point);
     vec3 normal = getNormal(point);
 
@@ -129,8 +204,16 @@ void main()
     vec4 pixel = vec4(0.0, 0.0, 0.0, 1.0);
 
     // Camera
-    vec3 ro = vec3(0, 2, -15);
-    vec3 rd = normalize(vec3(uv.xy, 1));
+    //vec3 rd = normalize(cameraRight * uv.x + cameraUp * uv.y + cameraForward);
+    vec3 ro = cameraPosition;
+   
+    // Camera fov
+    vec2 cpos = uv * tan(radians(cameraFov / 2)); 
+    vec3 rd = vec3(cpos, 1);
+    rd = normalize(rd);
+
+    mat3 camToWorld = transpose(mat3(cameraRight, cameraUp, cameraForward));
+    rd *= camToWorld;
 
     // Ray march
     float dist = rayMarch(ro, rd);
@@ -147,6 +230,8 @@ void main()
         vec2 uvEnv = sampleSphericalMap(rd);
         pixel.rgb = texture(envMap, uvEnv).rgb;
     }
+
+    //pixel.xyz = rd;
 
     imageStore(imgOutput, pixelCoords, pixel);
 }

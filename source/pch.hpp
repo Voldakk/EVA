@@ -15,6 +15,8 @@
 #include <sstream>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "EVA/Core/Core.hpp"
 #include "EVA/Core/Log.hpp"
