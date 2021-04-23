@@ -31,6 +31,7 @@ namespace EVA
         virtual void AttachCubemap(std::shared_ptr<Texture> cubemap, int sideIndex, int mip = 0) = 0;
 
         virtual uint32_t GetColorAttachmentRendererId() const            = 0;
+        virtual uint32_t GetDepthAttachmentRendererId() const            = 0;
         virtual const FramebufferSpecification& GetSpecification() const = 0;
     };
-} // namespace EVA
+} // namespace EVA 

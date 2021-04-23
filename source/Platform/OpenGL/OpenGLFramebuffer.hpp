@@ -22,6 +22,7 @@ namespace EVA
         void AttachCubemap(std::shared_ptr<Texture> cubemap, int sideIndex, int mip = 0) override;
 
         uint32_t GetColorAttachmentRendererId() const override { return m_ColorAttachment; };
+        uint32_t GetDepthAttachmentRendererId() const override { return m_DepthAttachment; };
         const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
 
       private:

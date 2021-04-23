@@ -24,14 +24,17 @@ layout(std430, binding = 1) buffer sphereBuffer
     vec4 spheresSSBO[]; 
 };
 
+uniform sampler2D u_FbColor;
+uniform sampler2D u_FbDepth;
+
 uniform float time;
 uniform sampler2D envMap;
 
-uniform vec3 cameraPosition;
-uniform vec3 cameraForward;
-uniform vec3 cameraUp;
-uniform vec3 cameraRight;
 uniform float cameraFov;
+uniform float cameraNear;
+uniform float cameraFar;
+
+uniform mat4 u_ViewProjection;
 
 shared vec4 sphereData[MAX_OBJECTS];
 
@@ -44,6 +47,13 @@ void bufferShared()
     }
     memoryBarrierShared();
 }
+
+float linearizeDepth(float depth, float near, float far) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return (2.0 * near * far) / (far + near - z * (far - near));	
+}
+
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
 vec2 sampleSphericalMap(vec3 v)
@@ -197,32 +207,41 @@ void main()
     if(pixelCoords.x >= dims.x || pixelCoords.y >= dims.y) 
         return;
 
-    vec2 uv = vec2(pixelCoords.xy) / vec2(dims) - 0.5;
-    uv.x *= aspect;
+    vec2 uv = vec2(pixelCoords.xy) / vec2(dims);
 
     // Base pixel colour
     vec4 pixel = vec4(0.0, 0.0, 0.0, 1.0);
 
+    // Copy from frame buffer
+    vec3 fbColor = texture(u_FbColor, uv).rgb;
+    pixel.rgb = fbColor;
+
+    float fbDepth = texture(u_FbDepth, uv).r;
+    fbDepth = linearizeDepth(fbDepth, cameraNear, cameraFar);
+
     // Camera
-    vec3 ro = cameraPosition;
+    mat4 m = inverse(u_ViewProjection);
+    vec4 rayStart = vec4(uv * 2 - 1, -1, 1);
+    vec4 rayEnd = vec4(uv * 2 - 1, 0, 1);
+    rayStart = m * rayStart;
+    rayEnd = m * rayEnd;
+    rayStart /= rayStart.w;
+    rayEnd /= rayEnd.w;
 
-    vec2 cpos = uv * tan(radians(cameraFov / 2)); 
-    vec3 rd = vec3(cpos, 1);
-    rd = normalize(rd);
-    mat3 camToWorld = transpose(mat3(cameraRight, cameraUp, cameraForward));
-    rd *= camToWorld;
-
+    vec3 ro = rayStart.xyz;
+    vec3 rd = normalize(rayEnd - rayStart).xyz;
+    
     // Ray march
     float dist = rayMarch(ro, rd);
 
-    if(dist <= MAX_DIST)
+    if(dist <= MAX_DIST && dist < fbDepth)
     {
         vec3 point = ro + rd * dist;
 
         float diffuse = getLight(point);
         pixel.rgb = vec3(diffuse);
     }
-    else
+    else if(fbDepth >= cameraFar)
     {
         vec2 uvEnv = sampleSphericalMap(rd);
         pixel.rgb = texture(envMap, uvEnv).rgb;

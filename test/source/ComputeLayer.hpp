@@ -34,6 +34,7 @@ namespace EVA
         EVA::SlidingWindow<float> m_FrameTimes;
 
         glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+        Ref<Framebuffer> m_ViewportFramebuffer;
 
         bool m_ViewportFocused = false;
         bool m_ViewportHovered = false;
@@ -45,7 +46,14 @@ namespace EVA
         std::vector<glm::vec4> m_SsboData;
         size_t m_MaxObjects = 100;
 
-        EVA::Ref<Texture> m_EnviromentTexture;
+        Ref<Mesh> m_ShipMesh;
+        Ref<Shader> m_PBRShader;
+
+        Ref<Texture> m_EquirectangularMap;
+        Ref<Texture> m_EnvironmentMap;
+        Ref<Texture> m_IrradianceMap;
+        Ref<Texture> m_PreFilterMap;
+        Ref<Texture> m_PreComputedBRDF;
 
         PerspectiveCameraController m_CameraController;
 
@@ -58,8 +66,11 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            m_EnviromentTexture = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
-            
+            // Framebuffer
+            FramebufferSpecification spec;
+            spec.width            = Application::Get().GetWindow().GetWidth();
+            spec.height           = Application::Get().GetWindow().GetHeight();
+            m_ViewportFramebuffer = Framebuffer::Create(spec);
 
             // Compute
             m_ComputeShader  = Shader::Create("./assets/shaders/compute.glsl");
@@ -67,6 +78,18 @@ namespace EVA
             m_Ssbo = ShaderStorageBuffer::Create(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
             
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
+
+            // Ship
+            auto mesh  = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
+            m_ShipMesh = mesh[0];
+            m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl");
+
+            // Enviroment
+            m_EquirectangularMap = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
+            m_EnvironmentMap  = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
+            m_IrradianceMap   = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
+            m_PreFilterMap    = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
+            m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
         }
 
         inline static float timer = 0.0f;
@@ -77,9 +100,24 @@ namespace EVA
             auto dt = EVA::Platform::GetDeltaTime();
             m_FrameTimes.Add(dt);
 
-            if (m_ViewportFocused) { m_CameraController.OnUpdate(); }
-
             // Update
+            if (m_ViewportFocused)
+            {
+                if (Input::IsKeyPressed(KeyCode::Escape))
+                {
+                    if (Input::GetCursorMode() == Input::CursorMode::Disabled)
+                        Input::SetCursorMode(Input::CursorMode::Normal);
+                    else
+                        Input::SetCursorMode(Input::CursorMode::Disabled);
+                }
+
+                m_CameraController.OnUpdate();
+            }
+            else if (Input::GetCursorMode() != Input::CursorMode::Normal)
+            {
+                Input::SetCursorMode(Input::CursorMode::Normal);
+            }
+            
             if (m_SsboData.size() < m_MaxObjects) { 
                 m_SsboData.push_back(glm::vec4(randomFloat(), randomFloat(), randomFloat(), randomRadius()));
                 m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
@@ -95,11 +133,32 @@ namespace EVA
             {
                 EVA_PROFILE_SCOPE("Resize viewport");
                 m_ResizeViewport = false;
+                m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
                 m_ComputeTexture = EVA::TextureManager::CreateTexture(m_ViewportSize.x, m_ViewportSize.y, TextureFormat::RGBA8);
             }
 
             {
                 EVA_PROFILE_SCOPE("Render");
+
+                m_ViewportFramebuffer->Bind();
+                RenderCommand::SetClearColor({0.0f, 0.0f, 0.0f, 1});
+                RenderCommand::Clear();
+
+                Renderer::BeginScene(m_CameraController.GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF);
+
+                m_PBRShader->Bind();
+                m_PBRShader->ResetTextureUnit();
+                m_ShipMesh->GetMaterial()->Bind(m_PBRShader);
+
+                auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, 0.0f, 0.0f));
+                Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray(), transform);
+
+                Renderer::EndScene();
+                m_ViewportFramebuffer->Unbind();
+            }
+
+            {
+                EVA_PROFILE_SCOPE("Render ray");
 
                 size_t numPixels      = m_ComputeTexture->GetWidth() * m_ComputeTexture->GetHeight();
                 size_t numObjects  = glm::min(m_SsboData.size(), m_MaxObjects);
@@ -111,14 +170,15 @@ namespace EVA
                 m_ComputeShader->Bind();
                 m_ComputeShader->ResetTextureUnit();
 
-                m_ComputeShader->SetUniformFloat3("cameraPosition", m_CameraController.GetPosition());
-                m_ComputeShader->SetUniformFloat3("cameraForward", m_CameraController.GetForward());
-                m_ComputeShader->SetUniformFloat3("cameraUp", m_CameraController.GetUp());
-                m_ComputeShader->SetUniformFloat3("cameraRight", m_CameraController.GetRight());
+                m_ComputeShader->SetUniformMat4("u_ViewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
                 m_ComputeShader->SetUniformFloat("cameraFov", m_CameraController.GetFov());
+                m_ComputeShader->SetUniformFloat("cameraNear", m_CameraController.GetNearPlane());
+                m_ComputeShader->SetUniformFloat("cameraFar", m_CameraController.GetFarPlane());
 
                 m_ComputeShader->SetUniformFloat("time", Platform::GetTime());
-                m_ComputeShader->BindTexture("envMap", m_EnviromentTexture);
+                m_ComputeShader->BindTexture("envMap", m_EquirectangularMap);
+                m_ComputeShader->BindTexture("u_FbColor", TextureTarget::Texture2D, m_ViewportFramebuffer->GetColorAttachmentRendererId());
+                m_ComputeShader->BindTexture("u_FbDepth", TextureTarget::Texture2D, m_ViewportFramebuffer->GetDepthAttachmentRendererId());
 
                 m_ComputeShader->SetUniformInt("objectBufferCount", numObjects);
 

@@ -32,6 +32,7 @@ namespace EVA
 
         glm::vec2 m_MousePos;
 
+        float m_MovementSpeed = 1.0f;
         float m_MouseSensitivity = 0.3f; 
         float m_CameraZoomSpeed = 1;
 
@@ -82,7 +83,7 @@ namespace EVA
             // Down
             if (Input::IsKeyPressed(KeyCode::LeftShift)) movement -= m_Up;
 
-            m_Position += movement * Platform::GetDeltaTime().GetSeconds();
+            m_Position += movement * Platform::GetDeltaTime().GetSeconds() * m_MovementSpeed;
 
             // Mouse
             auto mousePos      = Input::GetMousePosition();
@@ -136,19 +137,26 @@ namespace EVA
         void Inspector()
         {
             ImGui::Text("Camera");
-            ImGui::SliderFloat("FOV", &m_Fov, m_FovMin, m_FovMax);
-            ImGui::SliderFloat("Near", &m_NearPlane, 0, m_FarPlane);
-            ImGui::SliderFloat("Far", &m_FarPlane, m_NearPlane, 10000);
+
+            bool changed = false;
+            changed |= ImGui::SliderFloat("FOV", &m_Fov, m_FovMin, m_FovMax);
+            changed |= ImGui::SliderFloat("Near", &m_NearPlane, 0, m_FarPlane);
+            changed |= ImGui::SliderFloat("Far", &m_FarPlane, m_NearPlane, 10000);
+            if (changed) { m_Camera.SetProjection(m_Fov, m_AspectRatio, m_NearPlane, m_FarPlane); }
+
+            ImGui::SliderFloat("Movement speed", &m_MovementSpeed, 0, 10);
             ImGui::SliderFloat("Mouse sensitivity", &m_MouseSensitivity, 0, 1);
-            ImGui::SliderFloat("Zoom sensitivity", &m_CameraZoomSpeed, 0, 1);
+            ImGui::SliderFloat("Zoom sensitivity", &m_CameraZoomSpeed, 0, 5);
             ImGui::InputFloat3("Position", glm::value_ptr(m_Position));
         }
-
+        
         glm::vec3 GetPosition() const { return m_Position; }
         glm::vec3 GetForward() const { return m_Forward; }
         glm::vec3 GetRight() const { return m_Right; }
         glm::vec3 GetUp() const { return m_Up; }
         float GetFov() const { return m_Fov; }
+        float GetNearPlane() const { return m_NearPlane; }
+        float GetFarPlane() const { return m_FarPlane; }
 
         PerspectiveCamera& GetCamera() { return m_Camera; }
         const PerspectiveCamera& GetCamera() const { return m_Camera; }

@@ -232,6 +232,14 @@ namespace EVA
         glBindTexture(OpenGLTexture::GetGLTarget(texture->GetTarget()), texture->GetRendererId());
     }
 
+    void OpenGLShader::BindTexture(const std::string& name, TextureTarget target, uint32_t rendererId)
+    {
+        auto unit = m_TextureUnit++;
+        SetUniformInt(name, unit);
+        glActiveTexture(GL_TEXTURE0 + unit);
+        glBindTexture(OpenGLTexture::GetGLTarget(target), rendererId);
+    }
+
     void OpenGLShader::BindImageTexture(const std::string& name, const Ref<Texture>& texture)
     {
         auto location = GetUniformLocation(name);

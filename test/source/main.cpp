@@ -8,8 +8,8 @@ int main()
 
 	auto app = new EVA::Application(EVA::WindowProperties("Ray marching"));
 
-    app->PushLayer(new EVA::EditorLayer());
-    //app->PushLayer(new EVA::ComputeLayer());
+    //app->PushLayer(new EVA::EditorLayer());
+    app->PushLayer(new EVA::ComputeLayer());
 
 	app->GetWindow().SetVSync(false);
 
