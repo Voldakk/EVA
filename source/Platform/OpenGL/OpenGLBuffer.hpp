@@ -8,7 +8,7 @@ namespace EVA
         BufferLayout m_Layout;
 
       public:
-        OpenGLVertexBuffer(float* vertices, uint32_t size);
+        OpenGLVertexBuffer(const void* vertices, uint32_t size);
         virtual ~OpenGLVertexBuffer();
 
         virtual void Bind() const override;
@@ -24,7 +24,7 @@ namespace EVA
         uint32_t m_Count;
 
       public:
-        OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
+        OpenGLIndexBuffer(const uint32_t* indices, uint32_t count);
         virtual ~OpenGLIndexBuffer();
 
         virtual void Bind() const override;

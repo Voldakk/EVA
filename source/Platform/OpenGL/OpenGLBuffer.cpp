@@ -6,7 +6,7 @@ namespace EVA
 {
 #pragma region OpenGLVertexBuffer
 
-    OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, uint32_t size)
+    OpenGLVertexBuffer::OpenGLVertexBuffer(const void* vertices, uint32_t size)
     {
         glCreateBuffers(1, &m_RendererId);
         glBindBuffer(GL_ARRAY_BUFFER, m_RendererId);
@@ -22,7 +22,7 @@ namespace EVA
 #pragma endregion
 #pragma region OpenGLIndexBuffer
 
-    OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count) : m_Count(count)
+    OpenGLIndexBuffer::OpenGLIndexBuffer(const uint32_t* indices, uint32_t count) : m_Count(count)
     {
         glCreateBuffers(1, &m_RendererId);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererId);

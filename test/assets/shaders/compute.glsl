@@ -42,7 +42,6 @@ void bufferShared()
     {
         sphereData[id] = spheresSSBO[id]; 
     }
-
     memoryBarrierShared();
 }
 
@@ -64,7 +63,7 @@ float opSmoothSubtraction( float d1, float d2, float k )
 {
     float h = clamp( 0.5 - 0.5 * (d2 + d1) / k, 0.0, 1.0 );
     return mix( d2, -d1, h ) + k * h * (1.0 - h); 
-    }
+}
 
 float sdMandelbulb(vec3 point) 
 {
@@ -76,7 +75,8 @@ float sdMandelbulb(vec3 point)
 	vec4 z = p;
 	float dr = 1.0;
 	float r = 0.0;
-	for (int i = 0; i < RECURSE_NUM; i++) {
+	for (int i = 0; i < RECURSE_NUM; i++) 
+    {
 		r = length(z);
 		if (r > 10) break;
 
@@ -194,7 +194,7 @@ void main()
     const float aspect = float(dims.x) / float(dims.y);
 
     const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.x % dims.x, gl_GlobalInvocationID.x / dims.x);
-    if(pixelCoords.x > dims.x || pixelCoords.y > dims.y) 
+    if(pixelCoords.x >= dims.x || pixelCoords.y >= dims.y) 
         return;
 
     vec2 uv = vec2(pixelCoords.xy) / vec2(dims) - 0.5;
@@ -204,14 +204,11 @@ void main()
     vec4 pixel = vec4(0.0, 0.0, 0.0, 1.0);
 
     // Camera
-    //vec3 rd = normalize(cameraRight * uv.x + cameraUp * uv.y + cameraForward);
     vec3 ro = cameraPosition;
-   
-    // Camera fov
+
     vec2 cpos = uv * tan(radians(cameraFov / 2)); 
     vec3 rd = vec3(cpos, 1);
     rd = normalize(rd);
-
     mat3 camToWorld = transpose(mat3(cameraRight, cameraUp, cameraForward));
     rd *= camToWorld;
 
@@ -230,8 +227,6 @@ void main()
         vec2 uvEnv = sampleSphericalMap(rd);
         pixel.rgb = texture(envMap, uvEnv).rgb;
     }
-
-    //pixel.xyz = rd;
 
     imageStore(imgOutput, pixelCoords, pixel);
 }

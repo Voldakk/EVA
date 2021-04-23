@@ -200,21 +200,21 @@ namespace EVA
                 size_t numWorkGroups  = (size_t)glm::ceil(numPixels / (float)workGroupSize);
 
                 m_ComputeShader->Bind();
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->ResetTextureUnit();
+                m_ComputeShader->ResetTextureUnit();
 
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat3("cameraPosition", m_Camera->GetPosition());
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat3("cameraForward", m_Camera->GetForward());
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat3("cameraUp", m_Camera->GetUp());
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat3("cameraRight", m_Camera->GetRight());
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat("cameraFov", m_Camera->GetFov());
+                m_ComputeShader->SetUniformFloat3("cameraPosition", m_Camera->GetPosition());
+                m_ComputeShader->SetUniformFloat3("cameraForward", m_Camera->GetForward());
+                m_ComputeShader->SetUniformFloat3("cameraUp", m_Camera->GetUp());
+                m_ComputeShader->SetUniformFloat3("cameraRight", m_Camera->GetRight());
+                m_ComputeShader->SetUniformFloat("cameraFov", m_Camera->GetFov());
 
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformFloat("time", Platform::GetTime());
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindTexture("envMap", m_EnviromentTexture);
+                m_ComputeShader->SetUniformFloat("time", Platform::GetTime());
+                m_ComputeShader->BindTexture("envMap", m_EnviromentTexture);
 
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->SetUniformInt("objectBufferCount", numObjects);
+                m_ComputeShader->SetUniformInt("objectBufferCount", numObjects);
 
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->BindImageTexture("imgOutput", m_ComputeTexture);
-                std::dynamic_pointer_cast<EVA::OpenGLShader>(m_ComputeShader)->DispatchCompute(numWorkGroups, 1, 1, workGroupSize, 1, 1);
+                m_ComputeShader->BindImageTexture("imgOutput", m_ComputeTexture);
+                m_ComputeShader->DispatchCompute(numWorkGroups, 1, 1, workGroupSize, 1, 1);
             }
         }
 
