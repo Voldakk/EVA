@@ -9,15 +9,17 @@ namespace EVA
 {
     void Material::Bind(const Ref<Shader> shader) 
     { 
-        if (albedo) shader->BindTexture("albedoMap", albedo);
-        if (emissive) shader->BindTexture("emissiveMap", emissive);
-        if (normal) shader->BindTexture("normalMap", normal);
-        if (metallic) shader->BindTexture("metallicMap", metallic);
-        if (roughness) shader->BindTexture("roughnessMap", roughness);
+        if (albedo) shader->BindTexture("u_AlbedoMap", albedo);
+        if (emissive) shader->BindTexture("u_EmissiveMap", emissive);
+        if (normal) shader->BindTexture("u_NormalMap", normal);
+        if (metallic) shader->BindTexture("u_MetallicMap", metallic);
+        if (roughness) shader->BindTexture("u_RoughnessMap", roughness);
     }
 
     Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) : m_Material(material)
     { 
+        EVA_PROFILE_FUNCTION();
+
         m_VertexArray = EVA::VertexArray::Create();
 
         // Vertex buffer
@@ -40,6 +42,10 @@ namespace EVA
 
     std::vector<Ref<Mesh>> Mesh::LoadMesh(const std::filesystem::path& path) 
     {
+        EVA_PROFILE_FUNCTION();
+
+        EVA_INTERNAL_TRACE("Loading mesh: {}", FileSystem::ToString(path));
+
         objl::Loader loader;
         bool loaded = loader.LoadFile(FileSystem::ToString(path));
         EVA_INTERNAL_ASSERT(loaded, "Failed to load file");
@@ -48,17 +54,19 @@ namespace EVA
         
         for (const auto& mesh : loader.LoadedMeshes) 
         {
-            std::vector<Vertex> vertices(mesh.Vertices.size());
+            std::vector<Vertex> vertices;
+            vertices.reserve(mesh.Vertices.size());
             {
                 // Copy vertices
                 for (const auto& v : mesh.Vertices)
                 {
                     Vertex vertex;
-                    vertex.position  = *reinterpret_cast<const glm::vec3*>(&v.Position);
-                    vertex.texCoords = *reinterpret_cast<const glm::vec2*>(&v.TextureCoordinate);
-                    vertex.normal    = *reinterpret_cast<const glm::vec3*>(&v.Normal);
+                    vertex.position  = glm::vec3(v.Position.X, v.Position.Y, v.Position.Z);
+                    vertex.texCoords = glm::vec2(v.TextureCoordinate.X, v.TextureCoordinate.Y);
+                    vertex.normal    = glm::vec3(v.Normal.X, v.Normal.Y, v.Normal.Z);
                     vertex.tangent   = glm::vec3(0);
                     vertex.bitangent = glm::vec3(0);
+                    vertices.push_back(vertex);
                 }
 
                 // Calculate tangents

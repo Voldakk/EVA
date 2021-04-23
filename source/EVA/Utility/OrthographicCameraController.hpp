@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "EVA/Core/Timestep.hpp"
 #include "EVA/Events/Mouse.hpp"
 #include "EVA/Events/Window.hpp"

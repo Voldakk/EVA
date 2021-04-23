@@ -264,7 +264,7 @@ namespace EVA
 
         const GLint location = glGetUniformLocation(m_RendererId, name.c_str());
 #ifdef EVA_DEBUG
-        if (location == -1) { EVA_INTERNAL_ERROR("Invalid uniform name: {}", name); }
+        if (location == -1) { EVA_INTERNAL_WARN("Invalid uniform name: {}", name); }
 #endif
         m_UniformLocationMap[name] = location;
         return location;

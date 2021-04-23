@@ -16,9 +16,12 @@ namespace EVA
             s_RendererAPI->SetViewport(x, y, width, height);
         }
 
+        inline static void Clear() { s_RendererAPI->Clear(); }
         inline static void SetClearColor(const glm::vec4& color) { s_RendererAPI->SetClearColor(color); }
 
-        inline static void Clear() { s_RendererAPI->Clear(); }
+        inline static void SetCullMode(CullMode mode) { s_RendererAPI->SetCullMode(mode); }
+
+        inline static void EnableDepth(bool value) { s_RendererAPI->EnableDepth(value); }
 
         inline static void DrawIndexed(const Ref<VertexArray>& vertexArray) { s_RendererAPI->DrawIndexed(vertexArray); }
     };

@@ -38,7 +38,6 @@ namespace EVA
         glCreateTextures(GL_TEXTURE_2D, 1, &m_DepthAttachment);
         glBindTexture(GL_TEXTURE_2D, m_DepthAttachment);
         glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, m_Specification.width, m_Specification.height);
-        // glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_Specification.width, m_Specification.height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, 0);
 
         EVA_INTERNAL_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete");
@@ -66,4 +65,24 @@ namespace EVA
         m_Specification.height = height;
         Invalidate();
     }
+    void OpenGLFramebuffer::ResetTexturesAttachments() 
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_RendererId);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, 0);
+    }
+
+    void OpenGLFramebuffer::AttachTexture(std::shared_ptr<Texture> texture, int mip)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_RendererId);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, (GLenum)texture->GetTarget(), texture->GetRendererId(), mip);
+    }
+
+    void OpenGLFramebuffer::AttachCubemap(std::shared_ptr<Texture> cubemap, int sideIndex, int mip)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_RendererId);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + sideIndex, cubemap->GetRendererId(), mip);
+    }
+
+    
 } // namespace EVA

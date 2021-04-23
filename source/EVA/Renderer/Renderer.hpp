@@ -1,10 +1,11 @@
 #pragma once
 
-#include "OrthographicCamera.hpp"
+#include "Camera.hpp"
 #include "RenderCommand.hpp"
 #include "RendererAPI.hpp"
 #include "Shader.hpp"
 #include "VertexArray.hpp"
+#include "Texture.hpp"
 
 namespace EVA
 {
@@ -12,7 +13,16 @@ namespace EVA
     {
         struct SceneData
         {
-            glm::mat4 ViewProjectionMatrix;
+            glm::vec3 cameraPosition;
+
+            glm::mat4 viewMatrix;
+            glm::mat4 projectionMatrix;
+            glm::mat4 viewProjectionMatrix;
+
+            Ref<Texture> environmentMap;
+            Ref<Texture> irradianceMap;
+            Ref<Texture> prefilterMap;
+            Ref<Texture> brdfLUT;
         };
 
         static SceneData* s_SceneData;
@@ -22,7 +32,8 @@ namespace EVA
 
         static void OnWindowResize(uint32_t width, uint32_t height);
 
-        static void BeginScene(OrthographicCamera& camera);
+        static void BeginScene(const Camera& camera, Ref<Texture> environmentMap, Ref<Texture> irradianceMap, Ref<Texture> prefilterMap,
+                               Ref<Texture> brdfLUT);
         static void EndScene();
 
         static void Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const glm::mat4& model = glm::mat4(1.0f));

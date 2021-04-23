@@ -27,4 +27,17 @@ namespace EVA
 
         return {(float)xpos, (float)ypos};
     }
+
+    void Input::SetCursorMode(const CursorMode mode)
+    {
+        s_CursorMode = mode;
+        auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        switch (mode)
+        {
+            case CursorMode::Normal: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); return;
+            case CursorMode::Hidden: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); return;
+            case CursorMode::Disabled: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); return;
+        }
+        throw;
+    }
 } // namespace EVA

@@ -5,10 +5,8 @@
 
 #include "EVA.hpp"
 #include "EVA/Utility/SlidingWindow.hpp"
-#include "Platform/OpenGL/OpenGLShader.hpp"
 
 #include <glad/glad.h>
-#include "EVA/Assets/Mesh.hpp"
 
 namespace EVA
 {
@@ -21,7 +19,8 @@ namespace EVA
 
         Ref<Texture> m_Texture;
 
-        OrthographicCameraController m_CameraController;
+        OrthographicCameraController m_OrtoCameraController;
+        PerspectiveCameraController m_PersCameraController;
 
         SlidingWindow<float> m_FrameTimes;
 
@@ -34,14 +33,24 @@ namespace EVA
         bool m_ViewportHovered = false;
         bool m_ResizeViewport  = false;
 
+        Ref<Mesh> m_CubeMesh;
         Ref<Mesh> m_ShipMesh;
         Ref<Shader> m_PBRShader;
+
+        Ref<Texture> m_EnvironmentMap;
+        Ref<Texture> m_IrradianceMap;
+        Ref<Texture> m_PreFilterMap;
+        Ref<Texture> m_PreComputedBRDF;
+
+        Ref<Mesh> m_SkyboxMesh;
+        Ref<Shader> m_SkyboxShader;
 
       public:
         EditorLayer() :
           Layer("Editor"),
           m_FrameTimes(10),
-          m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight())
+          m_OrtoCameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight()),
+          m_PersCameraController(glm::vec3(0, 0, -5), 0, 0, (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight())
         {
             EVA_PROFILE_FUNCTION();
 
@@ -51,8 +60,9 @@ namespace EVA
 
                 // Vertex buffer
                 float vertices[3 * 7] = {
-                  -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f, 0.5f, -0.5f, 0.0f, 0.2f,
-                  0.3f,  0.8f,  1.0f, 0.0f, 0.5f, 0.0f, 0.8f, 0.8f, 0.2f,  1.0f,
+                  -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f, 
+                  0.5f, -0.5f, 0.0f, 0.2f, 0.3f,  0.8f,  1.0f, 
+                  0.0f, 0.5f, 0.0f, 0.8f, 0.8f, 0.2f,  1.0f,
                 };
                 Ref<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
                 BufferLayout layout       = {{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}};
@@ -68,8 +78,11 @@ namespace EVA
                 // Square
                 m_SquareVertexArray = VertexArray::Create();
 
-                float vertices[5 * 4]          = {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f,
-                                         0.5f,  0.5f,  0.0f, 1.0f, 1.0f, -0.5f, 0.5f,  0.0f, 0.0f, 1.0f};
+                float vertices[5 * 4] = {
+                    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 
+                    0.5f,  -0.5f, 0.0f, 1.0f, 0.0f,
+                    0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 
+                    -0.5f, 0.5f,  0.0f, 0.0f, 1.0f};
                 Ref<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
                 vb->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float2, "a_TexCoord"}});
                 m_SquareVertexArray->AddVertexBuffer(vb);
@@ -79,6 +92,9 @@ namespace EVA
                 };
                 Ref<IndexBuffer> ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
                 m_SquareVertexArray->SetIndexBuffer(ib);
+            }
+            {
+                m_CubeMesh = Mesh::LoadMesh("./assets/models/cube.obj")[0];
             }
 
             // Shaders
@@ -99,6 +115,18 @@ namespace EVA
             m_ShipMesh = mesh[0];
 
             m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl");
+            {
+                //auto equirectangular = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
+                auto equirectangular = TextureManager::LoadTexture("./assets/textures/space_5k.hdr");
+                //auto equirectangular = TextureManager::LoadTexture("./assets/textures/canyon.hdr");
+                m_EnvironmentMap     = TextureUtilities::EquirectangularToCubemap(equirectangular);
+                m_IrradianceMap   = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
+                m_PreFilterMap    = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
+                m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
+            }
+
+            m_SkyboxMesh = Mesh::LoadMesh("./assets/models/cube_inverted.obj")[0];
+            m_SkyboxShader = Shader::Create("./assets/shaders/skybox.glsl");
         }
         inline static float timer = 0.0f;
         void OnUpdate() override
@@ -108,21 +136,46 @@ namespace EVA
             auto dt = Platform::GetDeltaTime();
             m_FrameTimes.Add(dt);
 
-            if (m_ViewportFocused) { m_CameraController.OnUpdate(); }
+            if (m_ViewportFocused) 
+            { 
+                if (Input::IsKeyPressed(KeyCode::Escape))
+                {
+                    if (Input::GetCursorMode() == Input::CursorMode::Disabled)
+                        Input::SetCursorMode(Input::CursorMode::Normal);
+                    else
+                        Input::SetCursorMode(Input::CursorMode::Disabled);
+                }
+
+                m_OrtoCameraController.OnUpdate();
+                m_PersCameraController.OnUpdate();
+            }
+            else if (Input::GetCursorMode() != Input::CursorMode::Normal)
+            {
+                Input::SetCursorMode(Input::CursorMode::Normal);
+            }
 
             // Render
             if (m_ResizeViewport)
             {
                 EVA_PROFILE_SCOPE("Resize viewport");
                 m_ResizeViewport = false;
-                m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
                 m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+                m_OrtoCameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+                m_PersCameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             }
             m_ViewportFramebuffer->Bind();
             RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
             RenderCommand::Clear();
 
-            Renderer::BeginScene(m_CameraController.GetCamera());
+            //Renderer::BeginScene(m_OrtoCameraController.GetCamera());
+            Renderer::BeginScene(m_PersCameraController.GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF);
+
+            // Sky
+            m_SkyboxShader->Bind();
+            m_SkyboxShader->ResetTextureUnit();
+            RenderCommand::EnableDepth(false);
+            Renderer::Submit(m_SkyboxShader, m_SkyboxMesh->GetVertexArray());
+            RenderCommand::EnableDepth(true);
 
             // Squares
             m_FlatColorShader->Bind();
@@ -133,27 +186,38 @@ namespace EVA
             {
                 for (size_t x = 0; x < 20; x++)
                 {
-                    auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(x * 0.11f, y * 0.11f, 0.0f)) * scale;
+                    auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(2 + x * 0.11f, y * 0.11f, 0.0f)) * scale;
                     Renderer::Submit(m_FlatColorShader, m_SquareVertexArray, transform);
                 }
             }
 
-            auto scale2 = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
+            auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, 0.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
+            /*m_TextureShader->Bind();
+            m_TextureShader->ResetTextureUnit();
+            m_TextureShader->BindTexture("u_AlbedoMap", m_Texture);
+            Renderer::Submit(m_TextureShader, m_SquareVertexArray, transform);*/
+
+            // Cube
             m_TextureShader->Bind();
-            m_TextureShader->BindTexture("u_Texture", m_Texture);
-            Renderer::Submit(m_TextureShader, m_SquareVertexArray, scale2);
+            m_TextureShader->ResetTextureUnit();
+            m_TextureShader->BindTexture("u_AlbedoMap", m_Texture);
+            Renderer::Submit(m_TextureShader, m_CubeMesh->GetVertexArray(), transform);
 
             // Ship
             m_PBRShader->Bind();
             m_PBRShader->ResetTextureUnit();
             m_ShipMesh->GetMaterial()->Bind(m_PBRShader);
-            Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray(), glm::identity<glm::mat4>());
+            Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray());
 
             Renderer::EndScene();
             m_ViewportFramebuffer->Unbind();
         }
 
-        void OnEvent(Event& e) override { m_CameraController.OnEvent(e); }
+        void OnEvent(Event& e) override
+        {
+            m_OrtoCameraController.OnEvent(e);
+            m_PersCameraController.OnEvent(e);
+        }
 
         void OnImGuiRender() override
         {
@@ -169,6 +233,7 @@ namespace EVA
 
             ImGui::Begin("Settings");
             ImGui::ColorEdit3("Square color", glm::value_ptr(m_SquareColor));
+            m_PersCameraController.Inspector();
             ImGui::End();
 
             // Viewport
@@ -187,6 +252,7 @@ namespace EVA
                 m_ResizeViewport = true;
             }
             auto viewportTextureId = m_ViewportFramebuffer->GetColorAttachmentRendererId();
+            //auto viewportTextureId = m_ShipMesh->GetMaterial()->metallic->GetRendererId();
             ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
 
             ImGui::End();

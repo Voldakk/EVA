@@ -9,13 +9,17 @@ namespace EVA
       public:
         OpenGLRendererAPI() = default;
 
-        virtual void Init() override;
+        void Init() override;
 
-        virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
+        void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 
-        virtual void SetClearColor(const glm::vec4& color) override;
-        virtual void Clear() override;
+        void Clear() override;
+        void SetClearColor(const glm::vec4& color) override;
 
-        virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) override;
+        void SetCullMode(CullMode mode) override;
+
+        void EnableDepth(bool value) override;
+
+        void DrawIndexed(const Ref<VertexArray>& vertexArray) override;
     };
 } // namespace EVA

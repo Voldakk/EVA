@@ -135,7 +135,7 @@ namespace EVA
 
     struct TextureSettings
     {
-        TextureWrapping wrapping = TextureWrapping::ClampToEdge;
+        TextureWrapping wrapping = TextureWrapping::Repeat;
         TextureMinFilter minFilter = TextureMinFilter::Linear;
         TextureMagFilter magFilter = TextureMagFilter::Linear;
     };

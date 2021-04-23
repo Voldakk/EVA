@@ -4,6 +4,8 @@ namespace EVA
 {
     uint32_t OpenGLTexture::CreateGLTextureId(const Texture& texture, void* data, const std::string& id) 
     {
+        EVA_PROFILE_FUNCTION();
+
         auto format = texture.GetFormat();
         
         uint32_t rendererId;
@@ -23,8 +25,10 @@ namespace EVA
         return rendererId;
     }
 
-    uint32_t OpenGLTexture::CreateGLTextureId(const Texture& texture, const std::string& id) 
+    uint32_t OpenGLTexture::CreateGLTextureId(const Texture& texture, const std::string& id)
     {
+        EVA_PROFILE_FUNCTION();
+
         auto format = texture.GetFormat();
 
         uint32_t rendererId;
@@ -38,7 +42,35 @@ namespace EVA
 
         glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
                      GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr);
+
+        if (id != "") { glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str()); }
+
+        return rendererId;
+    }
+
+    uint32_t OpenGLTexture::CreateGLCubemapId(const Texture& texture, const std::string& id)
+    {
+        EVA_PROFILE_FUNCTION();
+
+        auto format = texture.GetFormat();
+
+        uint32_t rendererId;
+        glGenTextures(1, &rendererId);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rendererId);
+
+        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping));
+        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping));
+        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_R, GetGLWrapping(texture.GetSettings().wrapping));
+        glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter));
+        glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter));
+
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
+                         GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr);
+        }
         
+
         if (id != "") { glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str()); }
 
         return rendererId;
@@ -46,8 +78,18 @@ namespace EVA
 
     void OpenGLTexture::DeleteGLTexture(const Texture& texture) 
     { 
+        EVA_PROFILE_FUNCTION();
+
         auto rendererId = texture.GetRendererId();
         glDeleteTextures(1, &rendererId);
+    }
+
+    void OpenGLTexture::GenerateMipMaps(const Texture& texture)
+    {
+        EVA_PROFILE_FUNCTION();
+
+        glBindTexture(GetGLTarget(texture.GetTarget()), texture.GetRendererId());
+        glGenerateMipmap(GetGLTarget(texture.GetTarget()));
     }
 
     GLenum OpenGLTexture::GetGLTarget(const TextureTarget value) 

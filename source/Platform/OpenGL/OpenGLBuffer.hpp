@@ -5,6 +5,8 @@ namespace EVA
     class OpenGLVertexBuffer : public VertexBuffer
     {
         uint32_t m_RendererId;
+        uint32_t m_Size;
+
         BufferLayout m_Layout;
 
       public:

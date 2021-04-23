@@ -17,6 +17,11 @@
 #include "EVA/Renderer/OrthographicCamera.hpp"
 #include "EVA/Utility/OrthographicCameraController.hpp"
 
+#include "EVA/Renderer/PerspectiveCamera.hpp"
+#include "EVA/Utility/PerspectiveCameraController.hpp"
+
 #include "EVA/Assets/TextureManager.hpp"
+#include "EVA/Assets/TextureUtilities.hpp"
+#include "EVA/Assets/Mesh.hpp"
 
 #include <imgui.h>

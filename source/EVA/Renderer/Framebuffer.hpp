@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EVA/Core/Core.hpp"
-#include <glm/glm.hpp>
+#include "Texture.hpp"
 
 namespace EVA
 {
@@ -25,6 +25,10 @@ namespace EVA
         virtual void Unbind() = 0;
 
         virtual void Resize(uint32_t width, uint32_t height) = 0;
+
+        virtual void ResetTexturesAttachments()                                              = 0;
+        virtual void AttachTexture(std::shared_ptr<Texture> texture, int mip = 0)            = 0;
+        virtual void AttachCubemap(std::shared_ptr<Texture> cubemap, int sideIndex, int mip = 0) = 0;
 
         virtual uint32_t GetColorAttachmentRendererId() const            = 0;
         virtual const FramebufferSpecification& GetSpecification() const = 0;
