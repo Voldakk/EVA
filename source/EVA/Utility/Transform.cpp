@@ -180,7 +180,7 @@ namespace EVA
 		m_Scale = m_Parent == nullptr ? m_LocalScale : m_Parent->m_Scale * m_LocalScale;
 		
 		// Parent
-        m_ModelMatrix = m_Parent == nullptr ? glm::mat4() : m_Parent->m_ModelMatrix;
+        m_ModelMatrix = m_Parent == nullptr ? glm::identity<glm::mat4>() : m_Parent->m_ModelMatrix;
 
 		// Position
 		m_ModelMatrix = glm::translate(m_ModelMatrix, m_LocalPosition);

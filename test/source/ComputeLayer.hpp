@@ -1,12 +1,8 @@
 #pragma once
 
 #include "EVA.hpp"
-#include "EVA/Utility/SlidingWindow.hpp"
-#include "Platform/OpenGL/OpenGLShader.hpp"
+#include "ShipController.hpp"
 #include "Platform/OpenGL/OpenGLContext.hpp"
-
-#include <glad/glad.h>
-#include <imgui.h>
 #include <random>
 
 float randomFloat()
@@ -24,8 +20,30 @@ float randomRadius()
     static std::uniform_real_distribution<float> dist(0.1, 0.5);
     return dist(e2);
 }
+
 namespace EVA
 {
+    template<KeyCode keyCode>
+    bool IsKeyPressed()
+    {
+        static bool canClick = true;
+        if (Input::IsKeyPressed(keyCode))
+        {
+            if (canClick)
+            {
+                canClick = false;
+                return true;
+            }
+
+            canClick = false;
+        }
+        else
+        {
+            canClick = true;
+        }
+        return false;
+    }
+
     struct SceneParams
     {
         float surfaceDist = 0.01f;
@@ -70,8 +88,8 @@ namespace EVA
             ImGui::Text("Mandelbulb");
             ImGui::Checkbox("Enable##Mandelbulb", &mandelbulbEnable);
             ImGui::SliderInt("Iterations##Mandelbulb", &mandelbulbIterations, 0, 20);
-            ImGui::SliderFloat("Power##Mandelbulb", &mandelbulbPower, 0, 10);
-            ImGui::SliderFloat("Scale##Mandelbulb", &mandelbulbScale, 0, 10);
+            ImGui::SliderFloat("Power##Mandelbulb", &mandelbulbPower, 0, 100);
+            ImGui::SliderFloat("Scale##Mandelbulb", &mandelbulbScale, 0, 100);
 
             ImGui::Spacing();
             ImGui::Spacing();
@@ -111,12 +129,12 @@ namespace EVA
     {
         EVA::SlidingWindow<float> m_FrameTimes;
 
-        glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+        glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
         Ref<Framebuffer> m_ViewportFramebuffer;
 
         bool m_ViewportFocused = false;
         bool m_ViewportHovered = false;
-        bool m_ResizeViewport  = false;
+        bool m_ResizeViewport = false;
 
         EVA::Ref<EVA::Texture> m_ComputeTexture;
         EVA::Ref<EVA::Shader> m_ComputeShader;
@@ -124,8 +142,10 @@ namespace EVA
         std::vector<glm::vec4> m_SsboData;
         size_t m_MaxObjects = 100;
 
-        Ref<Mesh> m_ShipMesh;
         Ref<Shader> m_PBRShader;
+        Ref<Mesh> m_ShipMesh;
+        Ref<ShipController> m_ShipController;
+        bool m_InShip = false;
 
         Ref<Texture> m_EquirectangularMap;
         Ref<Texture> m_EnvironmentMap;
@@ -133,15 +153,15 @@ namespace EVA
         Ref<Texture> m_PreFilterMap;
         Ref<Texture> m_PreComputedBRDF;
 
-        PerspectiveCameraController m_CameraController;
+        Ref<PerspectiveCameraController> m_CameraController;
+        Ref<ChaseCameraController> m_ChaseCameraController;
 
         SceneParams m_SceneParams;
 
-      public:
+    public:
         ComputeLayer() :
-          Layer("Compute"),
-          m_FrameTimes(10),
-          m_CameraController(glm::vec3(0, 2, -5), 0, 0, (float) Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight())
+            Layer("Compute"),
+            m_FrameTimes(10)
         {
             EVA_PROFILE_FUNCTION();
 
@@ -149,32 +169,38 @@ namespace EVA
 
             // Framebuffer
             FramebufferSpecification spec;
-            spec.width            = Application::Get().GetWindow().GetWidth();
-            spec.height           = Application::Get().GetWindow().GetHeight();
+            spec.width = Application::Get().GetWindow().GetWidth();
+            spec.height = Application::Get().GetWindow().GetHeight();
             m_ViewportFramebuffer = Framebuffer::Create(spec);
 
             // Compute
             m_ComputeTexture = TextureManager::CreateTexture(512, 512, TextureFormat::RGBA8);
             m_Ssbo = ShaderStorageBuffer::Create(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
-            
+
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
 
             // Ship
-            auto mesh  = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
+            auto mesh = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipMesh = mesh[0];
+            m_ShipController = CreateRef<ShipController>(glm::vec3(5.0f, 0.0f, 0.0f));
 
             // Enviroment
             m_EquirectangularMap = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
-            m_EnvironmentMap  = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
-            m_IrradianceMap   = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
-            m_PreFilterMap    = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
+            m_EnvironmentMap = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
+            m_IrradianceMap = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
+            m_PreFilterMap = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
             m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
+
+            // Cameras
+            m_CameraController = CreateRef<PerspectiveCameraController>(glm::vec3(0, 2, -5), 0, 0,
+                (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight());
+            m_ChaseCameraController = CreateRef<ChaseCameraController>(m_CameraController->GetCamera(), m_CameraController->GetTransform(), m_ShipController->GetTransform());
         }
 
-        void LoadShaders() 
-        { 
+        void LoadShaders()
+        {
             m_ComputeShader = Shader::Create("./assets/shaders/compute.glsl");
-            m_PBRShader     = Shader::Create("./assets/shaders/pbr.glsl");
+            m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl");
         }
 
         inline static float timer = 0.0f;
@@ -188,32 +214,41 @@ namespace EVA
             // Update
             if (m_ViewportFocused)
             {
-                if (Input::IsKeyPressed(KeyCode::Escape))
+                EVA_PROFILE_SCOPE("Viewport update");
+
+                if (IsKeyPressed<KeyCode::Escape>()) 
                 {
                     if (Input::GetCursorMode() == Input::CursorMode::Disabled)
                         Input::SetCursorMode(Input::CursorMode::Normal);
                     else
                         Input::SetCursorMode(Input::CursorMode::Disabled);
-                }
+                }  
 
                 if (Input::GetCursorMode() == Input::CursorMode::Disabled) 
                 {
-                    m_CameraController.OnUpdate();
+                    if (m_InShip) 
+                    { 
+                        m_ShipController->OnUpdate();
+                        m_ChaseCameraController->OnUpdate();
+                    }
+                    else
+                    {
+                        m_CameraController->OnUpdate();
+                    }
                 }
             }
-            else if (Input::GetCursorMode() != Input::CursorMode::Normal)
-            {
-                Input::SetCursorMode(Input::CursorMode::Normal);
-            }
             
-            if (m_SsboData.size() < m_MaxObjects) { 
-                m_SsboData.push_back(glm::vec4(randomFloat(), randomFloat(), randomFloat(), randomRadius()));
-                m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
-            }
-            else
             {
-                m_SsboData.erase(m_SsboData.begin(), m_SsboData.begin() + 5);
-                m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
+                EVA_PROFILE_SCOPE("SSBO data");
+                if (m_SsboData.size() < m_MaxObjects) { 
+                    m_SsboData.push_back(glm::vec4(randomFloat(), randomFloat(), randomFloat(), randomRadius()));
+                    m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
+                }
+                else
+                {
+                    m_SsboData.erase(m_SsboData.begin(), m_SsboData.begin() + 5);
+                    m_Ssbo->BufferData(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
+                }
             }
 
             // Render
@@ -232,14 +267,13 @@ namespace EVA
                 RenderCommand::SetClearColor({0.0f, 0.0f, 0.0f, 1});
                 RenderCommand::Clear();
 
-                Renderer::BeginScene(m_CameraController.GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF);
+                Renderer::BeginScene(m_CameraController->GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF);
 
                 m_PBRShader->Bind();
                 m_PBRShader->ResetTextureUnit();
                 m_ShipMesh->GetMaterial()->Bind(m_PBRShader);
 
-                auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, 0.0f, 0.0f));
-                Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray(), transform);
+                Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray(), m_ShipController->GetTransform().GetModelMatrix());
 
                 Renderer::EndScene();
                 m_ViewportFramebuffer->Unbind();
@@ -258,9 +292,9 @@ namespace EVA
                 m_ComputeShader->Bind();
                 m_ComputeShader->ResetTextureUnit();
 
-                m_ComputeShader->SetUniformMat4("u_ViewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
-                m_ComputeShader->SetUniformFloat("u_CameraNear", m_CameraController.GetNearPlane());
-                m_ComputeShader->SetUniformFloat("u_CameraFar", m_CameraController.GetFarPlane());
+                m_ComputeShader->SetUniformMat4("u_ViewProjection", m_CameraController->GetCamera().GetViewProjectionMatrix());
+                m_ComputeShader->SetUniformFloat("u_CameraNear", m_CameraController->GetNearPlane());
+                m_ComputeShader->SetUniformFloat("u_CameraFar", m_CameraController->GetFarPlane());
 
                 m_SceneParams.SetUniforms(m_ComputeShader);
 
@@ -276,7 +310,27 @@ namespace EVA
             }
         }
 
-        void OnEvent(EVA::Event& e) override { }
+        void OnEvent(EVA::Event& e) override 
+        { 
+            EVA_PROFILE_FUNCTION();
+            EventDispatcher dispatcher(e);
+            dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(ComputeLayer::OnKeyPressed));
+
+            if (m_InShip) 
+            {
+                m_ChaseCameraController->OnEvent(e);
+            }
+        }
+
+        bool OnKeyPressed(KeyPressedEvent& e)
+        {
+            EVA_INTERNAL_ERROR("Keypressed");
+            if(e.GetKeyCode() == KeyCode::Enter) 
+            { 
+                m_InShip = !m_InShip;
+            }
+            return false;
+        }
 
         void OnImGuiRender() override
         {
@@ -295,8 +349,16 @@ namespace EVA
             if (ImGui::Button("Reload shaders")) LoadShaders();
             ImGui::Spacing();
             ImGui::Spacing();
-            m_CameraController.Inspector();
             m_SceneParams.Inspector();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            m_CameraController->Inspector();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            m_ShipController->Inspector();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            m_ChaseCameraController->Inspector();
             ImGui::End();
 
             // Viewport

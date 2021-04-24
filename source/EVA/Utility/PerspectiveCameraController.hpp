@@ -42,6 +42,8 @@ namespace EVA
           m_Yaw(yaw),
           m_Camera(fov, aspect, nearPlane, farPlane)
         {
+            EVA_PROFILE_FUNCTION();
+
             m_Transform.SetPosition(position);
             m_MousePos = Input::GetMousePosition();
             OnUpdate();
@@ -49,6 +51,8 @@ namespace EVA
 
         void OnUpdate()
         {
+            EVA_PROFILE_FUNCTION();
+
             // Movement
             glm::vec3 movement = glm::vec3(0.0);
 
@@ -78,8 +82,8 @@ namespace EVA
             mouseMovement      = glm::clamp(mouseMovement, -50.0f, 50.0f) * m_MouseSensitivity;
             m_MousePos         = mousePos;
 
-            m_Pitch += mouseMovement.y * m_MouseSensitivity;
-            m_Yaw += mouseMovement.x * m_MouseSensitivity;
+            m_Pitch += mouseMovement.y;
+            m_Yaw += mouseMovement.x;
 
             // Clamp
             m_Pitch = glm::clamp(m_Pitch, -89.0f, 89.0f);
@@ -96,12 +100,14 @@ namespace EVA
 
         void OnResize(float width, float height) 
         {
+            EVA_PROFILE_FUNCTION();
             m_AspectRatio = width / height;
             m_Camera.SetProjection(m_Fov, m_AspectRatio, m_NearPlane, m_FarPlane);
         }
 
         void OnEvent(Event& e) 
         {
+            EVA_PROFILE_FUNCTION();
             EventDispatcher dispatcher(e);
             dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(PerspectiveCameraController::OnMouseScrolled));
             dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(PerspectiveCameraController::OnWindowResized));
@@ -115,6 +121,7 @@ namespace EVA
 
         bool OnMouseScrolled(MouseScrolledEvent& e)
         {
+            EVA_PROFILE_FUNCTION();
             m_Fov = glm::clamp(m_Fov - e.GetYOffset() * m_CameraZoomSpeed, m_FovMin, m_FovMax);
             m_Camera.SetProjection(m_Fov, m_AspectRatio, m_NearPlane, m_FarPlane);
             return false;
@@ -122,22 +129,24 @@ namespace EVA
 
         void Inspector()
         {
+            EVA_PROFILE_FUNCTION();
             ImGui::Text("Camera");
 
             bool changed = false;
-            changed |= ImGui::SliderFloat("FOV", &m_Fov, m_FovMin, m_FovMax);
-            changed |= ImGui::SliderFloat("Near", &m_NearPlane, 0, m_FarPlane);
-            changed |= ImGui::SliderFloat("Far", &m_FarPlane, m_NearPlane, 10000);
+            changed |= ImGui::SliderFloat("FOV##PCC", &m_Fov, m_FovMin, m_FovMax);
+            changed |= ImGui::SliderFloat("Near##PCC", &m_NearPlane, 0, m_FarPlane);
+            changed |= ImGui::SliderFloat("Far##PCC", &m_FarPlane, m_NearPlane, 10000);
             if (changed) { m_Camera.SetProjection(m_Fov, m_AspectRatio, m_NearPlane, m_FarPlane); }
 
-            ImGui::SliderFloat("Movement speed", &m_MovementSpeed, 0, 10);
-            ImGui::SliderFloat("Mouse sensitivity", &m_MouseSensitivity, 0, 1);
-            ImGui::SliderFloat("Zoom sensitivity", &m_CameraZoomSpeed, 0, 5);
+            ImGui::SliderFloat("Movement speed##PCC", &m_MovementSpeed, 0, 10);
+            ImGui::SliderFloat("Mouse sensitivity##PCC", &m_MouseSensitivity, 0, 1);
+            ImGui::SliderFloat("Zoom sensitivity##PCC", &m_CameraZoomSpeed, 0, 5);
 
             auto pos = m_Transform.GetPosition();
-            if (ImGui::InputFloat3("Position", glm::value_ptr(pos))) { m_Transform.SetPosition(pos); }
+            if (ImGui::InputFloat3("Position##PCC", glm::value_ptr(pos))) { m_Transform.SetPosition(pos); }
         }
         
+        Transform& GetTransform() { return m_Transform; }
         const Transform& GetTransform() const { return m_Transform; }
         float GetFov() const { return m_Fov; }
         float GetNearPlane() const { return m_NearPlane; }

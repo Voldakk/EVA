@@ -4,6 +4,11 @@
 #include "EVA/Core/Platform.hpp"
 #include "EVA/Core/Timestep.hpp"
 
+#include "EVA/Events/Event.hpp"
+#include "EVA/Events/Key.hpp"
+#include "EVA/Events/Mouse.hpp"
+#include "EVA/Events/Window.hpp"
+
 #include "EVA/Renderer/RenderCommand.hpp"
 #include "EVA/Renderer/Renderer.hpp"
 
@@ -15,10 +20,14 @@
 #include "EVA/Renderer/VertexArray.hpp"
 
 #include "EVA/Renderer/OrthographicCamera.hpp"
-#include "EVA/Utility/OrthographicCameraController.hpp"
-
 #include "EVA/Renderer/PerspectiveCamera.hpp"
+
+#include "EVA/Utility/OrthographicCameraController.hpp"
 #include "EVA/Utility/PerspectiveCameraController.hpp"
+#include "EVA/Utility/ChaseCameraController.hpp"
+
+#include "EVA/Utility/Transform.hpp"
+#include "EVA/Utility/SlidingWindow.hpp"
 
 #include "EVA/Assets/TextureManager.hpp"
 #include "EVA/Assets/TextureUtilities.hpp"

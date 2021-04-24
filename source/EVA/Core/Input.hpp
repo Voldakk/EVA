@@ -26,4 +26,6 @@ namespace EVA
       private:
         inline static CursorMode s_CursorMode = CursorMode::Normal;
     };
+
+    bool operator==(const int& lhs, const KeyCode& rhs);
 } // namespace EVA

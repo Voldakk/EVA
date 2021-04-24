@@ -9,10 +9,13 @@ namespace EVA
     OrthographicCameraController::OrthographicCameraController(float aspectRatio, bool rotation) :
       m_AspectRatio(aspectRatio), m_Rotation(rotation), m_Camera(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel)
     {
+
     }
 
     void OrthographicCameraController::OnUpdate()
     {
+        EVA_PROFILE_FUNCTION();
+
         auto dt = Platform::GetDeltaTime();
 
         if (Input::IsKeyPressed(KeyCode::W)) m_CameraPosition.y += m_CameraTranslationSpeed * m_ZoomLevel * dt;
@@ -34,6 +37,7 @@ namespace EVA
 
     void OrthographicCameraController::OnEvent(Event& e)
     {
+        EVA_PROFILE_FUNCTION();
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseScrolled));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OrthographicCameraController::OnWindowResized));
@@ -41,12 +45,14 @@ namespace EVA
 
     void OrthographicCameraController::OnResize(float width, float height)
     {
+        EVA_PROFILE_FUNCTION();
         m_AspectRatio = width / height;
         m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
     }
 
     bool OrthographicCameraController::OnMouseScrolled(MouseScrolledEvent& e)
     {
+        EVA_PROFILE_FUNCTION();
         m_ZoomLevel = glm::max(0.1f, m_ZoomLevel - e.GetYOffset() * m_CameraZoomSpeed);
         m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
         return false;
