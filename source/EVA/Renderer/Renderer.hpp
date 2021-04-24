@@ -6,6 +6,7 @@
 #include "Shader.hpp"
 #include "VertexArray.hpp"
 #include "Texture.hpp"
+#include "Light.hpp"
 
 namespace EVA
 {
@@ -23,6 +24,8 @@ namespace EVA
             Ref<Texture> irradianceMap;
             Ref<Texture> prefilterMap;
             Ref<Texture> brdfLUT;
+
+            std::vector<Light> lights;
         };
 
         static SceneData* s_SceneData;
@@ -33,7 +36,7 @@ namespace EVA
         static void OnWindowResize(uint32_t width, uint32_t height);
 
         static void BeginScene(const Camera& camera, Ref<Texture> environmentMap, Ref<Texture> irradianceMap, Ref<Texture> prefilterMap,
-                               Ref<Texture> brdfLUT);
+                               Ref<Texture> brdfLUT, const std::vector<Light>& lights);
         static void EndScene();
 
         static void Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const glm::mat4& model = glm::mat4(1.0f));

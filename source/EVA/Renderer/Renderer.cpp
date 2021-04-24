@@ -8,7 +8,8 @@ namespace EVA
 
     void Renderer::OnWindowResize(uint32_t width, uint32_t height) { RenderCommand::SetViewport(0, 0, width, height); }
 
-    void Renderer::BeginScene(const Camera& camera, Ref<Texture> environmentMap, Ref<Texture> irradianceMap, Ref<Texture> prefilterMap, Ref<Texture> brdfLUT) 
+    void Renderer::BeginScene(const Camera& camera, Ref<Texture> environmentMap, Ref<Texture> irradianceMap, Ref<Texture> prefilterMap,
+                              Ref<Texture> brdfLUT, const std::vector<Light>& lights) 
     { 
         RenderCommand::SetCullMode(CullMode::Back);
         s_SceneData->viewMatrix           = camera.GetViewMatrix();
@@ -23,6 +24,8 @@ namespace EVA
         s_SceneData->irradianceMap = irradianceMap;
         s_SceneData->prefilterMap  = prefilterMap;
         s_SceneData->brdfLUT       = brdfLUT;
+
+        s_SceneData->lights = lights;
     }
 
     void Renderer::EndScene() {}
@@ -43,8 +46,14 @@ namespace EVA
         shader->BindTexture("u_PrefilterMap", s_SceneData->prefilterMap);
         shader->BindTexture("u_BrdfLUT", s_SceneData->brdfLUT);
 
+        shader->SetUniformInt("u_NumLights", s_SceneData->lights.size());
+        for (size_t i = 0; i < s_SceneData->lights.size(); i++)
+        {
+            const auto uniformName = "u_AllLights[" + std::to_string(i) + "].";
+            s_SceneData->lights[i].SetUniforms(shader, uniformName, i);
+        }
+
         shader->SetUniformMat4("u_Model", model);
-        shader->SetUniformInt("u_NumLights", 0);
 
         vertexArray->Bind();
         RenderCommand::DrawIndexed(vertexArray);

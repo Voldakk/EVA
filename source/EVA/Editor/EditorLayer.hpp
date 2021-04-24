@@ -45,6 +45,8 @@ namespace EVA
         Ref<Mesh> m_SkyboxMesh;
         Ref<Shader> m_SkyboxShader;
 
+        std::vector<Light> m_Lights;
+
       public:
         EditorLayer() :
           Layer("Editor"),
@@ -53,6 +55,8 @@ namespace EVA
           m_PersCameraController(glm::vec3(0, 0, -5), 0, 0, (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight())
         {
             EVA_PROFILE_FUNCTION();
+
+            LoadShaders();
 
             {
                 // Triangle
@@ -114,10 +118,8 @@ namespace EVA
             auto mesh = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipMesh = mesh[0];
 
-            m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl");
             {
-                //auto equirectangular = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
-                auto equirectangular = TextureManager::LoadTexture("./assets/textures/space_5k.hdr");
+                auto equirectangular = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
                 //auto equirectangular = TextureManager::LoadTexture("./assets/textures/canyon.hdr");
                 m_EnvironmentMap     = TextureUtilities::EquirectangularToCubemap(equirectangular);
                 m_IrradianceMap   = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
@@ -126,8 +128,13 @@ namespace EVA
             }
 
             m_SkyboxMesh = Mesh::LoadMesh("./assets/models/cube_inverted.obj")[0];
-            m_SkyboxShader = Shader::Create("./assets/shaders/skybox.glsl");
         }
+        void LoadShaders()
+        {
+            m_SkyboxShader = Shader::Create("./assets/shaders/skybox.glsl");
+            m_PBRShader    = Shader::Create("./assets/shaders/pbr.glsl");
+        }
+
         inline static float timer = 0.0f;
         void OnUpdate() override
         {
@@ -168,7 +175,7 @@ namespace EVA
             RenderCommand::Clear();
 
             //Renderer::BeginScene(m_OrtoCameraController.GetCamera());
-            Renderer::BeginScene(m_PersCameraController.GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF);
+            Renderer::BeginScene(m_PersCameraController.GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF, m_Lights);
 
             // Sky
             m_SkyboxShader->Bind();
@@ -232,8 +239,19 @@ namespace EVA
             ImGui::End();
 
             ImGui::Begin("Settings");
+            if (ImGui::Button("Reload shaders")) LoadShaders();
+            ImGui::Spacing();
+            ImGui::Spacing();
             ImGui::ColorEdit3("Square color", glm::value_ptr(m_SquareColor));
             m_PersCameraController.Inspector();
+            if (ImGui::Button("Add light")) m_Lights.push_back(Light());
+            if (ImGui::Button("Remove light")) m_Lights.erase(m_Lights.end() - 1);
+            for (auto& l : m_Lights)
+            {
+                l.Inspector();
+                ImGui::Spacing();
+                ImGui::Spacing();
+            }
             ImGui::End();
 
             // Viewport

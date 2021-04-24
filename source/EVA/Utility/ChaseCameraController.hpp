@@ -15,7 +15,7 @@ namespace EVA
         glm::vec3 offset  = glm::vec3(0.0f, 0.2f, -1.5f);
         glm::vec2 offsetScaleRange = glm::vec2(1.0f, 3.0f);
         float offsetScale          = 1.5f;
-        float offsetScaleSensitivity = 0.01f;
+        float offsetScaleSensitivity = 0.1f;
 
         ChaseCameraController(PerspectiveCamera& camera, Transform& self, Transform& target) :
           camera(camera), self(self), target(target) {};
@@ -46,14 +46,18 @@ namespace EVA
 
         void Inspector() 
         {
-            ImGui::Text("FollowTarget");
-            ImGui::SliderFloat("Scalar##FollowTarget", &scalar, 0, 50.0f);
-            ImGui::InputFloat3("Offset##FollowTarget", glm::value_ptr(offset));
-            ImGui::InputFloat2("Offset scale min/max##FollowTarget", glm::value_ptr(offsetScaleRange));
-            ImGui::SliderFloat("Offset scale sensitivity##FollowTarget", &offsetScaleSensitivity, 0, 10.0f);
+            ImGui::PushID(this);
+
+            ImGui::Text("Chase camara");
+            ImGui::SliderFloat("Scalar", &scalar, 0, 50.0f);
+            ImGui::InputFloat3("Offset", glm::value_ptr(offset));
+            ImGui::InputFloat2("Offset scale min/max", glm::value_ptr(offsetScaleRange));
+            ImGui::SliderFloat("Offset scale sensitivity", &offsetScaleSensitivity, 0, 10.0f);
 
             auto pos = self.GetPosition();
-            if (ImGui::InputFloat3("Position##FollowTarget", glm::value_ptr(pos))) { self.SetPosition(pos); }
+            if (ImGui::InputFloat3("Position", glm::value_ptr(pos))) { self.SetPosition(pos); }
+
+            ImGui::PopID();
         }
     };
 } // namespace EVA

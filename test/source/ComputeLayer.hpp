@@ -46,14 +46,14 @@ namespace EVA
 
     struct SceneParams
     {
-        float surfaceDist = 0.01f;
+        float surfaceDist = 0.001f;
         float maxDist     = 100.0f;
         int maxSteps      = 100;
-        float normalEps = 0.01f;
+        float normalEps   = 0.001f;
 
-        float aoIntensity = 1.0f;
+        float aoIntensity = 4.0f;
         float aoStepSize  = 0.1f;
-        int aoSteps       = 5;
+        int aoSteps       = 10;
 
         bool mandelbulbEnable    = true;
         int mandelbulbIterations = 10;
@@ -61,9 +61,13 @@ namespace EVA
         float mandelbulbScale    = 3.0f;
 
         bool tetrahedronEnable = true;
-        int tetrahedronIterations = 15;
+        int tetrahedronIterations = 20;
         float tetrahedronScale    = 2.0f;
         float tetrahedronOffset   = 2.0f;
+
+        glm::vec3 albedo = glm::vec3(1.0f);
+        float metallic  = 0.0f;
+        float roughness = 0.5f;
 
         void Inspector()
         {
@@ -96,9 +100,17 @@ namespace EVA
 
             ImGui::Text("Tetrahedron");
             ImGui::Checkbox("Enable##Tetrahedron", &tetrahedronEnable);
-            ImGui::SliderInt("Iterations##Tetrahedron", &tetrahedronIterations, 0, 20);
-            ImGui::SliderFloat("Scale##Tetrahedron", &tetrahedronScale, 0, 10);
+            ImGui::SliderInt("Iterations##Tetrahedron", &tetrahedronIterations, 0, 50);
+            ImGui::SliderFloat("Scale##Tetrahedron", &tetrahedronScale, 0, 100);
             ImGui::SliderFloat("Offset##Tetrahedron", &tetrahedronOffset, 0, 10);
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            ImGui::Text("Material");
+            ImGui::ColorEdit3("Albedo", glm::value_ptr(albedo));
+            ImGui::SliderFloat("Metallic", &metallic, 0, 10);
+            ImGui::SliderFloat("Roughness", &roughness, 0, 1);
         }
 
         void SetUniforms(Ref<Shader>& shader) 
@@ -122,6 +134,10 @@ namespace EVA
             shader->SetUniformInt("u_TetrahedronIterations", tetrahedronIterations);
             shader->SetUniformFloat("u_TetrahedronScale", tetrahedronScale);
             shader->SetUniformFloat("u_TetrahedronOffset", tetrahedronOffset);
+
+            shader->SetUniformFloat3("u_Albedo", albedo);
+            shader->SetUniformFloat("u_Metallic", metallic);
+            shader->SetUniformFloat("u_Roughness", roughness);
         }
     };
 
@@ -157,6 +173,7 @@ namespace EVA
         Ref<ChaseCameraController> m_ChaseCameraController;
 
         SceneParams m_SceneParams;
+        std::vector<Light> m_Lights;
 
     public:
         ComputeLayer() :
@@ -180,6 +197,7 @@ namespace EVA
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
 
             // Ship
+            //auto mesh = Mesh::LoadMesh("./assets/models/cube.obj");
             auto mesh = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipMesh = mesh[0];
             m_ShipController = CreateRef<ShipController>(glm::vec3(5.0f, 0.0f, 0.0f));
@@ -195,6 +213,12 @@ namespace EVA
             m_CameraController = CreateRef<PerspectiveCameraController>(glm::vec3(0, 2, -5), 0, 0,
                 (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight());
             m_ChaseCameraController = CreateRef<ChaseCameraController>(m_CameraController->GetCamera(), m_CameraController->GetTransform(), m_ShipController->GetTransform());
+            
+            // Lights
+            Light l;
+            l.type = Light::Type::Point;
+            l.position = glm::vec3(0.0f, 1.0f, 0.0f);
+            m_Lights.push_back(l);
         }
 
         void LoadShaders()
@@ -211,18 +235,18 @@ namespace EVA
             auto dt = EVA::Platform::GetDeltaTime();
             m_FrameTimes.Add(dt);
 
+            if (IsKeyPressed<KeyCode::Escape>())
+            {
+                if (Input::GetCursorMode() == Input::CursorMode::Disabled)
+                    Input::SetCursorMode(Input::CursorMode::Normal);
+                else
+                    Input::SetCursorMode(Input::CursorMode::Disabled);
+            }  
+
             // Update
             if (m_ViewportFocused)
             {
                 EVA_PROFILE_SCOPE("Viewport update");
-
-                if (IsKeyPressed<KeyCode::Escape>()) 
-                {
-                    if (Input::GetCursorMode() == Input::CursorMode::Disabled)
-                        Input::SetCursorMode(Input::CursorMode::Normal);
-                    else
-                        Input::SetCursorMode(Input::CursorMode::Disabled);
-                }  
 
                 if (Input::GetCursorMode() == Input::CursorMode::Disabled) 
                 {
@@ -267,7 +291,7 @@ namespace EVA
                 RenderCommand::SetClearColor({0.0f, 0.0f, 0.0f, 1});
                 RenderCommand::Clear();
 
-                Renderer::BeginScene(m_CameraController->GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF);
+                Renderer::BeginScene(m_CameraController->GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF, m_Lights);
 
                 m_PBRShader->Bind();
                 m_PBRShader->ResetTextureUnit();
@@ -291,6 +315,7 @@ namespace EVA
 
                 m_ComputeShader->Bind();
                 m_ComputeShader->ResetTextureUnit();
+                m_ComputeShader->SetUniformFloat("u_Time", Platform::GetTime());
 
                 m_ComputeShader->SetUniformMat4("u_ViewProjection", m_CameraController->GetCamera().GetViewProjectionMatrix());
                 m_ComputeShader->SetUniformFloat("u_CameraNear", m_CameraController->GetNearPlane());
@@ -298,8 +323,19 @@ namespace EVA
 
                 m_SceneParams.SetUniforms(m_ComputeShader);
 
-                m_ComputeShader->SetUniformFloat("u_Time", Platform::GetTime());
                 m_ComputeShader->BindTexture("u_EnvMap", m_EquirectangularMap);
+                m_ComputeShader->BindTexture("u_IrradianceMap", m_IrradianceMap);
+                m_ComputeShader->BindTexture("u_PrefilterMap", m_PreFilterMap);
+                m_ComputeShader->BindTexture("u_BrdfLUT", m_PreComputedBRDF);
+
+
+                m_ComputeShader->SetUniformInt("u_NumLights", m_Lights.size());
+                for (size_t i = 0; i < m_Lights.size(); i++) 
+                {
+                    const auto uniformName = "u_AllLights[" + std::to_string(i) + "].";
+                    m_Lights[i].SetUniforms(m_ComputeShader, uniformName, i);
+                }
+
                 m_ComputeShader->BindTexture("u_FbColor", TextureTarget::Texture2D, m_ViewportFramebuffer->GetColorAttachmentRendererId());
                 m_ComputeShader->BindTexture("u_FbDepth", TextureTarget::Texture2D, m_ViewportFramebuffer->GetDepthAttachmentRendererId());
 
@@ -316,6 +352,8 @@ namespace EVA
             EventDispatcher dispatcher(e);
             dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(ComputeLayer::OnKeyPressed));
 
+            m_CameraController->OnEvent(e);
+
             if (m_InShip) 
             {
                 m_ChaseCameraController->OnEvent(e);
@@ -324,7 +362,6 @@ namespace EVA
 
         bool OnKeyPressed(KeyPressedEvent& e)
         {
-            EVA_INTERNAL_ERROR("Keypressed");
             if(e.GetKeyCode() == KeyCode::Enter) 
             { 
                 m_InShip = !m_InShip;
@@ -359,6 +396,16 @@ namespace EVA
             ImGui::Spacing();
             ImGui::Spacing();
             m_ChaseCameraController->Inspector();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            if (ImGui::Button("Add light")) m_Lights.push_back(Light());
+            if (ImGui::Button("Remove light")) m_Lights.erase(m_Lights.end() - 1);
+            for (auto& l : m_Lights) 
+            {
+                l.Inspector();
+                ImGui::Spacing();
+                ImGui::Spacing();
+            }
             ImGui::End();
 
             // Viewport

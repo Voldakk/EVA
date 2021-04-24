@@ -18,6 +18,7 @@
 #include "EVA/Renderer/ShaderStorageBuffer.hpp"
 #include "EVA/Renderer/Texture.hpp"
 #include "EVA/Renderer/VertexArray.hpp"
+#include "EVA/Renderer/Light.hpp"
 
 #include "EVA/Renderer/OrthographicCamera.hpp"
 #include "EVA/Renderer/PerspectiveCamera.hpp"

@@ -1,4 +1,5 @@
 #include "OpenGLFramebuffer.hpp"
+#include "OpenGLTexture.hpp"
 #include <glad/glad.h>
 
 namespace EVA
@@ -30,7 +31,9 @@ namespace EVA
 
         glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachment);
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Specification.width, m_Specification.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexture::GetGLFormat(m_Specification.format), m_Specification.width, m_Specification.height, 0,
+                     OpenGLTexture::GetGLFormat(GetTextureFormat(m_Specification.format)),
+                     OpenGLTexture::GetGLDataType(GetTextureDataType(m_Specification.format)), nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);

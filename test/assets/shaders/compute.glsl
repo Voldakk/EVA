@@ -3,8 +3,9 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 #define INF 1e20
-#define PI 3.1415926535
+#define PI 3.14159265359
 
+#define MAX_LIGHTS 10
 #define MAX_OBJECTS 100
 
 #define ENABLE_SHADOWS 0
@@ -24,6 +25,13 @@ uniform sampler2D u_FbColor;
 uniform sampler2D u_FbDepth;
 uniform mat4 u_ViewProjection;
 
+uniform vec3 u_CameraPosition;
+
+// IBL
+uniform samplerCube u_IrradianceMap;
+uniform samplerCube u_PrefilterMap;
+uniform sampler2D u_BrdfLUT;
+
 uniform float u_Time;
 uniform sampler2D u_EnvMap;
 
@@ -39,7 +47,6 @@ uniform float u_AoIntensity;
 uniform float u_AoStepSize;
 uniform int u_AoSteps;
 
-
 uniform bool u_MandelbulbEnable;
 uniform int u_MandelbulbIterations;
 uniform float u_MandelbulbPower;
@@ -49,6 +56,19 @@ uniform bool u_TetrahedronEnable;
 uniform int u_TetrahedronIterations;
 uniform float u_TetrahedronScale;
 uniform float u_TetrahedronOffset;
+
+uniform vec3 u_Albedo;
+uniform float u_Metallic;
+uniform float u_Roughness;
+
+// Lights
+uniform int u_NumLights;
+uniform struct Light
+{
+   vec4 position;
+   vec3 color;
+   float attenuation;
+} u_AllLights[MAX_LIGHTS];
 
 shared vec4 sphereData[MAX_OBJECTS];
 
@@ -93,31 +113,34 @@ float opSmoothSubtraction( float d1, float d2, float k )
 
 float sdMandelbulb(vec3 point) 
 {
-    vec4 p = vec4(point, 0) / u_MandelbulbScale;
-	vec4 z = p;
+    const int Iterations = u_MandelbulbIterations;
+    const float Power = u_MandelbulbPower;
+    const float Scale = u_MandelbulbScale;
+    const float Bailout = u_MandelbulbScale;
+    const vec3 pos = point;
+
+    vec3 z = pos;
 	float dr = 1.0;
 	float r = 0.0;
-	for (int i = 0; i < u_MandelbulbIterations; i++) 
-    {
+	for (int i = 0; i < Iterations ; i++) {
 		r = length(z);
-		if (r > 10) break;
-
-		float theta = acos(z.z / r);
-		float phi = atan(z.y, z.x);
-		dr = pow(r, u_MandelbulbPower - 1.0) * u_MandelbulbPower * dr + 1.0;
-
-		float zr = pow(r, u_MandelbulbPower);
-		theta = theta * u_MandelbulbPower;
-		phi = phi * u_MandelbulbPower;
-
-		z = zr * vec4(
-			sin(theta) * cos(phi),
-			sin(phi) * sin(theta),
-			cos(theta),
-			1.0);
-		z += p;
+		if (r>Bailout) break;
+		
+		// convert to polar coordinates
+		float theta = acos(z.z/r);
+		float phi = atan(z.y,z.x);
+		dr =  pow( r, Power-1.0)*Power*dr + 1.0;
+		
+		// scale and rotate the point
+		float zr = pow( r,Power);
+		theta = theta*Power;
+		phi = phi*Power;
+		
+		// convert back to cartesian coordinates
+		z = zr*vec3(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta));
+		z+=pos;
 	}
-	return u_MandelbulbScale * 0.5 * log(r) * r / dr;
+	return 0.5*log(r)*r/dr;
 }
 
 float sdTetrahedron(vec3 z)
@@ -129,10 +152,10 @@ float sdTetrahedron(vec3 z)
        if(z.x + z.y < 0) z.xy = -z.yx;
        if(z.x + z.z < 0) z.xz = -z.zx;
        if(z.y + z.z < 0) z.zy = -z.yz;
-       z = z * u_TetrahedronScale - u_TetrahedronOffset * (u_TetrahedronScale - 1.0);
+       z = z * u_TetrahedronOffset - u_TetrahedronScale * (u_TetrahedronOffset - 1.0);
        n++;
     }
-    return length(z) * pow(u_TetrahedronScale, -float(n));
+    return length(z) * pow(u_TetrahedronOffset, -float(n));
 }
 
 float getDist(vec3 point)
@@ -200,7 +223,7 @@ float getAO(vec3 point, vec3 normal)
     return 1 - ao * u_AoIntensity;
 }
 
-float getLight(vec3 point, vec3 normal)
+/*float getLight(vec3 point, vec3 normal)
 {
     vec3 lightPos = vec3(2, 5, -6);
     //lightPos.xz += vec2(sin(time), cos(time)) * 15;
@@ -217,6 +240,113 @@ float getLight(vec3 point, vec3 normal)
     #endif
 
     return diffuse;
+}*/
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+    float a = roughness*roughness;
+    float a2 = a*a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
+
+    float nom   = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return nom / denom;
+}
+// ----------------------------------------------------------------------------
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return nom / denom;
+}
+// ----------------------------------------------------------------------------
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
+}
+// ----------------------------------------------------------------------------
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+// ----------------------------------------------------------------------------
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 Ambient(vec3 N, vec3 V, vec3 R, vec3 F0, float roughness, float metallic, float ao, vec3 albedo)
+{
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    
+    vec3 irradiance = texture(u_IrradianceMap, N).rgb;
+    vec3 diffuse = irradiance * albedo;
+    
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(u_PrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec2 brdf  = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+    return (kD * diffuse + specular) * ao;
+}
+
+vec3 CalcLight(vec3 point, vec3 N, vec3 V, vec3 F0, float roughness, float metallic, vec3 albedo)
+{
+    vec3 Lo = vec3(0.0);
+    for(int i = 0; i < u_NumLights; ++i) 
+    {
+        vec3 L;
+        vec3 radiance;
+
+        // Point light
+        if(u_AllLights[i].position.w == 1.0)
+        {
+            L = normalize(u_AllLights[i].position.xyz - point);
+            float distance = length(u_AllLights[i].position.xyz - point);
+            float attenuation = u_AllLights[i].attenuation / (distance * distance);
+            radiance = u_AllLights[i].color * attenuation;
+        }
+        else
+        {
+            L = normalize(u_AllLights[i].position.xyz);
+            radiance = u_AllLights[i].color;
+        }
+
+        vec3 H = normalize(V + L);
+
+        // Cook-Torrance BRDF
+        float NDF = DistributionGGX(N, H, roughness);   
+        float G = GeometrySmith(N, V, L, roughness);    
+        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);        
+        
+        vec3 nominator = NDF * G * F;
+        float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001; // 0.001 to prevent divide by zero.
+        vec3 specular = nominator / denominator;
+        
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= 1.0 - metallic;	                
+            
+        float NdotL = max(dot(N, L), 0.0);        
+
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    }
+    return Lo;
 }
 
 void main()
@@ -234,11 +364,11 @@ void main()
     vec2 uv = vec2(pixelCoords.xy) / vec2(dims);
 
     // Base pixel colour
-    vec4 pixel = vec4(0.0, 0.0, 0.0, 1.0);
+    vec3 pixel = vec3(0.0);
 
     // Copy from frame buffer
     vec3 fbColor = texture(u_FbColor, uv).rgb;
-    pixel.rgb = fbColor;
+    pixel = fbColor;
 
     float fbDepth = texture(u_FbDepth, uv).r;
     fbDepth = linearizeDepth(fbDepth, u_CameraNear, u_CameraFar);
@@ -264,15 +394,47 @@ void main()
         vec3 point = ro + rd * dist;
         vec3 normal = getNormal(point);
 
-        float diffuse = getLight(point, normal);
+        //float diffuse = getLight(point, normal);
         float ao = getAO(point, normal);
-        pixel.rgb = vec3(diffuse * ao);
+
+        vec3 albedo = u_Albedo;
+        float metallic = u_Metallic;
+        float roughness = u_Roughness;
+        vec3 N = normal;
+
+        vec3 V = normalize(u_CameraPosition - point);
+        vec3 R = reflect(-V, N); 
+
+        vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+        vec3 ambient = Ambient(N, V, R, F0, roughness, metallic, ao, albedo);
+        vec3 Lo = CalcLight(point, N, V, F0, roughness, metallic, albedo);
+        
+        pixel = vec3(ambient + Lo);
     }
     else if(fbDepth >= u_CameraFar)
     {
         vec2 uvEnv = sampleSphericalMap(rd);
-        pixel.rgb = texture(u_EnvMap, uvEnv).rgb;
+        pixel = texture(u_EnvMap, uvEnv).rgb; 
+
+        // Vissibe sun
+        /*for(int i = 0; i < u_NumLights; ++i) 
+        {
+            if (u_AllLights[i].position.w != 1.0)
+            {
+                float sunSize = 1 - 1 / pow(length(u_AllLights[i].color + 1), 0.3);
+                sunSize *= 0.5;
+                float deg = acos(dot(normalize(u_AllLights[i].position.xyz), rd));
+                float a = 1 - clamp(deg, 0, sunSize) / (sunSize);
+                pixel = mix(pixel, u_AllLights[i].color, a*a);
+            }
+        }*/
     }
 
-    imageStore(imgOutput, pixelCoords, pixel);
+    // HDR tonemapping
+    pixel = pixel / (pixel + vec3(1.0));
+    // gamma correct
+    pixel = pow(pixel, vec3(1.0/2.2)); 
+
+    imageStore(imgOutput, pixelCoords, vec4(pixel, 1.0));
 }

@@ -10,8 +10,9 @@ namespace EVA
     struct FramebufferSpecification
     {
         uint32_t width, height;
-        uint16_t Samples     = 1;
+        uint16_t samples     = 1;
         bool swapChainTarget = false;
+        TextureFormat format = TextureFormat::RGBA16F;
     };
 
     class Framebuffer

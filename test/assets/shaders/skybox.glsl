@@ -29,17 +29,40 @@ void main()
 //#type fragment
 #version 330 core
 
-uniform samplerCube u_EnvironmentMap;
+#define MAX_LIGHTS 10
 
 in vec3 fragTexCoord;
 
 out vec4 fragColor;
+
+uniform samplerCube u_EnvironmentMap;
+
+// Lights
+uniform int u_NumLights;
+uniform struct Light
+{
+   vec4 position;
+   vec3 color;
+   float attenuation;
+} u_AllLights[MAX_LIGHTS];
 
 void main()
 {
 	vec3 color = texture(u_EnvironmentMap, fragTexCoord).xyz; 
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2)); 
+
+    for(int i = 0; i < u_NumLights; ++i) 
+    {
+        if (u_AllLights[i].position.w != 1.0)
+        {
+            float sunSize = 1 - 1 / pow(length(u_AllLights[i].color + 1), 0.3);
+            sunSize *= 0.5;
+            float deg = acos(dot(normalize(u_AllLights[i].position.xyz), normalize(fragPos.xyz)));
+            float a = 1 - clamp(deg, 0, sunSize) / (sunSize);
+            color = mix(color, u_AllLights[i].color, a*a);
+        }
+    }
 
     fragColor = vec4(color, 1.0);
 }
