@@ -182,6 +182,12 @@ namespace EVA
 
     void OpenGLShader::Unbind() const { glUseProgram(0); }
 
+    void OpenGLShader::SetUniformBool(const std::string& name, const bool value)
+    {
+        auto location = GetUniformLocation(name);
+        glUniform1i(location, value);
+    }
+
     void OpenGLShader::SetUniformInt(const std::string& name, const int value)
     {
         auto location = GetUniformLocation(name);

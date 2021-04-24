@@ -3,17 +3,13 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 #define INF 1e20
-#define EPS 1e-2
-#define PI 3.14
+#define PI 3.1415926535
 
 #define MAX_OBJECTS 100
-#define MAX_STEPS 200
-#define MAX_DIST 200.0
-#define SURF_DIST 1e-2
-#define ESCAPE_SURF_DIST 2e-2
 
 #define ENABLE_SHADOWS 0
 #define ENABLE_GROUND_PLANE 0
+#define ENABLE_SPHERES 0
 
 layout(local_size_variable) in;
 layout(binding = 0, rgba8) uniform writeonly image2D imgOutput;
@@ -26,26 +22,46 @@ layout(std430, binding = 1) buffer sphereBuffer
 
 uniform sampler2D u_FbColor;
 uniform sampler2D u_FbDepth;
-
-uniform float time;
-uniform sampler2D envMap;
-
-uniform float cameraFov;
-uniform float cameraNear;
-uniform float cameraFar;
-
 uniform mat4 u_ViewProjection;
+
+uniform float u_Time;
+uniform sampler2D u_EnvMap;
+
+uniform float u_CameraNear;
+uniform float u_CameraFar;
+
+uniform float u_SurfaceDist;
+uniform float u_MaxDist;
+uniform int u_MaxSteps;
+uniform float u_NormalEps;
+
+uniform float u_AoIntensity;
+uniform float u_AoStepSize;
+uniform int u_AoSteps;
+
+
+uniform bool u_MandelbulbEnable;
+uniform int u_MandelbulbIterations;
+uniform float u_MandelbulbPower;
+uniform float u_MandelbulbScale;
+
+uniform bool u_TetrahedronEnable;
+uniform int u_TetrahedronIterations;
+uniform float u_TetrahedronScale;
+uniform float u_TetrahedronOffset;
 
 shared vec4 sphereData[MAX_OBJECTS];
 
 void bufferShared()
 {
+    #if ENABLE_SPHERES
     uint id  = gl_LocalInvocationID.x;
     if(id < objectBufferCount) 
     {
         sphereData[id] = spheresSSBO[id]; 
     }
     memoryBarrierShared();
+    #endif
 }
 
 float linearizeDepth(float depth, float near, float far) 
@@ -77,26 +93,22 @@ float opSmoothSubtraction( float d1, float d2, float k )
 
 float sdMandelbulb(vec3 point) 
 {
-    const int RECURSE_NUM = 10;
-    const float POWER = 8;
-    const float SCALE = 3;
-
-    vec4 p = vec4(point, 0) / SCALE;
+    vec4 p = vec4(point, 0) / u_MandelbulbScale;
 	vec4 z = p;
 	float dr = 1.0;
 	float r = 0.0;
-	for (int i = 0; i < RECURSE_NUM; i++) 
+	for (int i = 0; i < u_MandelbulbIterations; i++) 
     {
 		r = length(z);
 		if (r > 10) break;
 
 		float theta = acos(z.z / r);
 		float phi = atan(z.y, z.x);
-		dr = pow(r, POWER - 1.0) * POWER * dr + 1.0;
+		dr = pow(r, u_MandelbulbPower - 1.0) * u_MandelbulbPower * dr + 1.0;
 
-		float zr = pow(r, POWER);
-		theta = theta * POWER;
-		phi = phi * POWER;
+		float zr = pow(r, u_MandelbulbPower);
+		theta = theta * u_MandelbulbPower;
+		phi = phi * u_MandelbulbPower;
 
 		z = zr * vec4(
 			sin(theta) * cos(phi),
@@ -105,34 +117,32 @@ float sdMandelbulb(vec3 point)
 			1.0);
 		z += p;
 	}
-	return SCALE * 0.5 * log(r) * r / dr;
+	return u_MandelbulbScale * 0.5 * log(r) * r / dr;
 }
 
 float sdTetrahedron(vec3 z)
 {
-    const int Iterations = 15;
-    const float Scale = 2;
-    const float Offset = 2;
-
 	float r;
     int n = 0;
-    while (n < Iterations) 
+    while (n < u_TetrahedronIterations) 
     {
        if(z.x + z.y < 0) z.xy = -z.yx;
        if(z.x + z.z < 0) z.xz = -z.zx;
        if(z.y + z.z < 0) z.zy = -z.yz;
-       z = z*Scale - Offset*(Scale-1.0);
+       z = z * u_TetrahedronScale - u_TetrahedronOffset * (u_TetrahedronScale - 1.0);
        n++;
     }
-    return length(z) * pow(Scale, -float(n));
+    return length(z) * pow(u_TetrahedronScale, -float(n));
 }
 
 float getDist(vec3 point)
 {
     float minDist = INF;
 
-    minDist = min(minDist, sdMandelbulb(point));
+    if(u_MandelbulbEnable) minDist = min(minDist, sdMandelbulb(point));
+    if(u_TetrahedronEnable) minDist = min(minDist, sdTetrahedron(point));
 
+    #if ENABLE_SPHERES
     float sphereDist = INF;
     for (int i = 0; i < objectBufferCount; i++)
     {
@@ -140,6 +150,7 @@ float getDist(vec3 point)
         sphereDist = min(sphereDist, dist);
     }
     minDist = opSmoothSubtraction(sphereDist, minDist, 0.5);
+    #endif
 
     #if ENABLE_GROUND_PLANE
     minDist = min(minDist, point.y);
@@ -152,20 +163,20 @@ float getDist(vec3 point)
 float rayMarch(vec3 ro, vec3 rd)
 {
     float dist = 0;
-    for (int i = 0; i < MAX_STEPS; i++)
+    for (int i = 0; i < u_MaxSteps; i++)
     {
         vec3 point = ro + rd * dist;
 
         float distToSurface = getDist(point);
         dist += distToSurface;
 
-        if(distToSurface < SURF_DIST || dist > MAX_DIST) 
+        if(distToSurface < u_SurfaceDist || dist > u_MaxDist) 
             break;
     }
     return dist;
 }
 
-const vec2 e = vec2(EPS, 0);
+const vec2 e = vec2(u_NormalEps, 0);
 vec3 getNormal(vec3 point)
 {
     float dist = getDist(point);
@@ -175,19 +186,32 @@ vec3 getNormal(vec3 point)
     return normalize(normal);
 }
 
-float getLight(vec3 point)
+float getAO(vec3 point, vec3 normal)
+{
+    float ao = 0;
+
+    for(int i = 1; i <= u_AoSteps; ++i)
+    {
+        float dist = i * u_AoStepSize;
+        float aoDist = getDist(point + normal * dist);
+        ao += (1/pow(2, i)) * (dist - aoDist);
+    }
+
+    return 1 - ao * u_AoIntensity;
+}
+
+float getLight(vec3 point, vec3 normal)
 {
     vec3 lightPos = vec3(2, 5, -6);
     //lightPos.xz += vec2(sin(time), cos(time)) * 15;
     vec3 pointToLight = normalize(lightPos - point);
-    vec3 normal = getNormal(point);
 
     float diffuse = max(0, dot(normal, pointToLight));
 
     // Shadow
     #if ENABLE_SHADOWS
     if(diffuse > 0) {
-        float d = rayMarch(point + normal * ESCAPE_SURF_DIST, pointToLight);
+        float d = rayMarch(point + normal * u_SurfaceDist * 2, pointToLight);
         if(d < length(pointToLight)) diffuse *= 0.1;
     }
     #endif
@@ -217,12 +241,13 @@ void main()
     pixel.rgb = fbColor;
 
     float fbDepth = texture(u_FbDepth, uv).r;
-    fbDepth = linearizeDepth(fbDepth, cameraNear, cameraFar);
+    fbDepth = linearizeDepth(fbDepth, u_CameraNear, u_CameraFar);
 
     // Camera
+    uv = uv * 2 - 1;
     mat4 m = inverse(u_ViewProjection);
-    vec4 rayStart = vec4(uv * 2 - 1, -1, 1);
-    vec4 rayEnd = vec4(uv * 2 - 1, 0, 1);
+    vec4 rayStart = vec4(uv, -1, 1);
+    vec4 rayEnd = vec4(uv, 0, 1);
     rayStart = m * rayStart;
     rayEnd = m * rayEnd;
     rayStart /= rayStart.w;
@@ -234,17 +259,19 @@ void main()
     // Ray march
     float dist = rayMarch(ro, rd);
 
-    if(dist <= MAX_DIST && dist < fbDepth)
+    if(dist <= u_MaxDist && dist < fbDepth)
     {
         vec3 point = ro + rd * dist;
+        vec3 normal = getNormal(point);
 
-        float diffuse = getLight(point);
-        pixel.rgb = vec3(diffuse);
+        float diffuse = getLight(point, normal);
+        float ao = getAO(point, normal);
+        pixel.rgb = vec3(diffuse * ao);
     }
-    else if(fbDepth >= cameraFar)
+    else if(fbDepth >= u_CameraFar)
     {
         vec2 uvEnv = sampleSphericalMap(rd);
-        pixel.rgb = texture(envMap, uvEnv).rgb;
+        pixel.rgb = texture(u_EnvMap, uvEnv).rgb;
     }
 
     imageStore(imgOutput, pixelCoords, pixel);

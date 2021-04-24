@@ -1,14 +1,12 @@
 #pragma once
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "EVA.hpp"
 #include "EVA/Utility/SlidingWindow.hpp"
 #include "Platform/OpenGL/OpenGLShader.hpp"
 #include "Platform/OpenGL/OpenGLContext.hpp"
 
 #include <glad/glad.h>
+#include <imgui.h>
 #include <random>
 
 float randomFloat()
@@ -26,9 +24,89 @@ float randomRadius()
     static std::uniform_real_distribution<float> dist(0.1, 0.5);
     return dist(e2);
 }
-
 namespace EVA
 {
+    struct SceneParams
+    {
+        float surfaceDist = 0.01f;
+        float maxDist     = 100.0f;
+        int maxSteps      = 100;
+        float normalEps = 0.01f;
+
+        float aoIntensity = 1.0f;
+        float aoStepSize  = 0.1f;
+        int aoSteps       = 5;
+
+        bool mandelbulbEnable    = true;
+        int mandelbulbIterations = 10;
+        float mandelbulbPower    = 8.0f;
+        float mandelbulbScale    = 3.0f;
+
+        bool tetrahedronEnable = true;
+        int tetrahedronIterations = 15;
+        float tetrahedronScale    = 2.0f;
+        float tetrahedronOffset   = 2.0f;
+
+        void Inspector()
+        {
+            ImGui::Text("Scene");
+
+            ImGui::SliderFloat("Surface dist", &surfaceDist, 0, 1);
+            ImGui::SliderFloat("Max dist", &maxDist, 1, 1000);
+            ImGui::SliderInt("Max steps", &maxSteps, 1, 1000);
+            ImGui::SliderFloat("Normal eps", &normalEps, 0, 1);
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            ImGui::Text("AO");
+            ImGui::SliderFloat("Intensity##AO", &aoIntensity, 0, 10);
+            ImGui::SliderFloat("Step size##AO", &aoStepSize, 0, 10);
+            ImGui::SliderInt("Steps##AO", &aoSteps, 0, 10);
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            ImGui::Text("Mandelbulb");
+            ImGui::Checkbox("Enable##Mandelbulb", &mandelbulbEnable);
+            ImGui::SliderInt("Iterations##Mandelbulb", &mandelbulbIterations, 0, 20);
+            ImGui::SliderFloat("Power##Mandelbulb", &mandelbulbPower, 0, 10);
+            ImGui::SliderFloat("Scale##Mandelbulb", &mandelbulbScale, 0, 10);
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            ImGui::Text("Tetrahedron");
+            ImGui::Checkbox("Enable##Tetrahedron", &tetrahedronEnable);
+            ImGui::SliderInt("Iterations##Tetrahedron", &tetrahedronIterations, 0, 20);
+            ImGui::SliderFloat("Scale##Tetrahedron", &tetrahedronScale, 0, 10);
+            ImGui::SliderFloat("Offset##Tetrahedron", &tetrahedronOffset, 0, 10);
+        }
+
+        void SetUniforms(Ref<Shader>& shader) 
+        {
+            shader->SetUniformFloat("u_SurfaceDist", surfaceDist);
+            shader->SetUniformFloat("u_MaxDist", maxDist);
+            shader->SetUniformInt("u_MaxSteps", maxSteps);
+
+            shader->SetUniformFloat("u_NormalEps", normalEps);
+
+            shader->SetUniformFloat("u_AoIntensity", aoIntensity);
+            shader->SetUniformFloat("u_AoStepSize", aoStepSize);
+            shader->SetUniformInt("u_AoSteps", aoSteps);
+
+            shader->SetUniformBool("u_MandelbulbEnable", mandelbulbEnable);
+            shader->SetUniformInt("u_MandelbulbIterations", mandelbulbIterations);
+            shader->SetUniformFloat("u_MandelbulbPower", mandelbulbPower);
+            shader->SetUniformFloat("u_MandelbulbScale", mandelbulbScale);
+
+            shader->SetUniformBool("u_TetrahedronEnable", tetrahedronEnable);
+            shader->SetUniformInt("u_TetrahedronIterations", tetrahedronIterations);
+            shader->SetUniformFloat("u_TetrahedronScale", tetrahedronScale);
+            shader->SetUniformFloat("u_TetrahedronOffset", tetrahedronOffset);
+        }
+    };
+
     class ComputeLayer : public EVA::Layer
     {
         EVA::SlidingWindow<float> m_FrameTimes;
@@ -57,6 +135,7 @@ namespace EVA
 
         PerspectiveCameraController m_CameraController;
 
+        SceneParams m_SceneParams;
 
       public:
         ComputeLayer() :
@@ -66,6 +145,8 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
+            LoadShaders();
+
             // Framebuffer
             FramebufferSpecification spec;
             spec.width            = Application::Get().GetWindow().GetWidth();
@@ -73,7 +154,6 @@ namespace EVA
             m_ViewportFramebuffer = Framebuffer::Create(spec);
 
             // Compute
-            m_ComputeShader  = Shader::Create("./assets/shaders/compute.glsl");
             m_ComputeTexture = TextureManager::CreateTexture(512, 512, TextureFormat::RGBA8);
             m_Ssbo = ShaderStorageBuffer::Create(m_SsboData.data(), m_SsboData.size() * sizeof(glm::vec4));
             
@@ -82,7 +162,6 @@ namespace EVA
             // Ship
             auto mesh  = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipMesh = mesh[0];
-            m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl");
 
             // Enviroment
             m_EquirectangularMap = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
@@ -90,6 +169,12 @@ namespace EVA
             m_IrradianceMap   = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
             m_PreFilterMap    = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
             m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
+        }
+
+        void LoadShaders() 
+        { 
+            m_ComputeShader = Shader::Create("./assets/shaders/compute.glsl");
+            m_PBRShader     = Shader::Create("./assets/shaders/pbr.glsl");
         }
 
         inline static float timer = 0.0f;
@@ -111,7 +196,10 @@ namespace EVA
                         Input::SetCursorMode(Input::CursorMode::Disabled);
                 }
 
-                m_CameraController.OnUpdate();
+                if (Input::GetCursorMode() == Input::CursorMode::Disabled) 
+                {
+                    m_CameraController.OnUpdate();
+                }
             }
             else if (Input::GetCursorMode() != Input::CursorMode::Normal)
             {
@@ -171,12 +259,13 @@ namespace EVA
                 m_ComputeShader->ResetTextureUnit();
 
                 m_ComputeShader->SetUniformMat4("u_ViewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
-                m_ComputeShader->SetUniformFloat("cameraFov", m_CameraController.GetFov());
-                m_ComputeShader->SetUniformFloat("cameraNear", m_CameraController.GetNearPlane());
-                m_ComputeShader->SetUniformFloat("cameraFar", m_CameraController.GetFarPlane());
+                m_ComputeShader->SetUniformFloat("u_CameraNear", m_CameraController.GetNearPlane());
+                m_ComputeShader->SetUniformFloat("u_CameraFar", m_CameraController.GetFarPlane());
 
-                m_ComputeShader->SetUniformFloat("time", Platform::GetTime());
-                m_ComputeShader->BindTexture("envMap", m_EquirectangularMap);
+                m_SceneParams.SetUniforms(m_ComputeShader);
+
+                m_ComputeShader->SetUniformFloat("u_Time", Platform::GetTime());
+                m_ComputeShader->BindTexture("u_EnvMap", m_EquirectangularMap);
                 m_ComputeShader->BindTexture("u_FbColor", TextureTarget::Texture2D, m_ViewportFramebuffer->GetColorAttachmentRendererId());
                 m_ComputeShader->BindTexture("u_FbDepth", TextureTarget::Texture2D, m_ViewportFramebuffer->GetDepthAttachmentRendererId());
 
@@ -203,7 +292,11 @@ namespace EVA
             ImGui::End();
 
             ImGui::Begin("Settings");
+            if (ImGui::Button("Reload shaders")) LoadShaders();
+            ImGui::Spacing();
+            ImGui::Spacing();
             m_CameraController.Inspector();
+            m_SceneParams.Inspector();
             ImGui::End();
 
             // Viewport

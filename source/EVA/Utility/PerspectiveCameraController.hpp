@@ -3,6 +3,7 @@
 #include "EVA/Core/Input.hpp"
 #include "EVA/Core/Platform.hpp"
 #include "EVA/Renderer/PerspectiveCamera.hpp"
+#include "Transform.hpp"
 
 #include <imgui.h>
 
@@ -20,28 +21,14 @@ namespace EVA
         float m_Pitch;
         float m_Yaw;
 
-
         PerspectiveCamera m_Camera;
-
-        glm::vec3 m_Position;
-        glm::quat m_Orientation;
-
-        glm::vec3 m_Forward;
-        glm::vec3 m_Right;
-        glm::vec3 m_Up;
+        Transform m_Transform;
 
         glm::vec2 m_MousePos;
 
         float m_MovementSpeed = 1.0f;
         float m_MouseSensitivity = 0.3f; 
         float m_CameraZoomSpeed = 1;
-
-        void CalculateAxis()
-        {
-            m_Forward = glm::normalize(m_Orientation * glm::vec3(0, 0, 1));
-            m_Right   = glm::normalize(m_Orientation * glm::vec3(1, 0, 0));
-            m_Up      = glm::normalize(m_Orientation * glm::vec3(0, 1, 0));
-        }
 
       public:
         PerspectiveCameraController(glm::vec3 position, float pitch, float yaw, float aspect, float fov = 60, float fovMin = 10, float fovMax = 90, float nearPlane = 0.1, float farPlane = 1000) :
@@ -53,9 +40,9 @@ namespace EVA
           m_FarPlane(farPlane),
           m_Pitch(pitch),
           m_Yaw(yaw),
-          m_Camera(fov, aspect, nearPlane, farPlane),
-          m_Position(position)
+          m_Camera(fov, aspect, nearPlane, farPlane)
         {
+            m_Transform.SetPosition(position);
             m_MousePos = Input::GetMousePosition();
             OnUpdate();
         }
@@ -66,28 +53,29 @@ namespace EVA
             glm::vec3 movement = glm::vec3(0.0);
 
             // Front
-            if (Input::IsKeyPressed(KeyCode::W)) movement += m_Forward;
+            if (Input::IsKeyPressed(KeyCode::W)) movement += m_Transform.GetForward();
 
             // Back
-            if (Input::IsKeyPressed(KeyCode::S)) movement -= m_Forward;
+            if (Input::IsKeyPressed(KeyCode::S)) movement -= m_Transform.GetForward();
 
             // Right
-            if (Input::IsKeyPressed(KeyCode::D)) movement -= m_Right;
+            if (Input::IsKeyPressed(KeyCode::D)) movement += m_Transform.GetRight();
 
             // Left
-            if (Input::IsKeyPressed(KeyCode::A)) movement += m_Right;
+            if (Input::IsKeyPressed(KeyCode::A)) movement -= m_Transform.GetRight();
 
             // Up
-            if (Input::IsKeyPressed(KeyCode::Space)) movement += m_Up;
+            if (Input::IsKeyPressed(KeyCode::Space)) movement += m_Transform.GetUp();
 
             // Down
-            if (Input::IsKeyPressed(KeyCode::LeftShift)) movement -= m_Up;
+            if (Input::IsKeyPressed(KeyCode::LeftShift)) movement -= m_Transform.GetUp();
 
-            m_Position += movement * Platform::GetDeltaTime().GetSeconds() * m_MovementSpeed;
+            m_Transform.Translate(movement * Platform::GetDeltaTime().GetSeconds() * m_MovementSpeed);
 
             // Mouse
             auto mousePos      = Input::GetMousePosition();
-            auto mouseMovement = (mousePos - m_MousePos) * m_MouseSensitivity;
+            auto mouseMovement = (mousePos - m_MousePos);
+            mouseMovement      = glm::clamp(mouseMovement, -50.0f, 50.0f) * m_MouseSensitivity;
             m_MousePos         = mousePos;
 
             m_Pitch += mouseMovement.y * m_MouseSensitivity;
@@ -100,12 +88,10 @@ namespace EVA
             else if (m_Yaw > 360.0f)
                 m_Yaw -= 360.0f;
 
-            m_Orientation = glm::angleAxis(glm::radians(-m_Yaw), glm::vec3(0, 1, 0));
-            CalculateAxis();
-            m_Orientation = glm::angleAxis(glm::radians(m_Pitch), m_Right) * m_Orientation;
-            CalculateAxis();
+            m_Transform.SetOrientation(YAXIS, -m_Yaw);
+            m_Transform.Rotate(-m_Transform.GetRight(), m_Pitch);
 
-            m_Camera.SetView(m_Position, m_Forward, m_Up);
+            m_Camera.SetView(m_Transform.GetPosition(), m_Transform.GetForward(), m_Transform.GetUp());
         }
 
         void OnResize(float width, float height) 
@@ -147,13 +133,12 @@ namespace EVA
             ImGui::SliderFloat("Movement speed", &m_MovementSpeed, 0, 10);
             ImGui::SliderFloat("Mouse sensitivity", &m_MouseSensitivity, 0, 1);
             ImGui::SliderFloat("Zoom sensitivity", &m_CameraZoomSpeed, 0, 5);
-            ImGui::InputFloat3("Position", glm::value_ptr(m_Position));
+
+            auto pos = m_Transform.GetPosition();
+            if (ImGui::InputFloat3("Position", glm::value_ptr(pos))) { m_Transform.SetPosition(pos); }
         }
         
-        glm::vec3 GetPosition() const { return m_Position; }
-        glm::vec3 GetForward() const { return m_Forward; }
-        glm::vec3 GetRight() const { return m_Right; }
-        glm::vec3 GetUp() const { return m_Up; }
+        const Transform& GetTransform() const { return m_Transform; }
         float GetFov() const { return m_Fov; }
         float GetNearPlane() const { return m_NearPlane; }
         float GetFarPlane() const { return m_FarPlane; }

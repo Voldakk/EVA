@@ -18,6 +18,7 @@ namespace EVA
 
         const std::string& GetName() const override { return m_Name; };
 
+        void SetUniformBool(const std::string& name, const bool value) override;
         void SetUniformInt(const std::string& name, const int value) override;
         void SetUniformFloat(const std::string& name, const float value) override;
         void SetUniformFloat2(const std::string& name, const glm::vec2& value) override;
