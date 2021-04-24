@@ -4,13 +4,7 @@
 
 namespace EVA
 {
-    Texture::~Texture() 
-    { 
-        TextureManager::Delete(*this); 
-    }
+    Texture::~Texture() { TextureManager::Delete(*this); }
 
-    RawTexture::~RawTexture() 
-    { 
-        TextureManager::DeleteRaw(*this); 
-    }
+    RawTexture::~RawTexture() { TextureManager::DeleteRaw(*this); }
 } // namespace EVA

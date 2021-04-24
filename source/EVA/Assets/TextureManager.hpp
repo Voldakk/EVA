@@ -6,7 +6,7 @@ namespace EVA
 {
     class TextureManager
     {
-        inline static std::unordered_map<std::string, WeakRef<Texture>> s_Textures = {};
+        inline static std::unordered_map<std::string, WeakRef<Texture>> s_Textures       = {};
         inline static std::unordered_map<std::string, WeakRef<RawTexture>> s_RawTextures = {};
 
       public:

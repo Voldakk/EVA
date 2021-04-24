@@ -249,7 +249,7 @@ namespace EVA
     void OpenGLShader::BindImageTexture(const std::string& name, const Ref<Texture>& texture)
     {
         auto location = GetUniformLocation(name);
-        location = 0;
+        location      = 0;
         glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, OpenGLTexture::GetGLFormat(texture->GetFormat()));
     }
 
@@ -262,7 +262,8 @@ namespace EVA
 #endif // EVA_DEBUG
     }
 
-    void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX, uint32_t groupSizeY, uint32_t groupSizeZ)
+    void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX,
+                                       uint32_t groupSizeY, uint32_t groupSizeZ)
     {
         EVA_PROFILE_FUNCTION();
         glDispatchComputeGroupSizeARB(numGroupsX, numGroupsY, numGroupsZ, groupSizeX, groupSizeY, groupSizeZ);

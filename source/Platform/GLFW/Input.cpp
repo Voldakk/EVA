@@ -31,7 +31,7 @@ namespace EVA
     void Input::SetCursorMode(const CursorMode mode)
     {
         s_CursorMode = mode;
-        auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        auto window  = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         switch (mode)
         {
             case CursorMode::Normal: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); return;

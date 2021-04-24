@@ -8,4 +8,4 @@ namespace EVA::FileSystem
         std::replace(pathString.begin(), pathString.end(), '\\', '/');
         return pathString;
     }
-}
+} // namespace EVA::FileSystem

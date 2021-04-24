@@ -210,7 +210,7 @@ namespace EVA::Profiler
 #    define EVA_PROFILE_BEGIN_SESSION(filepath) ::EVA::Profiler::Instrumentor::Get().BeginSession("", filepath)
 #    define EVA_PROFILE_END_SESSION()           ::EVA::Profiler::Instrumentor::Get().EndSession()
 #    define EVA_PROFILE_SCOPE_LINE2(name, line)                                                                                            \
-        constexpr auto fixedName##line = ::EVA::Profiler::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");                                \
+        constexpr auto fixedName##line = ::EVA::Profiler::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");                        \
         ::EVA::Profiler::InstrumentationTimer timer##line(fixedName##line.Data)
 #    define EVA_PROFILE_SCOPE_LINE(name, line) EVA_PROFILE_SCOPE_LINE2(name, line)
 #    define EVA_PROFILE_SCOPE(name)            EVA_PROFILE_SCOPE_LINE(name, __LINE__)

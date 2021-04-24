@@ -135,7 +135,7 @@ namespace EVA
 
     struct TextureSettings
     {
-        TextureWrapping wrapping = TextureWrapping::Repeat;
+        TextureWrapping wrapping   = TextureWrapping::Repeat;
         TextureMinFilter minFilter = TextureMinFilter::Linear;
         TextureMagFilter magFilter = TextureMagFilter::Linear;
     };
@@ -160,7 +160,7 @@ namespace EVA
         inline const TextureSettings GetSettings() const { return m_Settings; }
         inline const std::filesystem::path GetPath() const { return m_Path; }
 
-    private:
+      private:
         uint32_t m_RendererId {};
         uint32_t m_Width {};
         uint32_t m_Height {};

@@ -9,7 +9,7 @@ namespace EVA
     class TextureUtilities
     {
         inline static Ref<VertexArray> s_QuadVAO = nullptr;
-        inline static Ref<Mesh> s_Cube = nullptr;
+        inline static Ref<Mesh> s_Cube           = nullptr;
         inline static void renderQuad()
         {
             EVA_PROFILE_FUNCTION();
@@ -18,10 +18,8 @@ namespace EVA
             {
                 float vertices[] = {
                   // x, y, z, u, v
-                  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 
-                  1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
-                  1.0f,  1.0f,  0.0f, 1.0f, 1.0f, 
-                  -1.0f, 1.0f,  0.0f, 0.0f, 1.0f,
+                  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
+                  1.0f,  1.0f,  0.0f, 1.0f, 1.0f, -1.0f, 1.0f,  0.0f, 0.0f, 1.0f,
                 };
 
                 uint32_t indices[] = {0, 1, 2, 0, 2, 3};
@@ -30,10 +28,7 @@ namespace EVA
 
                 auto vb = EVA::VertexBuffer::Create(&vertices[0], sizeof(vertices));
 
-                EVA::BufferLayout layout = {
-                  {EVA::ShaderDataType::Float3, "a_Position"},  
-                  {EVA::ShaderDataType::Float2, "a_TexCoords"}
-                };
+                EVA::BufferLayout layout = {{EVA::ShaderDataType::Float3, "a_Position"}, {EVA::ShaderDataType::Float2, "a_TexCoords"}};
 
                 vb->SetLayout(layout);
                 s_QuadVAO->AddVertexBuffer(vb);
@@ -45,14 +40,11 @@ namespace EVA
             RenderCommand::Clear();
             RenderCommand::DrawIndexed(s_QuadVAO);
         }
-        inline static void renderCube() 
+        inline static void renderCube()
         {
             EVA_PROFILE_FUNCTION();
 
-            if (s_Cube == nullptr) 
-            { 
-                s_Cube = Mesh::LoadMesh("./assets/models/cube.obj")[0];
-            }
+            if (s_Cube == nullptr) { s_Cube = Mesh::LoadMesh("./assets/models/cube.obj")[0]; }
 
             s_Cube->GetVertexArray()->Bind();
             RenderCommand::Clear();
@@ -94,7 +86,7 @@ namespace EVA
         }
 
       public:
-        inline static std::shared_ptr<Texture> EquirectangularToCubemap(std::shared_ptr<Texture> hdrTexture, int size = 512)
+        inline static std::shared_ptr<Texture> EquirectangularToCubemap(std::shared_ptr<Texture> hdrTexture, uint32_t size = 512)
         {
             EVA_PROFILE_FUNCTION();
 
@@ -111,7 +103,7 @@ namespace EVA
             return out;
         }
 
-        inline static std::shared_ptr<Texture> ConvoluteCubemap(std::shared_ptr<Texture> cubemap, int size = 32)
+        inline static std::shared_ptr<Texture> ConvoluteCubemap(std::shared_ptr<Texture> cubemap, uint32_t size = 32)
         {
             EVA_PROFILE_FUNCTION();
 
@@ -123,7 +115,7 @@ namespace EVA
             return out;
         }
 
-        inline static std::shared_ptr<Texture> PreFilterEnviromentMap(std::shared_ptr<Texture> hdrTexture, int size = 128)
+        inline static std::shared_ptr<Texture> PreFilterEnviromentMap(std::shared_ptr<Texture> hdrTexture, uint32_t size = 128)
         {
             EVA_PROFILE_FUNCTION();
 
@@ -144,7 +136,7 @@ namespace EVA
             shader->Bind();
             shader->BindTexture("u_EnvironmentMap", hdrTexture);
             shader->SetUniformMat4("u_Projection", captureProjection);
-            shader->SetUniformFloat("u_Resolution", hdrTexture->GetWidth());
+            shader->SetUniformFloat("u_Resolution", (float)hdrTexture->GetWidth());
 
             FramebufferSpecification spec;
             spec.width       = out->GetWidth();
@@ -158,8 +150,8 @@ namespace EVA
             for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
             {
                 // Reisze framebuffer according to mip-level size.
-                unsigned int mipWidth  = size * std::pow(0.5, mip);
-                unsigned int mipHeight = size * std::pow(0.5, mip);
+                uint32_t mipWidth  = size * std::pow(0.5, mip);
+                uint32_t mipHeight = size * std::pow(0.5, mip);
 
                 frameBuffer->Resize(mipWidth, mipHeight);
 
@@ -178,7 +170,7 @@ namespace EVA
             return out;
         }
 
-        inline static std::shared_ptr<Texture> PreComputeBRDF(int size = 512)
+        inline static std::shared_ptr<Texture> PreComputeBRDF(uint32_t size = 512)
         {
             EVA_PROFILE_FUNCTION();
 

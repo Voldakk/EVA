@@ -21,7 +21,7 @@ namespace EVA
         static inline float GetMouseX() { return GetMousePosition().x; }
         static inline float GetMouseY() { return GetMousePosition().y; }
         static void SetCursorMode(const CursorMode mode);
-        static CursorMode GetCursorMode() { return s_CursorMode; } 
+        static CursorMode GetCursorMode() { return s_CursorMode; }
 
       private:
         inline static CursorMode s_CursorMode = CursorMode::Normal;

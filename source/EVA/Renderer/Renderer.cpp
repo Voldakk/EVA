@@ -9,21 +9,21 @@ namespace EVA
     void Renderer::OnWindowResize(uint32_t width, uint32_t height) { RenderCommand::SetViewport(0, 0, width, height); }
 
     void Renderer::BeginScene(const Camera& camera, Ref<Texture> environmentMap, Ref<Texture> irradianceMap, Ref<Texture> prefilterMap,
-                              Ref<Texture> brdfLUT, const std::vector<Light>& lights) 
-    { 
+                              Ref<Texture> brdfLUT, const std::vector<Light>& lights)
+    {
         RenderCommand::SetCullMode(CullMode::Back);
         s_SceneData->viewMatrix           = camera.GetViewMatrix();
         s_SceneData->projectionMatrix     = camera.GetProjectionMatrix();
         s_SceneData->viewProjectionMatrix = camera.GetViewProjectionMatrix();
 
-        auto& vm = camera.GetViewMatrix();
-        s_SceneData->cameraPosition = glm::vec3(vm[0][3], vm[1][3], vm[2][3]); 
+        auto& vm                    = camera.GetViewMatrix();
+        s_SceneData->cameraPosition = glm::vec3(vm[0][3], vm[1][3], vm[2][3]);
 
         s_SceneData->environmentMap = environmentMap;
-        s_SceneData->irradianceMap = irradianceMap;
-        s_SceneData->irradianceMap = irradianceMap;
-        s_SceneData->prefilterMap  = prefilterMap;
-        s_SceneData->brdfLUT       = brdfLUT;
+        s_SceneData->irradianceMap  = irradianceMap;
+        s_SceneData->irradianceMap  = irradianceMap;
+        s_SceneData->prefilterMap   = prefilterMap;
+        s_SceneData->brdfLUT        = brdfLUT;
 
         s_SceneData->lights = lights;
     }

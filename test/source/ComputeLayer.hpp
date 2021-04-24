@@ -17,7 +17,7 @@ float randomRadius()
 {
     static std::random_device rd;
     static std::mt19937 e2(rd());
-    static std::uniform_real_distribution<float> dist(0.1, 0.5);
+    static std::uniform_real_distribution<float> dist(0.1f, 0.5f);
     return dist(e2);
 }
 
@@ -197,7 +197,6 @@ namespace EVA
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
 
             // Ship
-            //auto mesh = Mesh::LoadMesh("./assets/models/cube.obj");
             auto mesh = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipMesh = mesh[0];
             m_ShipController = CreateRef<ShipController>(glm::vec3(5.0f, 0.0f, 0.0f));

@@ -6,7 +6,10 @@ namespace EVA
 {
     enum class CullMode
     {
-        None, Back, Front, Both
+        None,
+        Back,
+        Front,
+        Both
     };
 
     class RendererAPI

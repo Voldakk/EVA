@@ -26,12 +26,13 @@ namespace EVA
 
         glm::vec2 m_MousePos;
 
-        float m_MovementSpeed = 1.0f;
-        float m_MouseSensitivity = 0.3f; 
-        float m_CameraZoomSpeed = 1;
+        float m_MovementSpeed    = 1.0f;
+        float m_MouseSensitivity = 0.3f;
+        float m_CameraZoomSpeed  = 1;
 
       public:
-        PerspectiveCameraController(glm::vec3 position, float pitch, float yaw, float aspect, float fov = 60, float fovMin = 10, float fovMax = 90, float nearPlane = 0.1, float farPlane = 1000) :
+        PerspectiveCameraController(glm::vec3 position, float pitch, float yaw, float aspect, float fov = 60, float fovMin = 10,
+                                    float fovMax = 90, float nearPlane = 0.1, float farPlane = 1000) :
           m_AspectRatio(aspect),
           m_Fov(fov),
           m_FovMin(fovMin),
@@ -98,14 +99,14 @@ namespace EVA
             m_Camera.SetView(m_Transform.GetPosition(), m_Transform.GetForward(), m_Transform.GetUp());
         }
 
-        void OnResize(float width, float height) 
+        void OnResize(float width, float height)
         {
             EVA_PROFILE_FUNCTION();
             m_AspectRatio = width / height;
             m_Camera.SetProjection(m_Fov, m_AspectRatio, m_NearPlane, m_FarPlane);
         }
 
-        void OnEvent(Event& e) 
+        void OnEvent(Event& e)
         {
             EVA_PROFILE_FUNCTION();
             EventDispatcher dispatcher(e);
@@ -145,7 +146,7 @@ namespace EVA
             auto pos = m_Transform.GetPosition();
             if (ImGui::InputFloat3("Position##PCC", glm::value_ptr(pos))) { m_Transform.SetPosition(pos); }
         }
-        
+
         Transform& GetTransform() { return m_Transform; }
         const Transform& GetTransform() const { return m_Transform; }
         float GetFov() const { return m_Fov; }

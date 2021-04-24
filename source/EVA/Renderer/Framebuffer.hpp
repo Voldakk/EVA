@@ -27,12 +27,12 @@ namespace EVA
 
         virtual void Resize(uint32_t width, uint32_t height) = 0;
 
-        virtual void ResetTexturesAttachments()                                              = 0;
-        virtual void AttachTexture(std::shared_ptr<Texture> texture, int mip = 0)            = 0;
+        virtual void ResetTexturesAttachments()                                                  = 0;
+        virtual void AttachTexture(std::shared_ptr<Texture> texture, int mip = 0)                = 0;
         virtual void AttachCubemap(std::shared_ptr<Texture> cubemap, int sideIndex, int mip = 0) = 0;
 
         virtual uint32_t GetColorAttachmentRendererId() const            = 0;
         virtual uint32_t GetDepthAttachmentRendererId() const            = 0;
         virtual const FramebufferSpecification& GetSpecification() const = 0;
     };
-} // namespace EVA 
+} // namespace EVA

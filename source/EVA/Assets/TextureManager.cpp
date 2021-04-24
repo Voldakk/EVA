@@ -27,9 +27,9 @@ namespace EVA
 
         // Return the id if the texture's already loaded
         auto it = s_Textures.find(pathString);
-        if (it != s_Textures.end()) 
-        { 
-            if (auto ref = (*it).second.lock()) { return ref; }; 
+        if (it != s_Textures.end())
+        {
+            if (auto ref = (*it).second.lock()) { return ref; };
         }
 
         EVA_INTERNAL_TRACE("Loading texture: {}", pathString);
@@ -49,10 +49,10 @@ namespace EVA
         // If the image was loaded
         if (data)
         {
-            auto texture      = CreateRef<Texture>();
-            texture->m_Width  = width;
-            texture->m_Height = height;
-            texture->m_Format = GetFormat(channels, isHDR);
+            auto texture        = CreateRef<Texture>();
+            texture->m_Width    = width;
+            texture->m_Height   = height;
+            texture->m_Format   = GetFormat(channels, isHDR);
             texture->m_Settings = settings;
             texture->m_Target   = TextureTarget::Texture2D;
             texture->m_Path     = path;
@@ -82,7 +82,7 @@ namespace EVA
     {
         EVA_PROFILE_FUNCTION();
 
-        auto texture      = CreateRef<Texture>();
+        auto texture        = CreateRef<Texture>();
         texture->m_Width    = width;
         texture->m_Height   = height;
         texture->m_Format   = format;
@@ -122,7 +122,7 @@ namespace EVA
         return texture;
     }
 
-    void TextureManager::Delete(Texture& texture) 
+    void TextureManager::Delete(Texture& texture)
     {
         EVA_PROFILE_FUNCTION();
 
@@ -159,12 +159,12 @@ namespace EVA
         // If the image was loaded
         if (data)
         {
-            auto texture = CreateRef<RawTexture>();
-            texture->data = data;
-            texture->width = width;
-            texture->height = height;
+            auto texture      = CreateRef<RawTexture>();
+            texture->data     = data;
+            texture->width    = width;
+            texture->height   = height;
             texture->channels = channels;
-            texture->path   = path;
+            texture->path     = path;
 
             // Cache
             s_RawTextures[pathString] = texture;
@@ -177,8 +177,8 @@ namespace EVA
         }
     }
 
-    void TextureManager::DeleteRaw(RawTexture& texture) 
-    { 
+    void TextureManager::DeleteRaw(RawTexture& texture)
+    {
         EVA_PROFILE_FUNCTION();
 
         const auto pathString = FileSystem::ToString(texture.path);
@@ -191,7 +191,7 @@ namespace EVA
         if (it != s_RawTextures.end()) { s_RawTextures.erase(it); }
     }
 
-    void TextureManager::GenerateMipMaps(Ref<Texture>& texture) 
+    void TextureManager::GenerateMipMaps(Ref<Texture>& texture)
     {
         EVA_PROFILE_FUNCTION();
 
@@ -202,4 +202,4 @@ namespace EVA
             default: EVA_INTERNAL_ASSERT(false, "Unknown RendererAPI");
         }
     }
-}
+} // namespace EVA

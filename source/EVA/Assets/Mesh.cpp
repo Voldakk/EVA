@@ -7,8 +7,8 @@
 
 namespace EVA
 {
-    void Material::Bind(const Ref<Shader> shader) 
-    { 
+    void Material::Bind(const Ref<Shader> shader)
+    {
         if (albedo) shader->BindTexture("u_AlbedoMap", albedo);
         if (emissive) shader->BindTexture("u_EmissiveMap", emissive);
         if (normal) shader->BindTexture("u_NormalMap", normal);
@@ -17,20 +17,18 @@ namespace EVA
     }
 
     Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) : m_Material(material)
-    { 
+    {
         EVA_PROFILE_FUNCTION();
 
         m_VertexArray = EVA::VertexArray::Create();
 
         // Vertex buffer
-        auto vb  = EVA::VertexBuffer::Create(vertices.data(), sizeof(Vertex) * vertices.size());
+        auto vb = EVA::VertexBuffer::Create(vertices.data(), sizeof(Vertex) * vertices.size());
 
         EVA::BufferLayout layout = {
-            {EVA::ShaderDataType::Float3, "a_Position"}, 
-            {EVA::ShaderDataType::Float2, "a_TexCoords"},
-            {EVA::ShaderDataType::Float3, "a_Normal"},
-            {EVA::ShaderDataType::Float3, "a_Tangent"},    
-            {EVA::ShaderDataType::Float3, "a_Bitangent"},
+          {EVA::ShaderDataType::Float3, "a_Position"},  {EVA::ShaderDataType::Float2, "a_TexCoords"},
+          {EVA::ShaderDataType::Float3, "a_Normal"},    {EVA::ShaderDataType::Float3, "a_Tangent"},
+          {EVA::ShaderDataType::Float3, "a_Bitangent"},
         };
         vb->SetLayout(layout);
         m_VertexArray->AddVertexBuffer(vb);
@@ -40,7 +38,7 @@ namespace EVA
         m_VertexArray->SetIndexBuffer(ib);
     }
 
-    std::vector<Ref<Mesh>> Mesh::LoadMesh(const std::filesystem::path& path) 
+    std::vector<Ref<Mesh>> Mesh::LoadMesh(const std::filesystem::path& path)
     {
         EVA_PROFILE_FUNCTION();
 
@@ -51,8 +49,8 @@ namespace EVA
         EVA_INTERNAL_ASSERT(loaded, "Failed to load file");
 
         std::vector<Ref<Mesh>> meshes;
-        
-        for (const auto& mesh : loader.LoadedMeshes) 
+
+        for (const auto& mesh : loader.LoadedMeshes)
         {
             std::vector<Vertex> vertices;
             vertices.reserve(mesh.Vertices.size());

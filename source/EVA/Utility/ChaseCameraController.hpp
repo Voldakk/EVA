@@ -11,10 +11,10 @@ namespace EVA
         PerspectiveCamera& camera;
         Transform& self;
         Transform& target;
-        float scalar      = 7.0f;
-        glm::vec3 offset  = glm::vec3(0.0f, 0.2f, -1.5f);
-        glm::vec2 offsetScaleRange = glm::vec2(1.0f, 3.0f);
-        float offsetScale          = 1.5f;
+        float scalar                 = 7.0f;
+        glm::vec3 offset             = glm::vec3(0.0f, 0.2f, -1.5f);
+        glm::vec2 offsetScaleRange   = glm::vec2(1.0f, 3.0f);
+        float offsetScale            = 1.5f;
         float offsetScaleSensitivity = 0.1f;
 
         ChaseCameraController(PerspectiveCamera& camera, Transform& self, Transform& target) :
@@ -44,7 +44,7 @@ namespace EVA
             return false;
         }
 
-        void Inspector() 
+        void Inspector()
         {
             ImGui::PushID(this);
 

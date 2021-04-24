@@ -33,8 +33,8 @@ namespace EVA
         void BindImageTexture(const std::string& name, const Ref<Texture>& texture) override;
 
         void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ) override;
-        void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX,
-                             uint32_t groupSizeY, uint32_t groupSizeZ) override;
+        void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX, uint32_t groupSizeY,
+                             uint32_t groupSizeZ) override;
 
         void ResetTextureUnit() override { m_TextureUnit = 0; }
 

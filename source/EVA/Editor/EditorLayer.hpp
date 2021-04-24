@@ -52,7 +52,8 @@ namespace EVA
           Layer("Editor"),
           m_FrameTimes(10),
           m_OrtoCameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight()),
-          m_PersCameraController(glm::vec3(0, 0, -5), 0, 0, (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight())
+          m_PersCameraController(glm::vec3(0, 0, -5), 0, 0,
+                                 (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight())
         {
             EVA_PROFILE_FUNCTION();
 
@@ -64,17 +65,16 @@ namespace EVA
 
                 // Vertex buffer
                 float vertices[3 * 7] = {
-                  -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f, 
-                  0.5f, -0.5f, 0.0f, 0.2f, 0.3f,  0.8f,  1.0f, 
-                  0.0f, 0.5f, 0.0f, 0.8f, 0.8f, 0.2f,  1.0f,
+                  -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f, 0.5f, -0.5f, 0.0f, 0.2f,
+                  0.3f,  0.8f,  1.0f, 0.0f, 0.5f, 0.0f, 0.8f, 0.8f, 0.2f,  1.0f,
                 };
                 Ref<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
-                BufferLayout layout       = {{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}};
+                BufferLayout layout  = {{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}};
                 vb->SetLayout(layout);
                 m_TriangleVertexArray->AddVertexBuffer(vb);
 
                 // Index buffer
-                uint32_t indices[3]           = {0, 1, 2};
+                uint32_t indices[3] = {0, 1, 2};
                 Ref<IndexBuffer> ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
                 m_TriangleVertexArray->SetIndexBuffer(ib);
             }
@@ -82,12 +82,9 @@ namespace EVA
                 // Square
                 m_SquareVertexArray = VertexArray::Create();
 
-                float vertices[5 * 4] = {
-                    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 
-                    0.5f,  -0.5f, 0.0f, 1.0f, 0.0f,
-                    0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 
-                    -0.5f, 0.5f,  0.0f, 0.0f, 1.0f};
-                Ref<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
+                float vertices[5 * 4] = {-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f,
+                                         0.5f,  0.5f,  0.0f, 1.0f, 1.0f, -0.5f, 0.5f,  0.0f, 0.0f, 1.0f};
+                Ref<VertexBuffer> vb  = VertexBuffer::Create(vertices, sizeof(vertices));
                 vb->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float2, "a_TexCoord"}});
                 m_SquareVertexArray->AddVertexBuffer(vb);
 
@@ -115,13 +112,13 @@ namespace EVA
             m_ViewportFramebuffer = Framebuffer::Create(spec);
 
             // Ship
-            auto mesh = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
+            auto mesh  = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipMesh = mesh[0];
 
             {
                 auto equirectangular = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
-                //auto equirectangular = TextureManager::LoadTexture("./assets/textures/canyon.hdr");
-                m_EnvironmentMap     = TextureUtilities::EquirectangularToCubemap(equirectangular);
+                // auto equirectangular = TextureManager::LoadTexture("./assets/textures/canyon.hdr");
+                m_EnvironmentMap  = TextureUtilities::EquirectangularToCubemap(equirectangular);
                 m_IrradianceMap   = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
                 m_PreFilterMap    = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
                 m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
@@ -143,8 +140,8 @@ namespace EVA
             auto dt = Platform::GetDeltaTime();
             m_FrameTimes.Add(dt);
 
-            if (m_ViewportFocused) 
-            { 
+            if (m_ViewportFocused)
+            {
                 if (Input::IsKeyPressed(KeyCode::Escape))
                 {
                     if (Input::GetCursorMode() == Input::CursorMode::Disabled)
@@ -174,7 +171,7 @@ namespace EVA
             RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
             RenderCommand::Clear();
 
-            //Renderer::BeginScene(m_OrtoCameraController.GetCamera());
+            // Renderer::BeginScene(m_OrtoCameraController.GetCamera());
             Renderer::BeginScene(m_PersCameraController.GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF, m_Lights);
 
             // Sky
@@ -270,7 +267,7 @@ namespace EVA
                 m_ResizeViewport = true;
             }
             auto viewportTextureId = m_ViewportFramebuffer->GetColorAttachmentRendererId();
-            //auto viewportTextureId = m_ShipMesh->GetMaterial()->metallic->GetRendererId();
+            // auto viewportTextureId = m_ShipMesh->GetMaterial()->metallic->GetRendererId();
             ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
 
             ImGui::End();

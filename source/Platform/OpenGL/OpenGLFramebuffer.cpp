@@ -68,7 +68,7 @@ namespace EVA
         m_Specification.height = height;
         Invalidate();
     }
-    void OpenGLFramebuffer::ResetTexturesAttachments() 
+    void OpenGLFramebuffer::ResetTexturesAttachments()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_RendererId);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
@@ -87,5 +87,5 @@ namespace EVA
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + sideIndex, cubemap->GetRendererId(), mip);
     }
 
-    
+
 } // namespace EVA
