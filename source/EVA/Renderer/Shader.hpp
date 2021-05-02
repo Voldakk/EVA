@@ -16,6 +16,9 @@ namespace EVA
 
         virtual void SetUniformBool(const std::string& name, const bool value)         = 0;
         virtual void SetUniformInt(const std::string& name, const int value)           = 0;
+        virtual void SetUniformInt2(const std::string& name, const glm::ivec2& value)  = 0;
+        virtual void SetUniformInt3(const std::string& name, const glm::ivec3& value)  = 0;
+        virtual void SetUniformInt4(const std::string& name, const glm::ivec4& value)  = 0;
         virtual void SetUniformFloat(const std::string& name, const float value)       = 0;
         virtual void SetUniformFloat2(const std::string& name, const glm::vec2& value) = 0;
         virtual void SetUniformFloat3(const std::string& name, const glm::vec3& value) = 0;

@@ -8,11 +8,6 @@ namespace EVA
     namespace TextureNodes
     {
         constexpr std::string_view ShaderPath = "./assets/procedural/shaders/";
-        constexpr float TextureViewSize       = 100.0f;
-
-        inline static const uint32_t PinTexture = NE::NodeEditor::GetPinType<Texture>();
-        inline static const uint32_t PinFloat   = NE::NodeEditor::GetPinType<float>();
-
 
         class BaseNode : public NE::Node
         {
@@ -27,7 +22,7 @@ namespace EVA
                 auto texture       = GetTexture();
                 uint32_t textureId = 0;
                 if (texture != nullptr) textureId = texture->GetRendererId();
-                ImGui::Image(*reinterpret_cast<void**>(&textureId), ImVec2 {TextureViewSize, TextureViewSize}, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
+                ImGui::Image(*reinterpret_cast<void**>(&textureId), ImVec2 {100, 100}, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
             }
         };
 
@@ -48,8 +43,8 @@ namespace EVA
             void SetupNode() override
             {
                 name = "Passthrough";
-                AddPins({{NE::PinKind::Input, PinTexture, "In"}, {NE::PinKind::Output, PinTexture, "Out"}});
-                SetOutputData(0, &m_Texture);
+                AddInputs<Ref<Texture>>({{"In"}});
+                AddOutputs<Ref<Texture>>({{"Out", &m_Texture}});
             }
 
           private:
@@ -64,7 +59,10 @@ namespace EVA
           public:
             virtual ~ComputeNode() = default;
 
-            void SetupNode() override { AddPins({{NE::PinKind::Output, PinTexture, "Out"}}); }
+            void SetupNode() override 
+            { 
+                AddOutputs<Ref<Texture>>({{"Out"}}); 
+            }
 
             void Process() override
             {
@@ -74,7 +72,7 @@ namespace EVA
 
                 for (size_t i = 0; i < inputs.size(); i++)
                 {
-                    if (inputs[i].type != PinTexture) continue;
+                    if (!InputIsType<Ref<Texture>>(i)) continue;
 
                     const Ref<Texture>& ref = GetInputData<Ref<Texture>>(i);
                     m_Shader->BindImageTexture(i + 1, ref, TextureAccess::ReadOnly);
@@ -87,13 +85,31 @@ namespace EVA
                 m_Shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1, m_WorkGroupSize, m_WorkGroupSize, 1);
             }
 
+            void DrawFields() override
+            {
+                BaseNode::DrawFields();
+
+                if (ImGui::Button("Reload shader")) 
+                { 
+                    m_Shader = Shader::Create(std::string(ShaderPath) + m_ShaderName); 
+                    DoProcess();
+                }
+            }
+
             Ref<Texture> GetTexture() const override { return m_Texture; }
 
             virtual void SetUniforms() const {};
 
+            void SetShader(const std::string& name) 
+            { 
+                m_ShaderName = name;
+                m_Shader = Shader::Create(std::string(ShaderPath) + name);
+            }
+
           protected:
             Ref<Texture> m_Texture;
             Ref<Shader> m_Shader;
+            std::string m_ShaderName;
             uint32_t m_WorkGroupSize = 16;
         };
 
@@ -102,7 +118,7 @@ namespace EVA
           public:
             VoronoiNoiseNode()
             {
-                m_Shader  = Shader::Create(std::string(ShaderPath) + "voronoi.glsl");
+                SetShader("voronoi.glsl");
                 m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
             }
 
@@ -117,7 +133,7 @@ namespace EVA
 
             void DrawFields() override
             {
-                BaseNode::DrawFields();
+                ComputeNode::DrawFields();
 
                 bool changed = false;
                 changed |= ImGui::InputFloat("Scale", &m_Scale);
@@ -134,7 +150,7 @@ namespace EVA
           public:
             GradientNoiseNode()
             {
-                m_Shader  = Shader::Create(std::string(ShaderPath) + "gradient_noise.glsl");
+                SetShader("gradient_noise.glsl");
                 m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
             }
 
@@ -149,7 +165,7 @@ namespace EVA
 
             void DrawFields() override
             {
-                BaseNode::DrawFields();
+                ComputeNode::DrawFields();
 
                 bool changed = false;
                 changed |= ImGui::InputFloat("Scale", &m_Scale);
@@ -166,7 +182,7 @@ namespace EVA
           public:
             BlendNode()
             {
-                m_Shader  = Shader::Create(std::string(ShaderPath) + "blend.glsl");
+                SetShader("blend.glsl");
                 m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
             }
 
@@ -176,7 +192,8 @@ namespace EVA
                 name = "Blend";
                 SetOutputData(0, &m_Texture);
 
-                AddPins({{NE::PinKind::Input, PinTexture, "A"}, {NE::PinKind::Input, PinTexture, "B"}, {NE::PinKind::Input, PinFloat, "Frac", false}});
+                AddInputs<Ref<Texture>>({{"A"}, {"B"}});
+                AddInputs<float>({{"Frac", false}});
             }
 
             void Process() override
@@ -189,7 +206,7 @@ namespace EVA
 
             void DrawFields() override
             {
-                BaseNode::DrawFields();
+                ComputeNode::DrawFields();
 
                 bool changed = false;
                 if (!InputConnected(2)) { changed |= ImGui::SliderFloat("Frac", &m_Frac, 0.0f, 1.0f); }
@@ -199,6 +216,55 @@ namespace EVA
 
           private:
             float m_Frac = 0.5f;
+        };
+
+        class BrickNode : public ComputeNode
+        {
+          public:
+            BrickNode()
+            {
+                SetShader("brick.glsl");
+                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Brick";
+                SetOutputData(0, &m_Texture);
+            }
+
+            void SetUniforms() const override 
+            { 
+                m_Shader->SetUniformInt2("u_NumBricks", m_numBricks);
+                m_Shader->SetUniformFloat("u_Offset", m_Offset);
+                m_Shader->SetUniformFloat2("u_Gap", m_Gap * 0.001f);
+                m_Shader->SetUniformFloat2("u_Bevel", m_Bevel * 0.01f);
+                m_Shader->SetUniformFloat2("u_Height", m_Height); 
+            }
+
+            void DrawFields() override
+            {
+                ComputeNode::DrawFields();
+
+                bool changed = false;
+                changed |= ImGui::InputInt2("Num bricks", glm::value_ptr(m_numBricks));
+
+                changed |= ImGui::SliderFloat("Offset", &m_Offset, 0.0f, 1.0f);
+
+                changed |= ImGui::InputFloat2("Gap", glm::value_ptr(m_Gap));
+                changed |= ImGui::InputFloat2("Bevel", glm::value_ptr(m_Bevel));
+                changed |= ImGui::InputFloat2("Height", glm::value_ptr(m_Height));
+
+                processed &= !changed;
+            }
+
+          private:
+            glm::ivec2 m_numBricks = {4, 8};
+            float m_Offset         = 0.5f;
+            glm::vec2 m_Gap        = {5.0f, 5.0f};
+            glm::vec2 m_Bevel      = {1.0f, 1.0f};
+            glm::vec2 m_Height     = {0.7f, 1.0f};
         };
     } // namespace TextureNodes
 } // namespace EVA

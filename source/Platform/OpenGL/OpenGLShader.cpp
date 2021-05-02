@@ -194,6 +194,24 @@ namespace EVA
         glUniform1i(location, value);
     }
 
+    void OpenGLShader::SetUniformInt2(const std::string& name, const glm::ivec2& value)
+    {
+        auto location = GetUniformLocation(name);
+        glUniform2i(location, value.x, value.y);
+    }
+
+    void OpenGLShader::SetUniformInt3(const std::string& name, const glm::ivec3& value)
+    {
+        auto location = GetUniformLocation(name);
+        glUniform3i(location, value.x, value.y, value.z);
+    }
+
+    void OpenGLShader::SetUniformInt4(const std::string& name, const glm::ivec4& value)
+    {
+        auto location = GetUniformLocation(name);
+        glUniform4i(location, value.x, value.y, value.z, value.w);
+    }
+
     void OpenGLShader::SetUniformFloat(const std::string& name, const float value)
     {
         auto location = GetUniformLocation(name);

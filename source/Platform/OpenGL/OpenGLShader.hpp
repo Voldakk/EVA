@@ -20,6 +20,9 @@ namespace EVA
 
         void SetUniformBool(const std::string& name, const bool value) override;
         void SetUniformInt(const std::string& name, const int value) override;
+        void SetUniformInt2(const std::string& name, const glm::ivec2& value) override;
+        void SetUniformInt3(const std::string& name, const glm::ivec3& value) override;
+        void SetUniformInt4(const std::string& name, const glm::ivec4& value) override;
         void SetUniformFloat(const std::string& name, const float value) override;
         void SetUniformFloat2(const std::string& name, const glm::vec2& value) override;
         void SetUniformFloat3(const std::string& name, const glm::vec3& value) override;

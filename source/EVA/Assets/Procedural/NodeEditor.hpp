@@ -31,6 +31,18 @@ namespace EVA::NE
         bool required = true;
     };
 
+    struct InputPinInfo
+    {
+        std::string name;
+        bool required = true;
+    };
+
+    struct OutputPinInfo
+    {
+        std::string name;
+        void* data = nullptr;
+    };
+
     struct Pin
     {
         NE::PinId id;
@@ -109,6 +121,16 @@ namespace EVA::NE
         bool InputConnected(uint32_t index) { return !inputs[index].connectedPins.empty(); }
 
         void AddPins(const std::vector<PinInfo>& pins);
+
+        template<class T>
+        void AddInputs(const std::vector<InputPinInfo>& pins);
+
+        template<class T>
+        void AddOutputs(const std::vector<OutputPinInfo>& pins);
+
+        template<class T>
+        bool InputIsType(uint32_t index);
+
         bool InputsReady()
         {
             for (const auto& pin : inputs)
@@ -251,6 +273,34 @@ namespace EVA::NE
             std::vector<Pin>& v = (pin.kind == NE::PinKind::Input ? inputs : outputs);
             v.push_back(Pin(editor->NextPinId(), pin.kind, pin.type, this, pin.name, pin.required));
         }
+    }
+
+    template<class T>
+    void Node::AddInputs(const std::vector<InputPinInfo>& pins)
+    {
+        auto type = NodeEditor::GetPinType<T>();
+        for (const auto& pin : pins)
+        {
+            inputs.push_back(Pin(editor->NextPinId(), PinKind::Input, type, this, pin.name, pin.required));
+        }
+    }
+
+    template<class T>
+    void Node::AddOutputs(const std::vector<OutputPinInfo>& pins)
+    {
+        auto type = NodeEditor::GetPinType<T>();
+        for (const auto& pin : pins)
+        {
+            Pin p(editor->NextPinId(), PinKind::Output, type, this, pin.name);
+            p.outputData = pin.data;
+            outputs.push_back(p);
+        }
+    }
+
+    template<class T>
+    bool Node::InputIsType(uint32_t index)
+    {
+        return inputs[index].type == NodeEditor::GetPinType<T>();
     }
 
     void Node::Draw()

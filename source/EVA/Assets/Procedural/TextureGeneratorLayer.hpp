@@ -124,6 +124,7 @@ namespace EVA
         if (ImGui::Button("New Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoiseNode>(); }
         if (ImGui::Button("New Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoiseNode>(); }
         if (ImGui::Button("New Blend")) { m_NodeEditor.AddNode<TextureNodes::BlendNode>(); }
+        if (ImGui::Button("New Brick")) { m_NodeEditor.AddNode<TextureNodes::BrickNode>(); }
 
         ImGui::End();
     }
