@@ -238,7 +238,7 @@ namespace EVA
         glBindTexture(OpenGLTexture::GetGLTarget(texture->GetTarget()), texture->GetRendererId());
     }
 
-    void OpenGLShader::BindTexture(const std::string& name, TextureTarget target, uint32_t rendererId)
+    void OpenGLShader::BindTexture(const std::string& name, const TextureTarget target, const uint32_t rendererId)
     {
         auto unit = m_TextureUnit++;
         SetUniformInt(name, unit);
@@ -246,11 +246,10 @@ namespace EVA
         glBindTexture(OpenGLTexture::GetGLTarget(target), rendererId);
     }
 
-    void OpenGLShader::BindImageTexture(const std::string& name, const Ref<Texture>& texture)
+    void OpenGLShader::BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const TextureAccess access)
     {
-        auto location = GetUniformLocation(name);
-        location      = 0;
-        glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, GL_WRITE_ONLY, OpenGLTexture::GetGLFormat(texture->GetFormat()));
+        glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, OpenGLTexture::GetGLAccess(access),
+                           OpenGLTexture::GetGLFormat(texture->GetFormat()));
     }
 
     void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ)

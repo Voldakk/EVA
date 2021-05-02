@@ -16,3 +16,6 @@ url=https://github.com/Dav1dde/glad.git
 [submodule "dependencies/ecs"]
 	path = dependencies/ecs
 	url = https://github.com/Voldakk/ECS.git
+[submodule "dependencies/imgui/imgui-node-editor"]
+	path = dependencies/imgui/imgui-node-editor
+	url = https://github.com/thedmd/imgui-node-editor.git

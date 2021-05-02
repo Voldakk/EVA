@@ -29,8 +29,8 @@ namespace EVA
         void SetUniformMat4(const std::string& name, const glm::mat4& matrix) override;
 
         void BindTexture(const std::string& name, const Ref<Texture>& texture) override;
-        void BindTexture(const std::string& name, TextureTarget target, uint32_t rendererId) override;
-        void BindImageTexture(const std::string& name, const Ref<Texture>& texture) override;
+        void BindTexture(const std::string& name, const TextureTarget target, const uint32_t rendererId) override;
+        void BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const TextureAccess access) override;
 
         void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ) override;
         void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX, uint32_t groupSizeY,

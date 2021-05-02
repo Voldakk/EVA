@@ -25,5 +25,6 @@ namespace EVA
         static GLint GetGLMinFilter(const TextureMinFilter value);
         static GLint GetGLMagFilter(const TextureMagFilter value);
         static GLint GetGLWrapping(const TextureWrapping value);
+        static GLenum GetGLAccess(const TextureAccess value);
     };
 } // namespace EVA

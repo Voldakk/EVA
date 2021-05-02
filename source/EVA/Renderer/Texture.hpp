@@ -2,6 +2,13 @@
 
 namespace EVA
 {
+    enum class TextureAccess
+    {
+        ReadOnly,
+        WriteOnly,
+        ReadWrite
+    };
+
     enum class TextureTarget
     {
         Texture1D,

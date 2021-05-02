@@ -254,4 +254,16 @@ namespace EVA
         return 0;
     }
 
+    GLenum OpenGLTexture::GetGLAccess(const TextureAccess value)
+    {
+        switch (value)
+        {
+            case EVA::TextureAccess::ReadOnly: return GL_READ_ONLY;
+            case EVA::TextureAccess::WriteOnly: return GL_WRITE_ONLY;
+            case EVA::TextureAccess::ReadWrite: return GL_READ_WRITE;
+        }
+        EVA_INTERNAL_ASSERT(false, "Unknown TextureWrapping");
+        return 0;
+    }
+
 } // namespace EVA
