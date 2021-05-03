@@ -52,19 +52,15 @@ namespace EVA
 
         std::string result;
         std::ifstream in(filepath, std::ios::in | std::ios::binary);
-        if (in)
-        {
-            in.seekg(0, std::ios::end);
-            result.resize(in.tellg());
-            in.seekg(0, std::ios::beg);
-            in.read(&result[0], result.size());
-            in.close();
-        }
-        else
-        {
-            EVA_INTERNAL_ERROR("Could not open file: '{0}'", filepath);
-        }
 
+        EVA_INTERNAL_ASSERT(in, "Could not open file: '{0}'", filepath);
+        
+        in.seekg(0, std::ios::end);
+        result.resize(in.tellg());
+        in.seekg(0, std::ios::beg);
+        in.read(&result[0], result.size());
+        in.close();
+        
         return result;
     }
 

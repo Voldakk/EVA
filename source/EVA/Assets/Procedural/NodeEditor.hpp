@@ -122,13 +122,13 @@ namespace EVA::NE
 
         void AddPins(const std::vector<PinInfo>& pins);
 
-        template<class T>
+        template<class T, int i = 0>
         void AddInputs(const std::vector<InputPinInfo>& pins);
 
-        template<class T>
+        template<class T, int i = 0>
         void AddOutputs(const std::vector<OutputPinInfo>& pins);
 
-        template<class T>
+        template<class T, int i = 0>
         bool InputIsType(uint32_t index);
 
         bool InputsReady()
@@ -237,12 +237,14 @@ namespace EVA::NE
         std::vector<NE::LinkId> GetLinksWithInput(const NE::PinId& pinId);
         std::vector<NE::LinkId> GetLinksWithOutput(const NE::PinId& pinId);
 
-        template<class T>
+        template<class T, int i = 0>
         static uint32_t GetPinType()
         {
             static uint32_t type = s_PinTypeCounter++;
             return type;
         }
+
+        const std::vector<Node*> GetSelectedNodes() const { return m_SelectedNodes; }
 
       private:
         inline static uint32_t s_PinTypeCounter = 1;
@@ -254,6 +256,8 @@ namespace EVA::NE
 
         std::unordered_map<NE::LinkId, Link, LinkIdHasher> m_Links;
         uintptr_t m_NextId = 1;
+
+        std::vector<Node*> m_SelectedNodes;
     };
 
     NodeEditor::NodeEditor()
@@ -275,20 +279,20 @@ namespace EVA::NE
         }
     }
 
-    template<class T>
+    template<class T, int i>
     void Node::AddInputs(const std::vector<InputPinInfo>& pins)
     {
-        auto type = NodeEditor::GetPinType<T>();
+        auto type = NodeEditor::GetPinType<T, i>();
         for (const auto& pin : pins)
         {
             inputs.push_back(Pin(editor->NextPinId(), PinKind::Input, type, this, pin.name, pin.required));
         }
     }
 
-    template<class T>
+    template<class T, int i>
     void Node::AddOutputs(const std::vector<OutputPinInfo>& pins)
     {
-        auto type = NodeEditor::GetPinType<T>();
+        auto type = NodeEditor::GetPinType<T, i>();
         for (const auto& pin : pins)
         {
             Pin p(editor->NextPinId(), PinKind::Output, type, this, pin.name);
@@ -297,10 +301,10 @@ namespace EVA::NE
         }
     }
 
-    template<class T>
+    template<class T, int i>
     bool Node::InputIsType(uint32_t index)
     {
-        return inputs[index].type == NodeEditor::GetPinType<T>();
+        return inputs[index].type == NodeEditor::GetPinType<T, i>();
     }
 
     void Node::Draw()
@@ -340,12 +344,6 @@ namespace EVA::NE
             ImGui::SameLine();
             ImGui::Text(node->name.c_str());
 
-            if (node->processed) { ImGui::Text("Processed"); }
-            else if (ImGui::Button("Process"))
-            {
-                node->DoProcess();
-            }
-
             node->Draw();
 
             ImGui::PopItemWidth();
@@ -354,7 +352,7 @@ namespace EVA::NE
             ImGui::PopID();
             NE::EndNode();
         }
-
+        
         //
         // Draw Links
         //
@@ -479,6 +477,30 @@ namespace EVA::NE
             }
         }
         NE::EndDelete();
+
+        //
+        // Get selected
+        //
+        std::vector<NE::NodeId> nodeIds(NE::GetSelectedObjectCount());
+        int count = NE::GetSelectedNodes(nodeIds.data(), nodeIds.size());
+        m_SelectedNodes.clear();
+        for (int i = 0; i < count; i++)
+        {
+            m_SelectedNodes.push_back(GetNode(nodeIds[i]));
+        }
+
+        //
+        // Process
+        //
+        for (const auto node : m_Nodes) 
+        {
+            if (!node->processed) 
+            { 
+                node->DoProcess();
+                if (node->processed) break;
+            }
+        }
+
 
         //
         // End of interaction with editor.

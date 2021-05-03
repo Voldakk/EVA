@@ -104,28 +104,40 @@ namespace EVA
         m_NodeEditor.Draw();
         ImGui::End();
 
-        ImGui::Begin("Left pane");
+        ImGui::Begin("Nodes");
 
-        if (ImGui::Button("New float display")) { m_NodeEditor.AddNode<DisplayNode<float>>(); }
+        if (ImGui::Button("New Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
+        ImGui::Spacing();
+        if (ImGui::Button("New Blend")) { m_NodeEditor.AddNode<TextureNodes::BlendGrayscale>(); }
+        if (ImGui::Button("New Levels")) { m_NodeEditor.AddNode<TextureNodes::LevelsGrayscale>(); }
+        ImGui::Spacing();
+        if (ImGui::Button("New Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
+        if (ImGui::Button("New Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
+        if (ImGui::Button("New Brick")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
 
+        static int m_BlendMode = 0;
+        const char* items[] = {"Copy", "Add", "Substract", "Multiply", "Divide"};
+        ImGui::Combo("Blend mode", &m_BlendMode, items, IM_ARRAYSIZE(items));
 
-        static float f = 0.0f;
-        ImGui::InputFloat("Value##f: ", &f);
-        if (ImGui::Button("New float node")) { m_NodeEditor.AddNode<ValueNode<float>>(f); }
+        ImGui::End();
 
-        static int i = 0;
-        ImGui::InputInt("Value##i: ", &i);
-        if (ImGui::Button("New int node")) { m_NodeEditor.AddNode<ValueNode<int>>(i); }
+        ImGui::Begin("Selected");
+        auto& selected = m_NodeEditor.GetSelectedNodes();
+        if (!selected.empty()) { 
+            reinterpret_cast<TextureNodes::BaseNode*>(selected[0])->DrawProperties();
+        }
+        ImGui::End();
 
-        if (ImGui::Button("New max float node")) { m_NodeEditor.AddNode<MaxNode<float>>(); }
-
-        ImGui::Text("Texture nodes");
-        if (ImGui::Button("New Passthrough")) { m_NodeEditor.AddNode<TextureNodes::PassthroughNode>(); }
-        if (ImGui::Button("New Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoiseNode>(); }
-        if (ImGui::Button("New Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoiseNode>(); }
-        if (ImGui::Button("New Blend")) { m_NodeEditor.AddNode<TextureNodes::BlendNode>(); }
-        if (ImGui::Button("New Brick")) { m_NodeEditor.AddNode<TextureNodes::BrickNode>(); }
-
+        ImGui::Begin("Texture");
+        if (!selected.empty())
+        {
+            auto texture = reinterpret_cast<TextureNodes::BaseNode*>(selected[0])->GetTexture();
+            uint32_t textureId = 0;
+            if (texture != nullptr) textureId = texture->GetRendererId();
+            auto size = ImGui::GetContentRegionAvail();
+            float max = glm::min(size.x, size.y);
+            ImGui::Image(*reinterpret_cast<void**>(&textureId), ImVec2 {max, max}, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
+        }
         ImGui::End();
     }
 
