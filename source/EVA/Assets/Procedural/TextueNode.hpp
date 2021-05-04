@@ -659,5 +659,37 @@ namespace EVA
 
             glm::vec4 m_Color = glm::vec4(0, 0, 0, 1);
         };
+
+        class HeightToNormal : public ComputeNode
+        {
+          public:
+            HeightToNormal()
+            {
+                SetShader("height_to_normal.glsl");
+                SetTexture(TextureFormat::RGBA32F);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Height to Normal";
+                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
+                AddInputs<Ref<Texture>, 1>({{"In"}});
+            }
+
+            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Strength", m_Strength); }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                data.Serialize("Strength", m_Strength);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Strength = 1;
+        };
     } // namespace TextureNodes
 } // namespace EVA
