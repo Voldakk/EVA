@@ -18,10 +18,6 @@ namespace EVA::NE
         Pending
     };
 
-    inline static const std::unordered_map<InputState, ImVec4> s_InputStateColor = {{InputState::Unchanged, {1.0f, 1.0f, 1.0f, 1.0f}},
-                                                                                    {InputState::Changed, {1.0f, 1.0f, 0.0f, 1.0f}},
-                                                                                    {InputState::Pending, {1.0f, 0.0f, 0.0f, 1.0f}}};
-
     class NodeEditor;
     class Node;
 
@@ -73,7 +69,6 @@ namespace EVA::NE
         kind         = static_cast<NE::PinKind>(value);
         return changed;
     }
-
 
     struct Pin : public ISerializeable
     {
@@ -147,12 +142,12 @@ namespace EVA::NE
             if (!InputsReady()) return;
             processed = true;
             Process();
-            for (auto& pin : inputs)
-            {
-                pin.inputState = InputState::Unchanged;
-            }
             if (processed)
             {
+                for (auto& pin : inputs)
+                {
+                    pin.inputState = InputState::Unchanged;
+                }
                 for (auto& pin : outputs)
                 {
                     for (auto con : pin.connectedPins)
@@ -177,28 +172,27 @@ namespace EVA::NE
 
         void AddPins(const std::vector<PinInfo>& pins);
 
-        template<class T, int i = 0>
+        template<class T, size_t... i>
         void AddInputs(const std::vector<InputPinInfo>& pins);
 
-        template<class T, int i = 0>
+        template<class T, size_t... i>
         void AddOutputs(const std::vector<OutputPinInfo>& pins);
 
-        template<class T, int i = 0>
-        bool InputIsType(uint32_t index);
+        template<class T, size_t... i>
+        bool IsInputType(uint32_t index);        
 
-        bool InputsReady()
+        template<class T, size_t... i>
+        bool IsInputDataType(uint32_t index);
+
+        template<class T, size_t... i>
+        void SetOutputType(uint32_t index);
+
+        bool InputsReady();
+
+        uint32_t GetInputDataType(uint32_t index)
         {
-            for (const auto& pin : inputs)
-            {
-                if (pin.inputState == InputState::Pending) { return false; }
-                if (pin.required && pin.connectedPins.empty()) { return false; }
-
-                for (auto& con : pin.connectedPins)
-                {
-                    if (!con->node->processed) return false;
-                }
-            }
-            return true;
+            if (!InputConnected(index)) return 0;
+            return inputs[index].connectedPins[0]->type;
         }
 
         template<class T>
@@ -258,6 +252,28 @@ namespace EVA::NE
         std::size_t operator()(const NE::LinkId& k) const { return std::hash<uintptr_t>()(k.Get()); }
     };
 
+    struct NodeEditorStyle
+    {
+        ImColor linkColor {1.0f, 1.0f, 1.0f};
+        ImColor invalidLinkColor {1.0f, 0.0f, 0.0f};
+
+        std::unordered_map<InputState, ImVec4> pinStateColors = {{InputState::Unchanged, {1.0f, 1.0f, 1.0f, 0.0f}},
+                                                                    {InputState::Changed, {1.0f, 1.0f, 0.0f, 1.0f}},
+                                                                    {InputState::Pending, {1.0f, 0.0f, 0.0f, 1.0f}}};
+
+        ImColor pinColor {1.0f, 1.0f, 1.0f};
+        std::unordered_map<uint32_t, ImColor> pinColors;
+
+        template<class T, size_t... i>
+        void SetPinColor(const ImColor& color);
+
+        ImColor GetPinColor(uint32_t pinType) 
+        { 
+            auto it = pinColors.find(pinType);
+            return (it == pinColors.end()) ? pinColor : (*it).second;
+        }
+    };
+
     class NodeEditor
     {
       public:
@@ -300,7 +316,7 @@ namespace EVA::NE
         std::vector<NE::LinkId> GetLinksWithInput(const NE::PinId& pinId);
         std::vector<NE::LinkId> GetLinksWithOutput(const NE::PinId& pinId);
 
-        template<class T, int i = 0>
+        template<class T, size_t... i>
         static uint32_t GetPinType()
         {
             static uint32_t type = s_PinTypeCounter++;
@@ -308,6 +324,15 @@ namespace EVA::NE
         }
 
         const std::vector<Node*> GetSelectedNodes() const { return m_SelectedNodes; }
+
+        void AddCompatiblePinType(uint32_t input, uint32_t output) { m_CompatiblePinTypes[input].insert(output); }
+
+        bool IsPinsCompatible(uint32_t input, uint32_t output)
+        { 
+            return (input == output) || (m_CompatiblePinTypes[input].find(output) != m_CompatiblePinTypes[input].end());
+        }
+
+        NodeEditorStyle& GetStyle() { return m_Style; }
 
       private:
         inline static uint32_t s_PinTypeCounter = 1;
@@ -321,6 +346,10 @@ namespace EVA::NE
         uintptr_t m_NextId = 1;
 
         std::vector<Node*> m_SelectedNodes;
+
+        std::unordered_map<uint32_t, std::unordered_set<uint32_t>> m_CompatiblePinTypes;
+
+        NodeEditorStyle m_Style;
     };
 
     NodeEditor::NodeEditor()
@@ -332,6 +361,12 @@ namespace EVA::NE
 
     NodeEditor::~NodeEditor() { DestroyEditor(m_Context); }
 
+    template<class T, size_t... i>
+    void NodeEditorStyle::SetPinColor(const ImColor& color)
+    {
+        pinColors[NodeEditor::GetPinType<T, i...>()] = color;
+    }
+
 
     void Node::AddPins(const std::vector<PinInfo>& pins)
     {
@@ -342,20 +377,20 @@ namespace EVA::NE
         }
     }
 
-    template<class T, int i>
+    template<class T, size_t... i>
     void Node::AddInputs(const std::vector<InputPinInfo>& pins)
     {
-        auto type = NodeEditor::GetPinType<T, i>();
+        auto type = NodeEditor::GetPinType<T, i...>();
         for (const auto& pin : pins)
         {
             inputs.push_back(Pin(editor->NextPinId(), PinKind::Input, type, this, pin.name, pin.required));
         }
     }
 
-    template<class T, int i>
+    template<class T, size_t... i>
     void Node::AddOutputs(const std::vector<OutputPinInfo>& pins)
     {
-        auto type = NodeEditor::GetPinType<T, i>();
+        auto type = NodeEditor::GetPinType<T, i...>();
         for (const auto& pin : pins)
         {
             Pin p(editor->NextPinId(), PinKind::Output, type, this, pin.name);
@@ -364,10 +399,40 @@ namespace EVA::NE
         }
     }
 
-    template<class T, int i>
-    bool Node::InputIsType(uint32_t index)
+    template<class T, size_t... i>
+    bool Node::IsInputType(uint32_t index)
     {
-        return inputs[index].type == NodeEditor::GetPinType<T, i>();
+        return inputs[index].type == NodeEditor::GetPinType<T, i...>();
+    }
+
+    template<class T, size_t... i>
+    bool Node::IsInputDataType(uint32_t index)
+    {
+        if (!InputConnected(index)) return false;
+
+        return inputs[index].connectedPins[0]->type == NodeEditor::GetPinType<T, i...>();
+    }
+
+    template<class T, size_t... i>
+    void Node::SetOutputType(uint32_t index)
+    {
+        outputs[index].type = NodeEditor::GetPinType<T, i...>();
+    }
+
+    bool Node::InputsReady()
+    {
+        for (const auto& pin : inputs)
+        {
+            if (pin.inputState == InputState::Pending) { return false; }
+            if (pin.required && pin.connectedPins.empty()) { return false; }
+
+            for (auto& con : pin.connectedPins)
+            {
+                if (!con->node->processed) return false;
+                if (!editor->IsPinsCompatible(pin.type, con->type)) return false; 
+            }
+        }
+        return true;
     }
 
     void Node::Draw()
@@ -421,7 +486,8 @@ namespace EVA::NE
         //
         for (const auto& [id, linkInfo] : m_Links)
         {
-            NE::Link(id, linkInfo.input->id, linkInfo.output->id);
+            ImColor& color = (IsPinsCompatible(linkInfo.input->type, linkInfo.output->type) ? m_Style.linkColor : m_Style.invalidLinkColor);
+            NE::Link(id, linkInfo.input->id, linkInfo.output->id, color);
         }
 
         //
@@ -467,7 +533,7 @@ namespace EVA::NE
                             showLabel("Cannot connect to self", ImColor(150, 50, 50));
                             NE::RejectNewItem();
                         }
-                        else if (in->kind == out->kind || in->type != out->type)
+                        else if (in->kind == out->kind || !IsPinsCompatible(in->type, out->type))
                         {
                             showLabel("Incompatible pin", ImColor(150, 50, 50));
                             NE::RejectNewItem();
@@ -589,8 +655,13 @@ namespace EVA::NE
             NE::PinPivotAlignment({0, 0.5f});
 
             auto pos   = ImGui::GetCursorScreenPos();
-            auto color = ImColor(s_InputStateColor.at(pin.inputState));
+
+            auto color = m_Style.GetPinColor(pin.type);
             drawList->AddCircleFilled(pos + ImVec2(0, h), radius, color);
+
+            auto outlineColor = ImColor(m_Style.pinStateColors.at(pin.inputState));
+            drawList->AddCircle(pos + ImVec2(0, h), radius, outlineColor);
+
             ImGui::Dummy(ImVec2(radius, 0));
             ImGui::SameLine();
             ImGui::Text(pin.name.c_str());
@@ -610,7 +681,8 @@ namespace EVA::NE
             ImGui::SameLine();
 
             auto pos = ImGui::GetCursorScreenPos();
-            drawList->AddCircleFilled(pos + ImVec2(0.0f, h), radius, ImColor(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)));
+            auto color = m_Style.GetPinColor(pin.type);
+            drawList->AddCircleFilled(pos + ImVec2(0.0f, h), radius, color);
             ImGui::Dummy({radius, 0});
         }
         NE::EndPin();

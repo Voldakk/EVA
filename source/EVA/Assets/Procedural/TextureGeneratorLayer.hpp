@@ -6,75 +6,6 @@
 
 namespace EVA
 {
-    inline static const uint32_t PinFloat = NE::NodeEditor::GetPinType<float>();
-
-    template<class T>
-    class ValueNode : public NE::Node
-    {
-      public:
-        ValueNode(const T& value) : m_Value(value) {}
-        virtual ~ValueNode() = default;
-
-        void SetupNode() override
-        {
-            name = "Value";
-            AddPins({{NE::PinKind::Output, NE::NodeEditor::GetPinType<T>(), std::to_string(m_Value)}});
-        }
-
-        void Process() override { SetOutputData(0, &m_Value); }
-
-      private:
-        T m_Value {};
-    };
-
-    template<class T>
-    class DisplayNode : public NE::Node
-    {
-      public:
-        DisplayNode()          = default;
-        virtual ~DisplayNode() = default;
-
-        void SetupNode() override
-        {
-            name = "Value";
-            AddPins({{NE::PinKind::Input, NE::NodeEditor::GetPinType<T>(), std::to_string(m_Value), true}});
-        }
-
-        void Process() override
-        {
-            m_Value        = GetInputData<T>(0);
-            inputs[0].name = std::to_string(m_Value);
-        }
-
-      private:
-        T m_Value {};
-    };
-
-    template<class T>
-    class MaxNode : public NE::Node
-    {
-      public:
-        MaxNode()          = default;
-        virtual ~MaxNode() = default;
-
-        void SetupNode() override
-        {
-            name = "Max";
-            AddPins({{NE::PinKind::Input, PinFloat, "A", false}, {NE::PinKind::Input, PinFloat, "B", false}, {NE::PinKind::Output, PinFloat, "Max"}});
-            SetOutputData(0, &m_Value);
-        }
-
-        void Process() override
-        {
-            const T& a = GetInputData(0, T {});
-            const T& b = GetInputData(1, T {});
-
-            m_Value = glm::max(a, b);
-        }
-
-      private:
-        T m_Value {};
-    };
     class TextureGeneratorLayer : public EVA::Layer
     {
       public:
@@ -88,7 +19,15 @@ namespace EVA
         NE::NodeEditor m_NodeEditor;
     };
 
-    TextureGeneratorLayer::TextureGeneratorLayer() {}
+    TextureGeneratorLayer::TextureGeneratorLayer() 
+    { 
+        m_NodeEditor.AddCompatiblePinType(NE::NodeEditor::GetPinType<Ref<Texture>, 1, 4>(), NE::NodeEditor::GetPinType<Ref<Texture>, 1>());
+        m_NodeEditor.AddCompatiblePinType(NE::NodeEditor::GetPinType<Ref<Texture>, 1, 4>(), NE::NodeEditor::GetPinType<Ref<Texture>, 4>());
+
+        m_NodeEditor.GetStyle().SetPinColor<Ref<Texture>, 1>({0.5f, 0.5f, 0.5f});
+        m_NodeEditor.GetStyle().SetPinColor<Ref<Texture>, 4>({0.9f, 0.7f, 0.1f});
+        m_NodeEditor.GetStyle().SetPinColor<Ref<Texture>, 1, 4>({0.9f, 0.8f, 0.5f});
+    }
 
     void TextureGeneratorLayer::OnUpdate()
     {
@@ -109,15 +48,13 @@ namespace EVA
         if (ImGui::Button("Output")) { m_NodeEditor.AddNode<TextureNodes::Output>(); }
         if (ImGui::Button("Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
         ImGui::Spacing();
-        if (ImGui::Button("Uniform color")) { m_NodeEditor.AddNode<TextureNodes::UniformColor>(); }
-        if (ImGui::Button("Uniform grayscale")) { m_NodeEditor.AddNode<TextureNodes::UniformGrayscale>(); }
-        ImGui::Spacing();
+        if (ImGui::Button("Uniform")) { m_NodeEditor.AddNode<TextureNodes::Uniform>(); }
         if (ImGui::Button("Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
         if (ImGui::Button("Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
         if (ImGui::Button("Bricks")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
         ImGui::Spacing();
-        if (ImGui::Button("Blend")) { m_NodeEditor.AddNode<TextureNodes::BlendGrayscale>(); }
-        if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::LevelsGrayscale>(); }
+        if (ImGui::Button("Blend")) { m_NodeEditor.AddNode<TextureNodes::Blend>(); }
+        if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::Levels>(); }
         if (ImGui::Button("Gradient map")) { m_NodeEditor.AddNode<TextureNodes::GradientMap>(); }
         ImGui::End();
 

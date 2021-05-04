@@ -349,4 +349,17 @@ namespace EVA
             default: throw;
         }
     }
+
+    inline uint32_t GetTextureChannels(TextureFormat format) 
+    {
+        switch (GetTextureFormat(format))
+        {
+            case TextureFormat::RED: return 1;
+            case TextureFormat::RG: return 2;
+            case TextureFormat::RGB: return 3;
+            case TextureFormat::RGBA: return 4;
+        }
+        EVA_INTERNAL_ASSERT(false, "Unknown texture format");
+        return 0;
+    }
 } // namespace EVA

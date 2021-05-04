@@ -42,6 +42,13 @@ namespace EVA
             {
                 const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(0);
                 m_Texture               = *ref;
+
+                if (m_Texture != nullptr)
+                {
+                    auto channels = GetTextureChannels(m_Texture->GetFormat());
+                    if (channels == 1) SetOutputType<Ref<Texture>, 1>(0);
+                    if (channels == 4) SetOutputType<Ref<Texture>, 4>(0);
+                }
             }
 
             Ref<Texture> GetTexture() const override { return m_Texture; }
@@ -49,7 +56,7 @@ namespace EVA
             void SetupNode() override
             {
                 name = "Passthrough";
-                AddInputs<Ref<Texture>, 1>({{"In"}});
+                AddInputs<Ref<Texture>, 1, 4>({{"In"}});
                 AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
             }
 
@@ -74,7 +81,7 @@ namespace EVA
             void SetupNode() override
             {
                 name = "Output";
-                AddInputs<Ref<Texture>, 1>({{"In"}});
+                AddInputs<Ref<Texture>, 1, 4>({{"In"}});
             }
 
           private:
@@ -91,6 +98,13 @@ namespace EVA
             {
                 m_Texture = TextureManager::LoadTexture(m_Path);
                 processed = m_Texture != nullptr;
+
+                if (m_Texture != nullptr)
+                {
+                    auto channels = GetTextureChannels(m_Texture->GetFormat());
+                    if (channels == 1) SetOutputType<Ref<Texture>, 1>(0);
+                    if (channels == 4) SetOutputType<Ref<Texture>, 4>(0);
+                }
             }
 
             Ref<Texture> GetTexture() const override { return m_Texture; }
@@ -98,8 +112,7 @@ namespace EVA
             void SetupNode() override
             {
                 name = "Input";
-                AddOutputs<Ref<Texture>, 1>({{"Gray", &m_Texture}});
-                AddOutputs<Ref<Texture>, 4>({{"RGBA", &m_Texture}});
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
             }
 
             void Serialize(DataObject& data) override
@@ -134,7 +147,7 @@ namespace EVA
 
                 for (size_t i = 0; i < inputs.size(); i++)
                 {
-                    if (!InputIsType<Ref<Texture>, 1>(i) && !InputIsType<Ref<Texture>, 4>(i)) continue;
+                    if (!IsInputType<Ref<Texture>, 1>(i) && !IsInputType<Ref<Texture>, 4>(i) && !IsInputType<Ref<Texture>, 1, 4>(i)) continue;
 
                     const Ref<Texture>& ref = GetInputData<Ref<Texture>>(i);
                     m_Shader->BindImageTexture(i + 1, ref, TextureAccess::ReadOnly);
@@ -162,9 +175,9 @@ namespace EVA
                 TextureNode::Serialize(data);
 
                 ImGui::Text("Time: %6.2f ms", m_ProcessTime.count() / 1000.0f);
-                if (ImGui::Button("Reload shader")) 
+                if (ImGui::Button("Reload shaders")) 
                 { 
-                    m_Shader = Shader::Create(std::string(ShaderPath) + m_ShaderName); 
+                    m_Shader = Shader::Create(std::string(ShaderPath) + m_ShaderName);
                     DoProcess();
                 }
             }
@@ -173,10 +186,18 @@ namespace EVA
 
             virtual void SetUniforms() const {};
 
-            void SetShader(const std::string& name) 
-            { 
+            void SetShader(const std::string& name)
+            {
+                if (m_ShaderName == name) return;
+
                 m_ShaderName = name;
                 m_Shader = Shader::Create(std::string(ShaderPath) + name);
+            }
+
+            void SetTexture(TextureFormat format) 
+            { 
+                if (m_Texture != nullptr && m_Texture->GetFormat() == format) return;
+                m_Texture = TextureManager::CreateTexture(512, 512, format);
             }
 
             std::chrono::microseconds GetProcessTimeMs() const override { return m_ProcessTime; };
@@ -196,7 +217,7 @@ namespace EVA
             VoronoiNoise()
             {
                 SetShader("voronoi.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
+                SetTexture(TextureFormat::R32F);
             }
 
             void SetupNode() override
@@ -233,7 +254,7 @@ namespace EVA
             GradientNoise()
             {
                 SetShader("gradient_noise.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
+                SetTexture(TextureFormat::R32F);
             }
 
             void SetupNode() override
@@ -268,26 +289,45 @@ namespace EVA
 
         };
 
-        class BlendGrayscale : public ComputeNode
+        class Blend : public ComputeNode
         {
           public:
-            BlendGrayscale()
+            Blend()
             {
-                SetShader("blend_grayscale.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
+                // SetShader("blend_grayscale.glsl");
+                // SetTexture(TextureFormat::R32F);
             }
 
             void SetupNode() override
             {
                 ComputeNode::SetupNode();
-                name = "Blend Grayscale";
+                name = "Blend";
                 AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}}); 
-                AddInputs<Ref<Texture>, 1>({{"A"}, {"B"}});
+                AddInputs<Ref<Texture>, 1, 4>({{"A"}, {"B"}});
                 AddInputs<float>({{"Frac", false}});
             }
 
             void Process() override
             {
+                if (GetInputDataType(0) != GetInputDataType(1)) 
+                { 
+                    processed = false;
+                    return;
+                }
+
+                if (IsInputDataType<Ref<Texture>, 1>(0)) 
+                {
+                    SetShader("blend_grayscale.glsl");
+                    SetTexture(TextureFormat::R32F);
+                    SetOutputType<Ref<Texture>, 1>(0);
+                }
+                else
+                {
+                    SetShader("blend_rgba.glsl");
+                    SetTexture(TextureFormat::RGBA32F);
+                    SetOutputType<Ref<Texture>, 4>(0);
+                }
+
                 m_Opacity = GetInputData(2, m_Opacity);
                 ComputeNode::Process();
             }
@@ -330,7 +370,7 @@ namespace EVA
             Bricks()
             {
                 SetShader("brick.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
+                SetTexture(TextureFormat::R32F);
             }
 
             void SetupNode() override
@@ -374,21 +414,39 @@ namespace EVA
             glm::vec2 m_Height     = {0.7f, 1.0f};
         };
 
-        class LevelsGrayscale : public ComputeNode
+        class Levels : public ComputeNode
         {
           public:
-            LevelsGrayscale()
+            Levels()
             {
-                SetShader("levles_grayscale.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
+                // SetShader("levles_grayscale.glsl");
+                // SetTexture(TextureFormat::R32F);
             }
 
             void SetupNode() override
             {
                 ComputeNode::SetupNode();
-                name = "Levels Grayscale";
+                name = "Levels";
                 AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
+                AddInputs<Ref<Texture>, 1, 4>({{"In"}});
+            }
+
+            void Process() override
+            {
+                if (IsInputDataType<Ref<Texture>, 1>(0))
+                {
+                    SetShader("levles_grayscale.glsl");
+                    SetTexture(TextureFormat::R32F);
+                    SetOutputType<Ref<Texture>, 1>(0);
+                }
+                else
+                {
+                    SetShader("levles_rgba.glsl");
+                    SetTexture(TextureFormat::RGBA32F);
+                    SetOutputType<Ref<Texture>, 4>(0);
+                }
+
+                ComputeNode::Process();
             }
 
             void SetUniforms() const override
@@ -396,6 +454,15 @@ namespace EVA
                 m_Shader->SetUniformFloat2("u_InputRange", m_InputRange);
                 m_Shader->SetUniformFloat2("u_OutputRange", m_OutputRange);
                 m_Shader->SetUniformFloat("u_Midtone", m_Midtone);
+
+                if (m_Texture != nullptr && GetTextureChannels(m_Texture->GetFormat()) == 4)
+                {
+                    m_Shader->SetUniformFloat4("u_InputRangeMin", m_InputRangeMin);
+                    m_Shader->SetUniformFloat4("u_InputRangeMax", m_InputRangeMax);
+                    m_Shader->SetUniformFloat4("u_OutputRangeMin", m_OutputRangeMin);
+                    m_Shader->SetUniformFloat4("u_OutputRangeMax", m_OutputRangeMax);
+                    m_Shader->SetUniformFloat4("u_Midtones", m_Midtones);
+                }
             }
 
             void Serialize(DataObject& data) override
@@ -404,24 +471,68 @@ namespace EVA
 
                 if (data.Inspector())
                 {
+                    ImGui::Text("Key");
                     data.changed |= ImGui::SliderFloat2("Input range", glm::value_ptr(m_InputRange), 0.0f, 1.0f);
                     data.changed |= ImGui::SliderFloat2("Output range", glm::value_ptr(m_OutputRange), 0.0f, 1.0f);
                     data.changed |= ImGui::SliderFloat("Midtone", &m_Midtone, 0.0f, 1.0f);
+
+                    if (m_Texture != nullptr && GetTextureChannels(m_Texture->GetFormat()) == 4)
+                    {
+                        ImGui::PushID(0);
+                        ImGui::Separator();
+
+                        const char* items[] = {"R", "G", "B", "A"};
+                        ImGui::Combo("Blend mode", &m_SelectedChannel, items, IM_ARRAYSIZE(items));
+
+                        glm::vec2 inputRange  = {m_InputRangeMin[m_SelectedChannel], m_InputRangeMax[m_SelectedChannel]};
+                        glm::vec2 outputRange = {m_OutputRangeMin[m_SelectedChannel], m_OutputRangeMax[m_SelectedChannel]};
+                        float midtone         = m_Midtones[m_SelectedChannel];
+                        data.changed |= ImGui::SliderFloat2("Input range", glm::value_ptr(inputRange), 0.0f, 1.0f);
+                        data.changed |= ImGui::SliderFloat2("Output range", glm::value_ptr(outputRange), 0.0f, 1.0f);
+                        data.changed |= ImGui::SliderFloat("Midtone", &midtone, 0.0f, 1.0f);
+                        m_InputRangeMin[m_SelectedChannel]  = inputRange.x;
+                        m_InputRangeMax[m_SelectedChannel]  = inputRange.y;
+                        m_OutputRangeMin[m_SelectedChannel] = outputRange.x;
+                        m_OutputRangeMax[m_SelectedChannel] = outputRange.y;
+                        m_Midtones[m_SelectedChannel]       = midtone;
+
+                        ImGui::PopID();
+                    }
                 }
                 else
                 {
-                    data.Serialize("Input range", m_InputRange);
-                    data.Serialize("Output range", m_OutputRange);
-                    data.Serialize("Midtone", m_Midtone);
+                    data.Serialize("m_SelectedChannel", m_SelectedChannel);
+
+                    data.Serialize("m_InputRange", m_InputRange);
+                    data.Serialize("m_OutputRange", m_OutputRange);
+                    data.Serialize("m_Midtone", m_Midtone);
+
+                    data.Serialize("m_InputRangeMin", m_InputRangeMin);
+                    data.Serialize("m_InputRangeMax", m_InputRangeMax);
+
+                    data.Serialize("m_OutputRangeMin", m_OutputRangeMin);
+                    data.Serialize("m_OutputRangeMax", m_OutputRangeMax);
+
+                    data.Serialize("m_Midtones", m_Midtones);
                 }
 
                 processed &= !data.changed;
             }
 
           private:
+            int m_SelectedChannel   = 0;
+
             glm::vec2 m_InputRange  = {0.0f, 1.0f};
             glm::vec2 m_OutputRange = {0.0f, 1.0f};
             float m_Midtone         = 0.5f;
+
+            glm::vec4 m_InputRangeMin  = glm::vec4(0.0f);
+            glm::vec4 m_InputRangeMax = glm::vec4(1.0f);
+
+            glm::vec4 m_OutputRangeMin = glm::vec4(0.0f);
+            glm::vec4 m_OutputRangeMax = glm::vec4(1.0f);
+
+            glm::vec4 m_Midtones = glm::vec4(0.5f);
         };
 
         class GradientMap : public ComputeNode
@@ -430,7 +541,7 @@ namespace EVA
             GradientMap()
             {
                 SetShader("gradientmap.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::RGBA32F);
+                SetTexture(TextureFormat::RGBA32F);
             }
 
             void SetupNode() override
@@ -474,48 +585,14 @@ namespace EVA
             ImGradient m_Gradient;
         };
 
-        class UniformGrayscale : public ComputeNode
+        class Uniform : public ComputeNode
         {
           public:
-            UniformGrayscale()
+            Uniform()
             {
-                SetShader("uniform_grayscale.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
-            }
-
-            void SetupNode() override
-            {
-                ComputeNode::SetupNode();
-                name = "Uniform grayscale";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-            }
-
-            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Value", m_Value); }
-
-            void Serialize(DataObject& data) override
-            {
-                ComputeNode::Serialize(data);
-
-                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Value", &m_Value, 0.0f, 1.0f); }
-                else
-                {
-                    data.Serialize("Input range", m_Value);
-                }
-
-                processed &= !data.changed;
-            }
-
-          private:
-            float m_Value = 0;
-        };
-
-        class UniformColor : public ComputeNode
-        {
-          public:
-            UniformColor()
-            {
-                SetShader("uniform_color.glsl");
-                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::RGBA32F);
+                //SetShader("uniform_rgba.glsl");
+                //SetShader("uniform_grayscale.glsl");
+                //SetTexture(TextureFormat::RGBA32F);
             }
 
             void SetupNode() override
@@ -525,22 +602,61 @@ namespace EVA
                 AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
             }
 
-            void SetUniforms() const override { m_Shader->SetUniformFloat4("u_Color", m_Color); }
+            void Process() override
+            {
+                if (m_Mode == 0)
+                {
+                    SetShader("uniform_grayscale.glsl");
+                    SetTexture(TextureFormat::R32F);
+                    SetOutputType<Ref<Texture>, 1>(0);
+                }
+                else
+                {
+                    SetShader("uniform_rgba.glsl");
+                    SetTexture(TextureFormat::RGBA32F);
+                    SetOutputType<Ref<Texture>, 4>(0);
+                }
+
+                ComputeNode::Process();
+            }
+
+            void SetUniforms() const override
+            {
+                if (m_Mode == 0)
+                    m_Shader->SetUniformFloat("u_Value", m_Value);
+                else
+                    m_Shader->SetUniformFloat4("u_Color", m_Color);
+            }
 
             void Serialize(DataObject& data) override
             {
                 ComputeNode::Serialize(data);
 
-                if (data.Inspector()) { data.changed |= ImGui::ColorEdit4("Color", glm::value_ptr(m_Color)); }
+                if (data.Inspector()) 
+                { 
+                    const char* items[] = {"Grayscale", "Color"};
+                    data.changed |= ImGui::Combo("Mode", &m_Mode, items, IM_ARRAYSIZE(items));
+
+                    if (m_Mode == 0)
+                        data.changed |= ImGui::SliderFloat("Value", &m_Value, 0.0f, 1.0f); 
+                    else 
+                        data.changed |= ImGui::ColorPicker4("Color", glm::value_ptr(m_Color)); 
+
+                }
                 else
                 {
-                    data.Serialize("Input range", m_Color);
+                    data.Serialize("mode", m_Mode);
+                    data.Serialize("value", m_Value);
+                    data.Serialize("color", m_Color);
                 }
 
                 processed &= !data.changed;
             }
 
           private:
+            int m_Mode    = 0;
+            float m_Value = 0;
+
             glm::vec4 m_Color = glm::vec4(0, 0, 0, 1);
         };
     } // namespace TextureNodes

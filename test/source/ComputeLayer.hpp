@@ -209,7 +209,7 @@ namespace EVA
             m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
 
             // Cameras
-            m_CameraController = CreateRef<PerspectiveCameraController>(glm::vec3(0, 2, -5), 0, 0,
+            m_CameraController = CreateRef<PerspectiveCameraController>(glm::vec3(0, 2, -5), 0.0f, 0.0f,
                 (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight());
             m_ChaseCameraController = CreateRef<ChaseCameraController>(m_CameraController->GetCamera(), m_CameraController->GetTransform(), m_ShipController->GetTransform());
             

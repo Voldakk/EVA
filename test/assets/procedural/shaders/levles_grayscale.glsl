@@ -12,13 +12,12 @@ uniform float u_Midtone = 0.5;
 
 void main()
 {
-	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
 	float inPixel = imageLoad(u_Input, pixelCoords).r;
 	vec4 outPixel = vec4(0);
-	
-	// Do work
+
+	float gamma = (1 - u_Midtone) * 2;
 	/*float gamma = 0.0;
 	if (u_Midtone < 0.5)
 	{
@@ -33,8 +32,8 @@ void main()
 		gamma = max(gamma, 0.01);
 	}*/
 	
-	float value = inPixel = (inPixel - u_InputRange.x) / (u_InputRange.y - u_InputRange.x);
-	value = pow(value, u_Midtone * 2);
+	float value = (inPixel - u_InputRange.x) / (u_InputRange.y - u_InputRange.x);
+	value = pow(value, gamma);
 	value = value * (u_OutputRange.y - u_OutputRange.x) + u_OutputRange.x;
 
 	value = clamp(value, 0.0, 1.0);
