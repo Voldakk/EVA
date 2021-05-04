@@ -23,7 +23,7 @@ namespace EVA::NE
                                                                                     {InputState::Pending, {1.0f, 0.0f, 0.0f, 1.0f}}};
 
     class NodeEditor;
-    struct Node;
+    class Node;
 
     struct PinInfo
     {

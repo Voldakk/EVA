@@ -125,7 +125,7 @@ namespace EVA
         auto& selected = m_NodeEditor.GetSelectedNodes();
         if (!selected.empty()) { 
             DataObject d;
-            d.mode == DataObject::DataMode::Inspector;
+            d.mode = DataObject::DataMode::Inspector;
             reinterpret_cast<TextureNodes::TextureNode*>(selected[0])->Serialize(d);
         }
         ImGui::End();
