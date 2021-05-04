@@ -6,6 +6,7 @@ layout(local_size_variable) in;
 layout(binding = 0, r32f) uniform writeonly image2D u_Output;
 
 uniform float u_Scale = 10.0;
+uniform vec2 u_Position = vec2(0);
 
 vec2 random2f( vec2 p ) {
     return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
@@ -57,7 +58,7 @@ void main()
 	vec4 outPixel = vec4(1.0f);
 
 	vec2 uv = vec2(pixelCoords) / vec2(dims);
-
+    uv += u_Position;
     outPixel.rgb = vec3(voronoiDistance(uv * u_Scale));
 
 	imageStore(u_Output, pixelCoords, outPixel);

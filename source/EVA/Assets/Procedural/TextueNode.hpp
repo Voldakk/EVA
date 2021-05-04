@@ -3,6 +3,7 @@
 #include "EVA.hpp"
 #include "NodeEditor.hpp"
 #include <chrono>
+#include "imgui_color_gradient.h"
 
 namespace EVA
 {
@@ -10,11 +11,11 @@ namespace EVA
     {
         constexpr std::string_view ShaderPath = "./assets/procedural/shaders/";
 
-        class BaseNode : public NE::Node
+        class TextureNode : public NE::Node
         {
           public:
-            BaseNode()          = default;
-            virtual ~BaseNode() = default;
+            TextureNode()       = default;
+            virtual ~TextureNode() = default;
 
             virtual Ref<Texture> GetTexture() const = 0;
 
@@ -26,18 +27,15 @@ namespace EVA
                 ImGui::Image(*reinterpret_cast<void**>(&textureId), ImVec2 {150, 150}, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
             }
 
-            virtual void DrawProperties()
-            {
-                
-            }
-
             virtual std::chrono::microseconds GetProcessTimeMs() const { return std::chrono::microseconds(0); };
+
+            void Serialize(DataObject& data) override { NE::Node::Serialize(data); }
         };
 
-        class Passthrough : public BaseNode
+        class Passthrough : public TextureNode
         {
           public:
-            Passthrough()              = default;
+            Passthrough()          = default;
             virtual ~Passthrough() = default;
 
             void Process() override
@@ -59,7 +57,66 @@ namespace EVA
             Ref<Texture> m_Texture;
         };
 
-        class ComputeNode : public BaseNode
+        class Output : public TextureNode
+        {
+          public:
+            Output()          = default;
+            virtual ~Output() = default;
+
+            void Process() override
+            {
+                const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(0);
+                m_Texture               = *ref;
+            }
+
+            Ref<Texture> GetTexture() const override { return m_Texture; }
+
+            void SetupNode() override
+            {
+                name = "Output";
+                AddInputs<Ref<Texture>, 1>({{"In"}});
+            }
+
+          private:
+            Ref<Texture> m_Texture;
+        };
+
+        class Input : public TextureNode
+        {
+          public:
+            Input()           = default;
+            virtual ~Input() = default;
+
+            void Process() override
+            {
+                m_Texture = TextureManager::LoadTexture(m_Path);
+                processed = m_Texture != nullptr;
+            }
+
+            Ref<Texture> GetTexture() const override { return m_Texture; }
+
+            void SetupNode() override
+            {
+                name = "Input";
+                AddOutputs<Ref<Texture>, 1>({{"Gray", &m_Texture}});
+                AddOutputs<Ref<Texture>, 4>({{"RGBA", &m_Texture}});
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                TextureNode::Serialize(data);
+
+                data.Serialize("Path", m_Path);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            Ref<Texture> m_Texture;
+            std::filesystem::path m_Path;
+        };
+
+        class ComputeNode : public TextureNode
         {
           protected:
             ComputeNode() = default;
@@ -96,13 +153,14 @@ namespace EVA
 
             void DrawFields() override
             {
-                BaseNode::DrawFields();
+                TextureNode::DrawFields();
                 ImGui::Text("Time: %6.2f ms", m_ProcessTime.count() / 1000.0f);
             }
 
-            void DrawProperties() override
+            void Serialize(DataObject& data) override 
             {
-                BaseNode::DrawProperties();
+                TextureNode::Serialize(data);
+
                 ImGui::Text("Time: %6.2f ms", m_ProcessTime.count() / 1000.0f);
                 if (ImGui::Button("Reload shader")) 
                 { 
@@ -148,20 +206,25 @@ namespace EVA
                 AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}}); 
             }
 
-            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Scale", m_Scale); }
-
-            void DrawProperties() override
+            void SetUniforms() const override
             {
-                ComputeNode::DrawProperties();
+                m_Shader->SetUniformFloat("u_Scale", m_Scale);
+                m_Shader->SetUniformFloat2("u_Position", m_Position);
+            }
 
-                bool changed = false;
-                changed |= ImGui::InputFloat("Scale", &m_Scale);
+            void Serialize(DataObject& data) override 
+            {
+                ComputeNode::Serialize(data);
 
-                processed &= !changed;
+                data.Serialize("Scale", m_Scale);
+                data.Serialize("Position", m_Position);
+
+                processed &= !data.changed;
             }
 
           private:
             float m_Scale = 10.0f;
+            glm::vec2 m_Position {};
         };
 
         class GradientNoise : public ComputeNode
@@ -180,20 +243,29 @@ namespace EVA
                 AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}}); 
             }
 
-            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Scale", m_Scale); }
-
-            void DrawProperties() override
+            void SetUniforms() const override
             {
-                ComputeNode::DrawProperties();
+                m_Shader->SetUniformFloat("u_Scale", m_Scale);
+                m_Shader->SetUniformFloat2("u_Position", m_Position);
+                m_Shader->SetUniformInt("u_Octaves", m_Octaves);
+            }
 
-                bool changed = false;
-                changed |= ImGui::InputFloat("Scale", &m_Scale);
+            void Serialize(DataObject& data) override 
+            {
+                ComputeNode::Serialize(data);
 
-                processed &= !changed;
+                data.Serialize("Position", m_Position);
+                data.Serialize("Scale", m_Scale);
+                data.Serialize("Octaves", m_Octaves);
+
+                processed &= !data.changed;
             }
 
           private:
             float m_Scale = 10.0f;
+            glm::vec2 m_Position {};
+            int m_Octaves = 4;
+
         };
 
         class BlendGrayscale : public ComputeNode
@@ -226,17 +298,25 @@ namespace EVA
                 m_Shader->SetUniformInt("u_BlendMode", m_BlendMode); 
             }
 
-            void DrawProperties() override
+            void Serialize(DataObject& data) override 
             {
-                ComputeNode::DrawProperties();
+                ComputeNode::Serialize(data);
 
-                bool changed = false;
-                if (!InputConnected(2)) { changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0.0f, 1.0f); }
+                if (data.Inspector())
+                {
+                    if (!InputConnected(2)) { data.changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0.0f, 1.0f); }
 
-                const char* items[] = {"Copy", "Add", "Substract", "Multiply", "Divide", "Min", "Max"};
-                changed |= ImGui::Combo("Blend mode", &m_BlendMode, items, IM_ARRAYSIZE(items));
+                    const char* items[] = {"Copy", "Add", "Substract", "Multiply", "Divide", "Darken", "Lighten", 
+                        "Screen", "Overlay", "Hard Light", "Soft Light", "Difference", "Color Dodge", "Color Burn"};
+                    data.changed |= ImGui::Combo("Blend mode", &m_BlendMode, items, IM_ARRAYSIZE(items));
+                }
+                else
+                {
+                    data.Serialize("Opacity", m_Opacity);
+                    data.Serialize("BlendMode", m_BlendMode);
+                }
 
-                processed &= !changed;
+                processed &= !data.changed;
             }
 
           private:
@@ -269,20 +349,21 @@ namespace EVA
                 m_Shader->SetUniformFloat2("u_Height", m_Height);
             }
 
-            void DrawProperties() override
+            void Serialize(DataObject& data) override 
             {
-                ComputeNode::DrawProperties();
+                ComputeNode::Serialize(data);
 
-                bool changed = false;
-                changed |= ImGui::InputInt2("Num bricks", glm::value_ptr(m_numBricks));
+                data.Serialize("Num bricks", m_numBricks);               
+                data.Serialize("Gap", m_Gap);
+                data.Serialize("Bevel", m_Bevel);
+                data.Serialize("Height", m_Height);
 
-                changed |= ImGui::SliderFloat("Offset", &m_Offset, 0.0f, 1.0f);
+                if (data.Inspector())
+                    data.changed |= ImGui::SliderFloat("Offset", &m_Offset, 0.0f, 1.0f);
+                else
+                    data.Serialize("Offset", m_Offset);
 
-                changed |= ImGui::InputFloat2("Gap", glm::value_ptr(m_Gap));
-                changed |= ImGui::InputFloat2("Bevel", glm::value_ptr(m_Bevel));
-                changed |= ImGui::InputFloat2("Height", glm::value_ptr(m_Height));
-
-                processed &= !changed;
+                processed &= !data.changed;
             }
 
           private:
@@ -308,7 +389,6 @@ namespace EVA
                 name = "Levels Grayscale";
                 AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
                 AddInputs<Ref<Texture>, 1>({{"In"}});
-
             }
 
             void SetUniforms() const override
@@ -318,23 +398,150 @@ namespace EVA
                 m_Shader->SetUniformFloat("u_Midtone", m_Midtone);
             }
 
-            void DrawProperties() override
+            void Serialize(DataObject& data) override
             {
-                ComputeNode::DrawProperties();
+                ComputeNode::Serialize(data);
 
-                bool changed = false;
+                if (data.Inspector())
+                {
+                    data.changed |= ImGui::SliderFloat2("Input range", glm::value_ptr(m_InputRange), 0.0f, 1.0f);
+                    data.changed |= ImGui::SliderFloat2("Output range", glm::value_ptr(m_OutputRange), 0.0f, 1.0f);
+                    data.changed |= ImGui::SliderFloat("Midtone", &m_Midtone, 0.0f, 1.0f);
+                }
+                else
+                {
+                    data.Serialize("Input range", m_InputRange);
+                    data.Serialize("Output range", m_OutputRange);
+                    data.Serialize("Midtone", m_Midtone);
+                }
 
-                changed |= ImGui::SliderFloat2("Input range", glm::value_ptr(m_InputRange), 0.0f, 1.0f);
-                changed |= ImGui::SliderFloat2("Output range", glm::value_ptr(m_OutputRange), 0.0f, 1.0f);
-                changed |= ImGui::SliderFloat("Midtone", &m_Midtone, 0.0f, 1.0f);
-
-                processed &= !changed;
+                processed &= !data.changed;
             }
 
           private:
             glm::vec2 m_InputRange  = {0.0f, 1.0f};
             glm::vec2 m_OutputRange = {0.0f, 1.0f};
             float m_Midtone         = 0.5f;
+        };
+
+        class GradientMap : public ComputeNode
+        {
+          public:
+            GradientMap()
+            {
+                SetShader("gradientmap.glsl");
+                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::RGBA32F);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Gradient map";
+                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
+                AddInputs<Ref<Texture>, 1>({{"In"}});
+            }
+
+            void SetUniforms() const override 
+            { 
+                int i = 0;
+                for (auto markIt = m_Gradient.getMarks().begin(); markIt != m_Gradient.getMarks().end(); ++markIt)
+                {
+                    ImGradientMark mark = **markIt;
+                    auto u = "u_Marks[" + std::to_string(i) + "].";
+                    m_Shader->SetUniformFloat(u + "position", mark.position);
+                    m_Shader->SetUniformFloat4(u + "color", glm::vec4(mark.color[0], mark.color[1], mark.color[2], mark.color[3])); 
+                    i++;
+                }
+                m_Shader->SetUniformInt("u_Count", m_Gradient.getMarks().size());
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                static bool show = false;
+                static ImGradientMark* draggingMark = nullptr;
+                static ImGradientMark* selectedMark = nullptr;
+                if (ImGui::GradientButton(&m_Gradient)) { show = !show; }
+                if (show)
+                { 
+                    data.changed |= ImGui::GradientEditor(&m_Gradient, draggingMark, selectedMark);
+                }
+                processed &= !data.changed;
+            }
+
+          private:
+            ImGradient m_Gradient;
+        };
+
+        class UniformGrayscale : public ComputeNode
+        {
+          public:
+            UniformGrayscale()
+            {
+                SetShader("uniform_grayscale.glsl");
+                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::R32F);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Uniform grayscale";
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
+            }
+
+            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Value", m_Value); }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Value", &m_Value, 0.0f, 1.0f); }
+                else
+                {
+                    data.Serialize("Input range", m_Value);
+                }
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Value = 0;
+        };
+
+        class UniformColor : public ComputeNode
+        {
+          public:
+            UniformColor()
+            {
+                SetShader("uniform_color.glsl");
+                m_Texture = TextureManager::CreateTexture(512, 512, TextureFormat::RGBA32F);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Uniform color";
+                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
+            }
+
+            void SetUniforms() const override { m_Shader->SetUniformFloat4("u_Color", m_Color); }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector()) { data.changed |= ImGui::ColorEdit4("Color", glm::value_ptr(m_Color)); }
+                else
+                {
+                    data.Serialize("Input range", m_Color);
+                }
+
+                processed &= !data.changed;
+            }
+
+          private:
+            glm::vec4 m_Color = glm::vec4(0, 0, 0, 1);
         };
     } // namespace TextureNodes
 } // namespace EVA

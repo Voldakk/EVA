@@ -105,33 +105,35 @@ namespace EVA
         ImGui::End();
 
         ImGui::Begin("Nodes");
-
-        if (ImGui::Button("New Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
+        if (ImGui::Button("Input")) { m_NodeEditor.AddNode<TextureNodes::Input>(); }
+        if (ImGui::Button("Output")) { m_NodeEditor.AddNode<TextureNodes::Output>(); }
+        if (ImGui::Button("Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
         ImGui::Spacing();
-        if (ImGui::Button("New Blend")) { m_NodeEditor.AddNode<TextureNodes::BlendGrayscale>(); }
-        if (ImGui::Button("New Levels")) { m_NodeEditor.AddNode<TextureNodes::LevelsGrayscale>(); }
+        if (ImGui::Button("Uniform color")) { m_NodeEditor.AddNode<TextureNodes::UniformColor>(); }
+        if (ImGui::Button("Uniform grayscale")) { m_NodeEditor.AddNode<TextureNodes::UniformGrayscale>(); }
         ImGui::Spacing();
-        if (ImGui::Button("New Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
-        if (ImGui::Button("New Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
-        if (ImGui::Button("New Brick")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
-
-        static int m_BlendMode = 0;
-        const char* items[] = {"Copy", "Add", "Substract", "Multiply", "Divide"};
-        ImGui::Combo("Blend mode", &m_BlendMode, items, IM_ARRAYSIZE(items));
-
+        if (ImGui::Button("Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
+        if (ImGui::Button("Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
+        if (ImGui::Button("Bricks")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
+        ImGui::Spacing();
+        if (ImGui::Button("Blend")) { m_NodeEditor.AddNode<TextureNodes::BlendGrayscale>(); }
+        if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::LevelsGrayscale>(); }
+        if (ImGui::Button("Gradient map")) { m_NodeEditor.AddNode<TextureNodes::GradientMap>(); }
         ImGui::End();
 
         ImGui::Begin("Selected");
         auto& selected = m_NodeEditor.GetSelectedNodes();
         if (!selected.empty()) { 
-            reinterpret_cast<TextureNodes::BaseNode*>(selected[0])->DrawProperties();
+            DataObject d;
+            d.mode == DataObject::DataMode::Inspector;
+            reinterpret_cast<TextureNodes::TextureNode*>(selected[0])->Serialize(d);
         }
         ImGui::End();
-
+        
         ImGui::Begin("Texture");
         if (!selected.empty())
         {
-            auto texture = reinterpret_cast<TextureNodes::BaseNode*>(selected[0])->GetTexture();
+            auto texture       = reinterpret_cast<TextureNodes::TextureNode*>(selected[0])->GetTexture();
             uint32_t textureId = 0;
             if (texture != nullptr) textureId = texture->GetRendererId();
             auto size = ImGui::GetContentRegionAvail();

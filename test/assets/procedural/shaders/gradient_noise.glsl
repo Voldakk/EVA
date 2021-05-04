@@ -6,6 +6,13 @@ layout(local_size_variable) in;
 layout(binding = 0, r32f) uniform writeonly image2D u_Output;
 
 uniform float u_Scale = 10.0;
+uniform vec2 u_Position = vec2(0);
+uniform int u_Octaves = 4;
+
+// The MIT License
+// Copyright © 2013 Inigo Quilez
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 vec2 grad( ivec2 z )  // replace this anything that returns a random vector
 {
@@ -45,7 +52,6 @@ float noise( in vec2 p )
                      dot( grad( i+ivec2(1,1) ), f-vec2(1.0,1.0) ), u.x), u.y);
 }
 
-
 void main()
 {
 	const ivec2 dims = imageSize(u_Output);
@@ -55,15 +61,21 @@ void main()
 
 	vec2 uv = vec2(pixelCoords) / vec2(dims);
     uv *= u_Scale;
+    uv += u_Position;
 
-    float f = 0.0f;
+    float f = 0.0;
+    float intensity = 1.0;
     mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
-	f  = 0.5000*noise( uv ); uv = m*uv;
-	f += 0.2500*noise( uv ); uv = m*uv;
-	f += 0.1250*noise( uv ); uv = m*uv;
-	f += 0.0625*noise( uv ); uv = m*uv;
+    for(int i = 0; i < u_Octaves; i++)
+    {
+        intensity *= 0.5;
+        f += intensity * noise(uv); 
+        uv = m * uv;
+    }
+
+    f = 0.5 + 0.5 * f;
+    f *= smoothstep(0.0, 0.005, abs(uv.x-0.6));	
 
     outPixel.rgb = vec3(f);
-
 	imageStore(u_Output, pixelCoords, outPixel);
 }

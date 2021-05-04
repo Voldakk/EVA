@@ -4,6 +4,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
+#include "EVA/Assets/ISerializeable.hpp"
+
 namespace EVA::NE
 {
     namespace NE  = ax::NodeEditor;
@@ -43,7 +45,37 @@ namespace EVA::NE
         void* data = nullptr;
     };
 
-    struct Pin
+    bool SerializeId(DataObject& data, const std::string& key, NE::PinId id)
+    {
+        auto value   = id.Get();
+        bool changed = data.Serialize(key, value);
+        id           = NE::PinId(value);
+        return changed;
+    }
+    bool SerializeId(DataObject& data, const std::string& key, NE::NodeId id)
+    {
+        auto value   = id.Get();
+        bool changed = data.Serialize(key, value);
+        id           = NE::NodeId(value);
+        return changed;
+    }
+    bool SerializeId(DataObject& data, const std::string& key, NE::LinkId id)
+    {
+        auto value   = id.Get();
+        bool changed = data.Serialize(key, value);
+        id           = NE::LinkId(value);
+        return changed;
+    }
+    bool SerializeKind(DataObject& data, const std::string& key, NE::PinKind kind)
+    {
+        int value   = static_cast<int>(kind);
+        bool changed = data.Serialize(key, value);
+        kind         = static_cast<NE::PinKind>(value);
+        return changed;
+    }
+
+
+    struct Pin : public ISerializeable
     {
         NE::PinId id;
         NE::PinKind kind;
@@ -66,6 +98,15 @@ namespace EVA::NE
         {
         }
 
+        void Serialize(DataObject& data) override
+        {
+            SerializeId(data, "id", id);
+            SerializeKind(data, "kind", kind);
+            data.Serialize("type", type);
+            data.Serialize("name", name);
+            data.Serialize("required", required);
+        }
+
         void AddConnected(Pin* pin) { connectedPins.push_back(pin); }
         void RemoveConnected(Pin* pin)
         {
@@ -82,8 +123,9 @@ namespace EVA::NE
         }
     };
 
-    struct Node
+    class Node : public ISerializeable
     {
+      public:
         NE::NodeId id;
         std::string name;
         std::vector<Pin> inputs;
@@ -103,19 +145,32 @@ namespace EVA::NE
         void DoProcess()
         {
             if (!InputsReady()) return;
-            Process();
             processed = true;
+            Process();
             for (auto& pin : inputs)
             {
                 pin.inputState = InputState::Unchanged;
             }
-            for (auto& pin : outputs)
+            if (processed)
             {
-                for (auto con : pin.connectedPins)
+                for (auto& pin : outputs)
                 {
-                    con->SetChanged();
+                    for (auto con : pin.connectedPins)
+                    {
+                        con->SetChanged();
+                    }
                 }
             }
+        }
+
+        void Serialize(DataObject& data) override 
+        { 
+            if (data.mode == DataObject::DataMode::Inspector) return;
+
+            SerializeId(data, "id", id);
+            data.Serialize("name", name);
+            data.Serialize("inputs", inputs);
+            data.Serialize("outputs", outputs);
         }
 
         bool InputConnected(uint32_t index) { return !inputs[index].connectedPins.empty(); }
@@ -215,9 +270,17 @@ namespace EVA::NE
         template<class T, typename... Args>
         void AddNode(Args&&... args)
         {
-            auto nId = NextNodeId();
-
             auto node = CreateRef<T>(std::forward<Args>(args)...);
+            m_Nodes.push_back(node);
+
+            node->id     = NextNodeId();
+            node->editor = this;
+            node->SetupNode();
+            node->DoProcess();
+        }
+
+        void AddNode(Ref<Node> node)
+        {
             m_Nodes.push_back(node);
 
             node->id     = NextNodeId();

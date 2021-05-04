@@ -59,6 +59,7 @@ void main()
 	const vec2 uv = vec2(pixelCoords) / vec2(dims);
 
     float d = brick(uv);
+    d = clamp(d, 0.0, 1.0);
     vec4 outPixel = vec4(d, 0, 0, 1);
 
 	imageStore(u_Output, pixelCoords, outPixel);
