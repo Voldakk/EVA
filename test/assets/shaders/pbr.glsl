@@ -52,10 +52,11 @@ out vec4 fragColor;
 
 // Material
 uniform sampler2D u_AlbedoMap;
-uniform sampler2D u_EmissiveMap;
 uniform sampler2D u_NormalMap;
 uniform sampler2D u_MetallicMap;
 uniform sampler2D u_RoughnessMap;
+uniform sampler2D u_AmbientOcclusionMap;
+uniform sampler2D u_EmissiveMap;
 
 uniform vec3 u_CameraPosition;
 
@@ -118,30 +119,29 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }   
-// ----------------------------------------------------------------------------*/
-void main()
-{	
-    vec2 UV = fragUV;
+// ----------------------------------------------------------------------------
+vec3 Ambient(vec3 N, vec3 V, vec3 R, vec3 F0, float roughness, float metallic, float ao, vec3 albedo)
+{
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    
+    vec3 irradiance = texture(u_IrradianceMap, N).rgb;
+    vec3 diffuse = irradiance * albedo;
+    
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(u_PrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec2 brdf  = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    vec3 albedo = pow(texture(u_AlbedoMap, UV).rgb, vec3(2.2));
-    float metallic = texture(u_MetallicMap, UV).r;
-    float roughness = texture(u_RoughnessMap, UV).r;
-    float ao = 1;
-    vec3 emissive = texture(u_EmissiveMap, UV).rgb;
-
-    vec3 N = texture(u_NormalMap, UV).rgb;
-    N = normalize(N * 2.0 - 1.0);
-	N = normalize(fragTBN * N);
-
-    vec3 V = normalize(u_CameraPosition - fragPos);
-    vec3 R = reflect(-V, N); 
-
-    // Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 of 0.04
-    // and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
-
-    // reflectance equation
-    vec3 Lo = vec3(0);
+    return (kD * diffuse + specular) * ao;
+}
+// ----------------------------------------------------------------------------
+vec3 CalcLight(vec3 point, vec3 N, vec3 V, vec3 F0, float roughness, float metallic, vec3 albedo)
+{
+    vec3 Lo = vec3(0.0);
     for(int i = 0; i < u_NumLights; ++i) 
     {
         vec3 L;
@@ -150,14 +150,14 @@ void main()
         // Point light
         if(u_AllLights[i].position.w == 1.0)
         {
-            L = normalize(u_AllLights[i].position.xyz - fragPos);
-            float distance = length(u_AllLights[i].position.xyz - fragPos);
+            L = normalize(u_AllLights[i].position.xyz - point);
+            float distance = length(u_AllLights[i].position.xyz - point);
             float attenuation = u_AllLights[i].attenuation / (distance * distance);
             radiance = u_AllLights[i].color * attenuation;
         }
         else
         {
-            L =  normalize(u_AllLights[i].position.xyz);
+            L = normalize(u_AllLights[i].position.xyz);
             radiance = u_AllLights[i].color;
         }
 
@@ -180,30 +180,40 @@ void main()
 
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
-    
-    // Ambient lighting
-    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-    
-    vec3 kS = F;
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;	  
-    
-    vec3 irradiance = texture(u_IrradianceMap, N).rgb;
-    vec3 diffuse = irradiance * albedo;
-    
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(u_PrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
-    vec2 brdf  = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+    return Lo;
+}
+// ----------------------------------------------------------------------------
+void main()
+{	
+    vec2 UV = fragUV;
 
-    vec3 ambient = (kD * diffuse + specular) * ao;
+    vec3 albedo = pow(texture(u_AlbedoMap, UV).rgb, vec3(2.2));
+    float metallic = texture(u_MetallicMap, UV).r;
+    float roughness = texture(u_RoughnessMap, UV).r;
+    float ao = texture(u_AmbientOcclusionMap, UV).r;
+    vec3 emissive = texture(u_EmissiveMap, UV).rgb;
+
+    vec3 N = texture(u_NormalMap, UV).rgb;
+    N = normalize(N * 2.0 - 1.0);
+	N = normalize(fragTBN * N);
+
+    vec3 V = normalize(u_CameraPosition - fragPos);
+    vec3 R = reflect(-V, N); 
+
+    // Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 of 0.04
+    // and if it's a metal, use the albedo color as F0 (metallic workflow)    
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+
+    vec3 ambient = Ambient(N, V, R, F0, roughness, metallic, ao, albedo);
+    vec3 Lo = CalcLight(fragPos, N, V, F0, roughness, metallic, albedo);
     
     vec3 color = ambient + Lo + emissive;
 
     // HDR tonemapping
-    //color = color / (color + vec3(1.0));
+    color = color / (color + vec3(1.0));
     // gamma correct
-    //color = pow(color, vec3(1.0/2.2)); 
+    color = pow(color, vec3(1.0/2.2)); 
 
     //fragColor = vec4((N + 1) / 2, 1.0);
     fragColor = vec4(color, 1.0);

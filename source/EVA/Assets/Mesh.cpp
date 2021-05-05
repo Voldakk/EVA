@@ -10,10 +10,11 @@ namespace EVA
     void Material::Bind(const Ref<Shader> shader)
     {
         if (albedo) shader->BindTexture("u_AlbedoMap", albedo);
-        if (emissive) shader->BindTexture("u_EmissiveMap", emissive);
         if (normal) shader->BindTexture("u_NormalMap", normal);
         if (metallic) shader->BindTexture("u_MetallicMap", metallic);
         if (roughness) shader->BindTexture("u_RoughnessMap", roughness);
+        if (ambientOcclusion) shader->BindTexture("u_AmbientOcclusionMap", ambientOcclusion);
+        if (emissive) shader->BindTexture("u_EmissiveMap", emissive);
     }
 
     Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) : m_Material(material)

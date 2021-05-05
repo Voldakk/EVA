@@ -18,10 +18,11 @@ namespace EVA
     struct Material
     {
         Ref<Texture> albedo;
-        Ref<Texture> emissive;
         Ref<Texture> normal;
         Ref<Texture> metallic;
         Ref<Texture> roughness;
+        Ref<Texture> ambientOcclusion;
+        Ref<Texture> emissive;
 
         void Bind(const Ref<Shader> shader);
     };

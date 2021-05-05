@@ -128,6 +128,7 @@ namespace EVA::NE
         NodeEditor* editor;
 
         bool processed = false;
+        bool deletable = true;
 
         Node() = default;
         Node(NE::NodeId id, const std::string& name) : id(id), name(name) {}
@@ -284,18 +285,14 @@ namespace EVA::NE
         void DrawPin(const Pin& pin);
 
         template<class T, typename... Args>
-        void AddNode(Args&&... args)
+        void AddNode(Args&&... args, glm::vec2 position = {})
         {
             auto node = CreateRef<T>(std::forward<Args>(args)...);
-            m_Nodes.push_back(node);
-
-            node->id     = NextNodeId();
-            node->editor = this;
-            node->SetupNode();
-            node->DoProcess();
+           
+            AddNode(node, position);
         }
 
-        void AddNode(Ref<Node> node)
+        void AddNode(Ref<Node> node, glm::vec2 position = {})
         {
             m_Nodes.push_back(node);
 
@@ -303,6 +300,9 @@ namespace EVA::NE
             node->editor = this;
             node->SetupNode();
             node->DoProcess();
+
+            NE::SetCurrentEditor(m_Context);
+            NE::SetNodePosition(node->id, {position.x, position.y});
         }
 
         inline NE::NodeId NextNodeId() { return NE::NodeId(m_NextId++); }
@@ -451,7 +451,7 @@ namespace EVA::NE
     void NodeEditor::Draw()
     {
         NE::SetCurrentEditor(m_Context);
-        NE::Begin("My Editor", ImVec2(0.0, 0.0f));
+        NE::Begin("NodeEditor");
 
         //
         // Draw nodes

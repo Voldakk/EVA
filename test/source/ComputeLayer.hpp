@@ -3,6 +3,7 @@
 #include "EVA.hpp"
 #include "ShipController.hpp"
 #include "Platform/OpenGL/OpenGLContext.hpp"
+#include "EVA/Editor/Viewport.hpp"
 #include <random>
 
 float randomFloat()
@@ -143,18 +144,12 @@ namespace EVA
 
     class ComputeLayer : public EVA::Layer
     {
-        EVA::SlidingWindow<float> m_FrameTimes;
+        SlidingWindow<float> m_FrameTimes;
 
-        glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
-        Ref<Framebuffer> m_ViewportFramebuffer;
+        Ref<Texture> m_ComputeTexture;
+        Ref<Shader> m_ComputeShader;
 
-        bool m_ViewportFocused = false;
-        bool m_ViewportHovered = false;
-        bool m_ResizeViewport = false;
-
-        EVA::Ref<EVA::Texture> m_ComputeTexture;
-        EVA::Ref<EVA::Shader> m_ComputeShader;
-        EVA::Ref<EVA::ShaderStorageBuffer> m_Ssbo;
+        Ref<ShaderStorageBuffer> m_Ssbo;
         std::vector<glm::vec4> m_SsboData;
         size_t m_MaxObjects = 100;
 
@@ -163,17 +158,15 @@ namespace EVA
         Ref<ShipController> m_ShipController;
         bool m_InShip = false;
 
-        Ref<Texture> m_EquirectangularMap;
-        Ref<Texture> m_EnvironmentMap;
-        Ref<Texture> m_IrradianceMap;
-        Ref<Texture> m_PreFilterMap;
-        Ref<Texture> m_PreComputedBRDF;
+        Ref<Environment> m_Environment;
 
         Ref<PerspectiveCameraController> m_CameraController;
         Ref<ChaseCameraController> m_ChaseCameraController;
 
         SceneParams m_SceneParams;
         std::vector<Light> m_Lights;
+
+        Ref<Viewport> m_Viewport;
 
     public:
         ComputeLayer() :
@@ -184,11 +177,11 @@ namespace EVA
 
             LoadShaders();
 
-            // Framebuffer
+            // Viewport
             FramebufferSpecification spec;
             spec.width = Application::Get().GetWindow().GetWidth();
             spec.height = Application::Get().GetWindow().GetHeight();
-            m_ViewportFramebuffer = Framebuffer::Create(spec);
+            m_Viewport = CreateRef<Viewport>(spec);
 
             // Compute
             m_ComputeTexture = TextureManager::CreateTexture(512, 512, TextureFormat::RGBA8);
@@ -202,15 +195,10 @@ namespace EVA
             m_ShipController = CreateRef<ShipController>(glm::vec3(5.0f, 0.0f, 0.0f));
 
             // Enviroment
-            m_EquirectangularMap = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
-            m_EnvironmentMap = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
-            m_IrradianceMap = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
-            m_PreFilterMap = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
-            m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
+            m_Environment = CreateRef<Environment>("./assets/textures/space_1k.hdr");
 
             // Cameras
-            m_CameraController = CreateRef<PerspectiveCameraController>(glm::vec3(0, 2, -5), 0.0f, 0.0f,
-                (float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight());
+            m_CameraController = CreateRef<PerspectiveCameraController>(glm::vec3(0, 2, -5), 0.0f, 0.0f, Application::Get().GetWindow().GetAspect());
             m_ChaseCameraController = CreateRef<ChaseCameraController>(m_CameraController->GetCamera(), m_CameraController->GetTransform(), m_ShipController->GetTransform());
             
             // Lights
@@ -243,7 +231,7 @@ namespace EVA
             }  
 
             // Update
-            if (m_ViewportFocused)
+            if (m_Viewport->IsFocused())
             {
                 EVA_PROFILE_SCOPE("Viewport update");
 
@@ -275,22 +263,22 @@ namespace EVA
             }
 
             // Render
-            if (m_ResizeViewport)
+            m_Viewport->Update();
+            if (m_Viewport->GetSize() != m_ComputeTexture->GetSize())
             {
                 EVA_PROFILE_SCOPE("Resize viewport");
-                m_ResizeViewport = false;
-                m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-                m_ComputeTexture = EVA::TextureManager::CreateTexture(m_ViewportSize.x, m_ViewportSize.y, TextureFormat::RGBA8);
+                m_ComputeTexture = EVA::TextureManager::CreateTexture(m_Viewport->GetSize().x, m_Viewport->GetSize().y, TextureFormat::RGBA8);
+                m_Viewport->SetTexture(m_ComputeTexture->GetRendererId());
             }
 
             {
                 EVA_PROFILE_SCOPE("Render");
 
-                m_ViewportFramebuffer->Bind();
+                m_Viewport->Bind();
                 RenderCommand::SetClearColor({0.0f, 0.0f, 0.0f, 1});
                 RenderCommand::Clear();
 
-                Renderer::BeginScene(m_CameraController->GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF, m_Lights);
+                Renderer::BeginScene(m_CameraController->GetCamera(), m_Environment, m_Lights);
 
                 m_PBRShader->Bind();
                 m_PBRShader->ResetTextureUnit();
@@ -299,13 +287,13 @@ namespace EVA
                 Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray(), m_ShipController->GetTransform().GetModelMatrix());
 
                 Renderer::EndScene();
-                m_ViewportFramebuffer->Unbind();
+                m_Viewport->Unbind();
             }
 
             {
                 EVA_PROFILE_SCOPE("Render ray");
 
-                size_t numPixels      = m_ComputeTexture->GetWidth() * m_ComputeTexture->GetHeight();
+                size_t numPixels   = m_ComputeTexture->GetWidth() * m_ComputeTexture->GetHeight();
                 size_t numObjects  = glm::min(m_SsboData.size(), m_MaxObjects);
 
                 auto maxWorkGroupSize = OpenGLContext::MaxComputeWorkGroupSize();
@@ -322,21 +310,21 @@ namespace EVA
 
                 m_SceneParams.SetUniforms(m_ComputeShader);
 
-                m_ComputeShader->BindTexture("u_EnvMap", m_EquirectangularMap);
-                m_ComputeShader->BindTexture("u_IrradianceMap", m_IrradianceMap);
-                m_ComputeShader->BindTexture("u_PrefilterMap", m_PreFilterMap);
-                m_ComputeShader->BindTexture("u_BrdfLUT", m_PreComputedBRDF);
+                m_ComputeShader->BindTexture("u_EnvMap", m_Environment->GetEquirectangularMap());
+                m_ComputeShader->BindTexture("u_IrradianceMap", m_Environment->GetIrradianceMap());
+                m_ComputeShader->BindTexture("u_PrefilterMap", m_Environment->GetPreFilterMap());
+                m_ComputeShader->BindTexture("u_BrdfLUT", m_Environment->GetBrdfLUT());
 
 
                 m_ComputeShader->SetUniformInt("u_NumLights", m_Lights.size());
                 for (size_t i = 0; i < m_Lights.size(); i++) 
                 {
                     const auto uniformName = "u_AllLights[" + std::to_string(i) + "].";
-                    m_Lights[i].SetUniforms(m_ComputeShader, uniformName, i);
+                    m_Lights[i].SetUniforms(m_ComputeShader, uniformName);
                 }
 
-                m_ComputeShader->BindTexture("u_FbColor", TextureTarget::Texture2D, m_ViewportFramebuffer->GetColorAttachmentRendererId());
-                m_ComputeShader->BindTexture("u_FbDepth", TextureTarget::Texture2D, m_ViewportFramebuffer->GetDepthAttachmentRendererId());
+                m_ComputeShader->BindTexture("u_FbColor", TextureTarget::Texture2D, m_Viewport->GetFramebuffer()->GetColorAttachmentRendererId());
+                m_ComputeShader->BindTexture("u_FbDepth", TextureTarget::Texture2D, m_Viewport->GetFramebuffer()->GetDepthAttachmentRendererId());
 
                 m_ComputeShader->SetUniformInt("objectBufferCount", numObjects);
 
@@ -408,26 +396,7 @@ namespace EVA
             ImGui::End();
 
             // Viewport
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2 {0, 0});
-            ImGui::Begin("Viewport");
-
-            m_ViewportFocused = ImGui::IsWindowFocused();
-            m_ViewportHovered = ImGui::IsWindowHovered();
-
-            Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused || !m_ViewportHovered);
-
-            auto viewportPanelSize = ImGui::GetContentRegionAvail();
-            if (m_ViewportSize != *reinterpret_cast<glm::vec2*>(&viewportPanelSize) && viewportPanelSize.x > 0 && viewportPanelSize.y > 0)
-            {
-                m_ViewportSize   = {viewportPanelSize.x, viewportPanelSize.y};
-                m_ResizeViewport = true;
-            }
-            auto viewportTextureId = m_ComputeTexture->GetRendererId();
-            //auto viewportTextureId = m_EnviromentTexture->GetRendererId();
-            ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
-
-            ImGui::End();
-            ImGui::PopStyleVar(ImGuiStyleVar_WindowPadding);
+            m_Viewport->Draw();
         }
     };
 } // namespace EVA

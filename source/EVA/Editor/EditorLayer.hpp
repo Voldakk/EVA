@@ -1,11 +1,8 @@
 #pragma once
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "EVA.hpp"
 #include "EVA/Utility/SlidingWindow.hpp"
-
+#include "Viewport.hpp"
 #include <glad/glad.h>
 
 namespace EVA
@@ -26,24 +23,12 @@ namespace EVA
 
         glm::vec3 m_SquareColor = glm::vec3(0.2f, 0.3f, 0.8f);
 
-        glm::vec2 m_ViewportSize = {0.0f, 0.0f};
-        Ref<Framebuffer> m_ViewportFramebuffer;
-
-        bool m_ViewportFocused = false;
-        bool m_ViewportHovered = false;
-        bool m_ResizeViewport  = false;
-
         Ref<Mesh> m_CubeMesh;
         Ref<Mesh> m_ShipMesh;
         Ref<Shader> m_PBRShader;
 
-        Ref<Texture> m_EnvironmentMap;
-        Ref<Texture> m_IrradianceMap;
-        Ref<Texture> m_PreFilterMap;
-        Ref<Texture> m_PreComputedBRDF;
-
-        Ref<Mesh> m_SkyboxMesh;
-        Ref<Shader> m_SkyboxShader;
+        Ref<Viewport> m_Viewport;
+        Ref<Environment> m_Environment;
 
         std::vector<Light> m_Lights;
 
@@ -105,30 +90,20 @@ namespace EVA
             // Texture
             m_Texture = TextureManager::LoadTexture("assets/textures/uv.png");
 
-            // Framebuffer
+            // Viewport
             FramebufferSpecification spec;
-            spec.width            = 1200;
-            spec.height           = 600;
-            m_ViewportFramebuffer = Framebuffer::Create(spec);
+            spec.width  = Application::Get().GetWindow().GetWidth();
+            spec.height = Application::Get().GetWindow().GetHeight();
+            m_Viewport  = CreateRef<Viewport>(spec);
 
             // Ship
             auto mesh  = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipMesh = mesh[0];
 
-            {
-                auto equirectangular = TextureManager::LoadTexture("./assets/textures/space_1k.hdr");
-                // auto equirectangular = TextureManager::LoadTexture("./assets/textures/canyon.hdr");
-                m_EnvironmentMap  = TextureUtilities::EquirectangularToCubemap(equirectangular);
-                m_IrradianceMap   = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
-                m_PreFilterMap    = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
-                m_PreComputedBRDF = TextureUtilities::PreComputeBRDF();
-            }
-
-            m_SkyboxMesh = Mesh::LoadMesh("./assets/models/cube_inverted.obj")[0];
+            m_Environment = CreateRef<Environment>("./assets/textures/space_1k.hdr");
         }
         void LoadShaders()
         {
-            m_SkyboxShader = Shader::Create("./assets/shaders/skybox.glsl");
             m_PBRShader    = Shader::Create("./assets/shaders/pbr.glsl");
         }
 
@@ -140,7 +115,7 @@ namespace EVA
             auto dt = Platform::GetDeltaTime();
             m_FrameTimes.Add(dt);
 
-            if (m_ViewportFocused)
+            if (m_Viewport->IsFocused())
             {
                 if (Input::IsKeyPressed(KeyCode::Escape))
                 {
@@ -159,27 +134,21 @@ namespace EVA
             }
 
             // Render
-            if (m_ResizeViewport)
+            if (m_Viewport->Update())
             {
                 EVA_PROFILE_SCOPE("Resize viewport");
-                m_ResizeViewport = false;
-                m_ViewportFramebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-                m_OrtoCameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
-                m_PersCameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+                m_OrtoCameraController.OnResize(m_Viewport->GetSize().x, m_Viewport->GetSize().y);
+                m_PersCameraController.OnResize(m_Viewport->GetSize().x, m_Viewport->GetSize().y);
             }
-            m_ViewportFramebuffer->Bind();
+            m_Viewport->Bind();
             RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
             RenderCommand::Clear();
 
             // Renderer::BeginScene(m_OrtoCameraController.GetCamera());
-            Renderer::BeginScene(m_PersCameraController.GetCamera(), m_EnvironmentMap, m_IrradianceMap, m_PreFilterMap, m_PreComputedBRDF, m_Lights);
+            Renderer::BeginScene(m_PersCameraController.GetCamera(), m_Environment, m_Lights);
 
             // Sky
-            m_SkyboxShader->Bind();
-            m_SkyboxShader->ResetTextureUnit();
-            RenderCommand::EnableDepth(false);
-            Renderer::Submit(m_SkyboxShader, m_SkyboxMesh->GetVertexArray());
-            RenderCommand::EnableDepth(true);
+            m_Environment->DrawSkyBox();
 
             // Squares
             m_FlatColorShader->Bind();
@@ -214,7 +183,7 @@ namespace EVA
             Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray());
 
             Renderer::EndScene();
-            m_ViewportFramebuffer->Unbind();
+            m_Viewport->Unbind();
         }
 
         void OnEvent(Event& e) override
@@ -252,26 +221,7 @@ namespace EVA
             ImGui::End();
 
             // Viewport
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2 {0, 0});
-            ImGui::Begin("Viewport");
-
-            m_ViewportFocused = ImGui::IsWindowFocused();
-            m_ViewportHovered = ImGui::IsWindowHovered();
-
-            Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused || !m_ViewportHovered);
-
-            auto viewportPanelSize = ImGui::GetContentRegionAvail();
-            if (m_ViewportSize != *reinterpret_cast<glm::vec2*>(&viewportPanelSize) && viewportPanelSize.x > 0 && viewportPanelSize.y > 0)
-            {
-                m_ViewportSize   = {viewportPanelSize.x, viewportPanelSize.y};
-                m_ResizeViewport = true;
-            }
-            auto viewportTextureId = m_ViewportFramebuffer->GetColorAttachmentRendererId();
-            // auto viewportTextureId = m_ShipMesh->GetMaterial()->metallic->GetRendererId();
-            ImGui::Image(*reinterpret_cast<void**>(&viewportTextureId), viewportPanelSize, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
-
-            ImGui::End();
-            ImGui::PopStyleVar(ImGuiStyleVar_WindowPadding);
+            m_Viewport->Draw();
         }
     };
 } // namespace EVA

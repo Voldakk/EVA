@@ -67,7 +67,7 @@ namespace EVA
         class Output : public TextureNode
         {
           public:
-            Output()          = default;
+            Output(const std::string& n = "Output") { name = n; }
             virtual ~Output() = default;
 
             void Process() override
@@ -80,7 +80,7 @@ namespace EVA
 
             void SetupNode() override
             {
-                name = "Output";
+                //name = "Output";
                 AddInputs<Ref<Texture>, 1, 4>({{"In"}});
             }
 

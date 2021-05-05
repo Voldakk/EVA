@@ -10,6 +10,7 @@
 
 namespace EVA
 {
+    class Environment;
     class Renderer
     {
         struct SceneData
@@ -20,10 +21,7 @@ namespace EVA
             glm::mat4 projectionMatrix;
             glm::mat4 viewProjectionMatrix;
 
-            Ref<Texture> environmentMap;
-            Ref<Texture> irradianceMap;
-            Ref<Texture> prefilterMap;
-            Ref<Texture> brdfLUT;
+            Ref<Environment> environment;
 
             std::vector<Light> lights;
         };
@@ -35,8 +33,7 @@ namespace EVA
 
         static void OnWindowResize(uint32_t width, uint32_t height);
 
-        static void BeginScene(const Camera& camera, Ref<Texture> environmentMap, Ref<Texture> irradianceMap, Ref<Texture> prefilterMap,
-                               Ref<Texture> brdfLUT, const std::vector<Light>& lights);
+        static void BeginScene(const Camera& camera, Ref<Environment> environment, const std::vector<Light>& lights = {});
         static void EndScene();
 
         static void Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const glm::mat4& model = glm::mat4(1.0f));

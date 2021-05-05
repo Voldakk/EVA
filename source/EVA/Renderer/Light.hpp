@@ -45,7 +45,7 @@ namespace EVA
             ImGui::PopID();
         }
 
-        void SetUniforms(const Ref<Shader>& shader, const std::string& uniformName, uint32_t index)
+        void SetUniforms(const Ref<Shader>& shader, const std::string& uniformName)
         {
             shader->SetUniformFloat3(uniformName + "color", color * intensity);
 

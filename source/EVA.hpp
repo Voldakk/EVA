@@ -19,6 +19,7 @@
 #include "EVA/Renderer/Texture.hpp"
 #include "EVA/Renderer/VertexArray.hpp"
 #include "EVA/Renderer/Light.hpp"
+#include "EVA/Renderer/Environment.hpp"
 
 #include "EVA/Renderer/OrthographicCamera.hpp"
 #include "EVA/Renderer/PerspectiveCamera.hpp"
@@ -26,6 +27,7 @@
 #include "EVA/Utility/OrthographicCameraController.hpp"
 #include "EVA/Utility/PerspectiveCameraController.hpp"
 #include "EVA/Utility/ChaseCameraController.hpp"
+#include "EVA/Utility/OrbitalCameraController.hpp"
 
 #include "EVA/Utility/Transform.hpp"
 #include "EVA/Utility/SlidingWindow.hpp"

@@ -246,16 +246,22 @@ namespace EVA
 
     void OpenGLShader::BindTexture(const std::string& name, const Ref<Texture>& texture)
     {
+        auto location = GetUniformLocation(name);
+        if (location == -1) return;
+
         auto unit = m_TextureUnit++;
-        SetUniformInt(name, unit);
+        glUniform1i(location, unit);
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(OpenGLTexture::GetGLTarget(texture->GetTarget()), texture->GetRendererId());
     }
 
     void OpenGLShader::BindTexture(const std::string& name, const TextureTarget target, const uint32_t rendererId)
     {
+        auto location = GetUniformLocation(name);
+        if (location == -1) return;
+
         auto unit = m_TextureUnit++;
-        SetUniformInt(name, unit);
+        glUniform1i(location, unit);
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(OpenGLTexture::GetGLTarget(target), rendererId);
     }
@@ -292,7 +298,7 @@ namespace EVA
 
         const GLint location = glGetUniformLocation(m_RendererId, name.c_str());
 #ifdef EVA_DEBUG
-        if (location == -1) { EVA_INTERNAL_WARN("Invalid uniform name: {}", name); }
+        if (location == -1) { EVA_INTERNAL_WARN("{} - Invalid uniform name: {}", m_Name, name); }
 #endif
         m_UniformLocationMap[name] = location;
         return location;

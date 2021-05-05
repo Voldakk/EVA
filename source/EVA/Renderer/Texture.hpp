@@ -167,6 +167,9 @@ namespace EVA
         inline const TextureSettings GetSettings() const { return m_Settings; }
         inline const std::filesystem::path GetPath() const { return m_Path; }
 
+        inline const glm::vec2 GetSize() const { return glm::vec2(m_Width, m_Height); }
+
+
       private:
         uint32_t m_RendererId {};
         uint32_t m_Width {};

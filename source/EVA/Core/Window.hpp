@@ -27,6 +27,7 @@ namespace EVA
 
         virtual int GetWidth() const  = 0;
         virtual int GetHeight() const = 0;
+        float GetAspect() const { return static_cast<float>(GetWidth()) / static_cast<float>(GetHeight()); };
 
         virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void SetVSync(bool enabled)                            = 0;
