@@ -34,7 +34,7 @@ namespace EVA
         NE::NodeEditor m_NodeEditor;
     };
 
-    TextureGeneratorLayer::TextureGeneratorLayer() : m_CameraController(Application::Get().GetWindow().GetAspect(), glm::vec3(0.0f), 30.0f, 0.0f)
+    TextureGeneratorLayer::TextureGeneratorLayer() : m_CameraController(Application::Get().GetWindow().GetAspect(), glm::vec3(0.0f), 30.0f, 0.0f, 5.0f)
     { 
         m_NodeEditor.AddCompatiblePinType(NE::NodeEditor::GetPinType<Ref<Texture>, 1, 4>(), NE::NodeEditor::GetPinType<Ref<Texture>, 1>());
         m_NodeEditor.AddCompatiblePinType(NE::NodeEditor::GetPinType<Ref<Texture>, 1, 4>(), NE::NodeEditor::GetPinType<Ref<Texture>, 4>());

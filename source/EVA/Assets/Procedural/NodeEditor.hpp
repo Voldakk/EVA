@@ -21,14 +21,6 @@ namespace EVA::NE
     class NodeEditor;
     class Node;
 
-    struct PinInfo
-    {
-        NE::PinKind kind;
-        uint32_t type;
-        std::string name;
-        bool required = true;
-    };
-
     struct InputPinInfo
     {
         std::string name;
@@ -170,8 +162,6 @@ namespace EVA::NE
         }
 
         bool InputConnected(uint32_t index) { return !inputs[index].connectedPins.empty(); }
-
-        void AddPins(const std::vector<PinInfo>& pins);
 
         template<class T, size_t... i>
         void AddInputs(const std::vector<InputPinInfo>& pins);
@@ -365,16 +355,6 @@ namespace EVA::NE
     void NodeEditorStyle::SetPinColor(const ImColor& color)
     {
         pinColors[NodeEditor::GetPinType<T, i...>()] = color;
-    }
-
-
-    void Node::AddPins(const std::vector<PinInfo>& pins)
-    {
-        for (const auto& pin : pins)
-        {
-            std::vector<Pin>& v = (pin.kind == NE::PinKind::Input ? inputs : outputs);
-            v.push_back(Pin(editor->NextPinId(), pin.kind, pin.type, this, pin.name, pin.required));
-        }
     }
 
     template<class T, size_t... i>
@@ -597,12 +577,21 @@ namespace EVA::NE
             NE::NodeId nodeId = 0;
             while (NE::QueryDeletedNode(&nodeId))
             {
-                if (NE::AcceptDeletedItem())
-                {
-                    auto it = std::find_if(m_Nodes.begin(), m_Nodes.end(), [nodeId](const Ref<Node>& node) { return node->id == nodeId; });
-                    if (it != m_Nodes.end()) m_Nodes.erase(it);
+                auto it = std::find_if(m_Nodes.begin(), m_Nodes.end(), [nodeId](const Ref<Node>& node) { return node->id == nodeId; });
+                if (it != m_Nodes.end()) 
+                { 
+                    if ((*it)->deletable) {
+                        if (NE::AcceptDeletedItem())
+                        {
+                            m_Nodes.erase(it);
+                        }
+                    }
+                    else
+                    {
+                        NE::RejectDeletedItem();
+                        NE::SelectNode(nodeId, true);
+                    }
                 }
-                // NE::RejectDeletedItem();
             }
         }
         NE::EndDelete();

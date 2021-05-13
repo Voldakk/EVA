@@ -33,11 +33,11 @@ float brick(vec2 uv)
     uv += vec2(floor(uv.y) * u_Offset, 0.0);
     
     vec2 index = floor(uv);
-    
+    uv = fract(uv);
     
     vec2 gap = u_Gap * u_NumBricks;
     vec2 bevel = u_Bevel * u_NumBricks;
-    uv = mod(uv, 1.0);
+    
     vec2 tl = gap;
     vec2 br = 1.0 - gap;
     
