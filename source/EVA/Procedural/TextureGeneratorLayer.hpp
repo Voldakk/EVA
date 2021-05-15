@@ -32,8 +32,9 @@ namespace EVA
         NE::NodeEditor m_NodeEditor;
     };
 
-    TextureGeneratorLayer::TextureGeneratorLayer() : m_CameraController(Application::Get().GetWindow().GetAspect(), glm::vec3(0.0f), 30.0f, 0.0f, 5.0f)
-    { 
+    TextureGeneratorLayer::TextureGeneratorLayer() :
+      m_CameraController(Application::Get().GetWindow().GetAspect(), glm::vec3(0.0f), 30.0f, 0.0f, 5.0f)
+    {
         m_NodeEditor.AddCompatiblePinType(NE::NodeEditor::GetPinType<Ref<Texture>, 1, 4>(), NE::NodeEditor::GetPinType<Ref<Texture>, 1>());
         m_NodeEditor.AddCompatiblePinType(NE::NodeEditor::GetPinType<Ref<Texture>, 1, 4>(), NE::NodeEditor::GetPinType<Ref<Texture>, 4>());
 
@@ -50,15 +51,11 @@ namespace EVA
 
     void TextureGeneratorLayer::OnUpdate()
     {
-        if (m_Viewport.Update()) 
-        { 
-            m_CameraController.OnResize(m_Viewport.GetSize().x, m_Viewport.GetSize().y); 
-        }
+        if (m_Viewport.Update()) { m_CameraController.OnResize(m_Viewport.GetSize().x, m_Viewport.GetSize().y); }
 
-        if (m_Viewport.IsFocused()) 
-        { 
-            if (Input::IsMouseButtonPressed(MouseCode::Button0))
-                m_CameraController.OnUpdate();
+        if (m_Viewport.IsFocused())
+        {
+            if (Input::IsMouseButtonPressed(MouseCode::Button0)) m_CameraController.OnUpdate();
         }
 
         m_Viewport.Bind();
@@ -68,12 +65,12 @@ namespace EVA
 
         m_Environment->DrawSkyBox();
 
-        m_Material.albedo = m_OutputNode->GetTexture(0);
-        m_Material.normal = m_OutputNode->GetTexture(1);
-        m_Material.metallic = m_OutputNode->GetTexture(2);
-        m_Material.roughness = m_OutputNode->GetTexture(3);
+        m_Material.albedo           = m_OutputNode->GetTexture(0);
+        m_Material.normal           = m_OutputNode->GetTexture(1);
+        m_Material.metallic         = m_OutputNode->GetTexture(2);
+        m_Material.roughness        = m_OutputNode->GetTexture(3);
         m_Material.ambientOcclusion = m_OutputNode->GetTexture(4);
-        m_Material.emissive = m_OutputNode->GetTexture(5);
+        m_Material.emissive         = m_OutputNode->GetTexture(5);
 
         m_PBRShader->Bind();
         m_PBRShader->ResetTextureUnit();
@@ -124,12 +121,13 @@ namespace EVA
 
         ImGui::Begin("Selected");
         auto& selected = m_NodeEditor.GetSelectedNodes();
-        if (!selected.empty()) { 
+        if (!selected.empty())
+        {
             DataObject d(DataMode::Inspector);
             reinterpret_cast<TextureNodes::TextureNode*>(selected[0])->Serialize(d);
         }
         ImGui::End();
-        
+
         ImGui::Begin("Texture");
         if (!selected.empty())
         {
@@ -145,7 +143,7 @@ namespace EVA
         m_Viewport.Draw();
     }
 
-    void TextureGeneratorLayer::New() 
+    void TextureGeneratorLayer::New()
     {
         m_NodeEditor.New();
         std::vector<std::string> names = {"Albedo", "Normal", "Metallic", "Roughness", "AO", "Emissive"};
@@ -153,16 +151,13 @@ namespace EVA
         m_NodeEditor.AddNode(m_OutputNode, {200.0f, 0.0f});
     }
 
-    void TextureGeneratorLayer::Load(std::filesystem::path path) 
+    void TextureGeneratorLayer::Load(std::filesystem::path path)
     {
         m_NodeEditor.Load(path);
         auto outputs = m_NodeEditor.GetNodesOfType<TextureNodes::Output>();
         if (!outputs.empty()) { m_OutputNode = outputs[0]; }
     }
 
-    void TextureGeneratorLayer::Save(std::filesystem::path path) 
-    {
-         m_NodeEditor.Save(path);
-    }
+    void TextureGeneratorLayer::Save(std::filesystem::path path) { m_NodeEditor.Save(path); }
 
 } // namespace EVA

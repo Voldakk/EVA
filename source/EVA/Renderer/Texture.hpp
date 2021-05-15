@@ -353,7 +353,7 @@ namespace EVA
         }
     }
 
-    inline uint32_t GetTextureChannels(TextureFormat format) 
+    inline uint32_t GetTextureChannels(TextureFormat format)
     {
         switch (GetTextureFormat(format))
         {

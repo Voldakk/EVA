@@ -18,7 +18,7 @@ namespace EVA
         return changed;
     }
 
-    //bool InspectorFields::Default(const char* name, Ref<ISerializeable>& value) { return Serializeable(name, value); }
+    // bool InspectorFields::Default(const char* name, Ref<ISerializeable>& value) { return Serializeable(name, value); }
 
     bool InspectorFields::Serializeable(const char* name, ISerializeable& value)
     {
@@ -36,4 +36,4 @@ namespace EVA
     }
 
     bool InspectorFields::Default(const char* name, ISerializeable& value) { return Serializeable(name, value); }
-}
+} // namespace EVA

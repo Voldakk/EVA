@@ -33,8 +33,8 @@ namespace EVA
         float m_CameraZoomSpeed  = 1;
 
       public:
-        OrbitalCameraController(float aspect, glm::vec3 position, float pitch, float yaw, float distance = 2.0f, float minDistance = 1.0f, float maxDistance = 10.0f, 
-                                float fov = 60, float nearPlane = 0.1, float farPlane = 1000) :
+        OrbitalCameraController(float aspect, glm::vec3 position, float pitch, float yaw, float distance = 2.0f, float minDistance = 1.0f,
+                                float maxDistance = 10.0f, float fov = 60, float nearPlane = 0.1, float farPlane = 1000) :
           m_AspectRatio(aspect),
           m_Fov(fov),
           m_NearPlane(nearPlane),
@@ -100,7 +100,7 @@ namespace EVA
             UpdateTransforms();
         }
 
-        void UpdateTransforms() 
+        void UpdateTransforms()
         {
             m_CenterTransform.SetOrientation(YAXIS, -m_Yaw);
             m_CenterTransform.Rotate(-m_CenterTransform.GetRight(), m_Pitch);

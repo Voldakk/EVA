@@ -8,7 +8,7 @@ namespace EVA
     class Environment
     {
       public:
-        Environment(const std::filesystem::path& equirectangularMap) 
+        Environment(const std::filesystem::path& equirectangularMap)
         {
             EVA_PROFILE_FUNCTION();
 
@@ -18,11 +18,11 @@ namespace EVA
             m_PreFilterMap       = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
             m_BrdfLUT            = TextureUtilities::PreComputeBRDF();
 
-            m_SkyboxMesh = Mesh::LoadMesh("./assets/models/cube_inverted.obj")[0];
+            m_SkyboxMesh   = Mesh::LoadMesh("./assets/models/cube_inverted.obj")[0];
             m_SkyboxShader = Shader::Create("./assets/shaders/skybox.glsl");
         }
 
-        void DrawSkyBox()  const
+        void DrawSkyBox() const
         {
             EVA_PROFILE_FUNCTION();
 
@@ -49,4 +49,4 @@ namespace EVA
         Ref<Mesh> m_SkyboxMesh;
         Ref<Shader> m_SkyboxShader;
     };
-}
+} // namespace EVA

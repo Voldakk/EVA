@@ -120,8 +120,8 @@ namespace EVA
         }
 
         template<typename T>
-        static bool Integral(const char* name, T& value) 
-        { 
+        static bool Integral(const char* name, T& value)
+        {
             static_assert(std::is_integral<T>::value, "Integral required.");
             constexpr size_t s = sizeof(T);
             ImGuiDataType type = 0;
@@ -139,7 +139,7 @@ namespace EVA
                 if constexpr (s == 8) type = ImGuiDataType_U32;
                 if constexpr (s == 16) type = ImGuiDataType_U64;
             }
-            return ImGui::InputScalar(name, type , &value); 
+            return ImGui::InputScalar(name, type, &value);
         }
 
         static bool Serializeable(const char* name, ISerializeable& value);
@@ -150,9 +150,18 @@ namespace EVA
         inline static bool Default(const char* name, float& value) { return ImGui::DragFloat(name, &value, 0.01f, 0.0f, 0.0f, "%.5f"); }
         inline static bool Default(const char* name, std::string& value) { return String(name, value); }
 
-        inline static bool Default(const char* name, glm::vec2& value) { return ImGui::DragFloat2(name, glm::value_ptr(value), 0.01f, 0.0f, 0.0f, "%.5f"); }
-        inline static bool Default(const char* name, glm::vec3& value) { return ImGui::DragFloat3(name, glm::value_ptr(value), 0.01f, 0.0f, 0.0f, "%.5f"); }
-        inline static bool Default(const char* name, glm::vec4& value) { return ImGui::DragFloat4(name, glm::value_ptr(value), 0.01f, 0.0f, 0.0f, "%.5f"); }
+        inline static bool Default(const char* name, glm::vec2& value)
+        {
+            return ImGui::DragFloat2(name, glm::value_ptr(value), 0.01f, 0.0f, 0.0f, "%.5f");
+        }
+        inline static bool Default(const char* name, glm::vec3& value)
+        {
+            return ImGui::DragFloat3(name, glm::value_ptr(value), 0.01f, 0.0f, 0.0f, "%.5f");
+        }
+        inline static bool Default(const char* name, glm::vec4& value)
+        {
+            return ImGui::DragFloat4(name, glm::value_ptr(value), 0.01f, 0.0f, 0.0f, "%.5f");
+        }
 
         inline static bool Default(const char* name, glm::ivec2& value) { return ImGui::InputInt2(name, glm::value_ptr(value)); }
         inline static bool Default(const char* name, glm::ivec3& value) { return ImGui::InputInt3(name, glm::value_ptr(value)); }

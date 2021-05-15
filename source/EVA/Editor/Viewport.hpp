@@ -8,22 +8,19 @@ namespace EVA
         Viewport()
         {
             FramebufferSpecification spec;
-            spec.width = 8;
+            spec.width  = 8;
             spec.height = 8;
             Init(spec);
         }
-        Viewport(const FramebufferSpecification& spec)
-        {
-            Init(spec);
-        }
+        Viewport(const FramebufferSpecification& spec) { Init(spec); }
         void Init(const FramebufferSpecification& spec)
         {
             EVA_PROFILE_FUNCTION();
 
-            m_Size.x = spec.width;
-            m_Size.y = spec.height;
+            m_Size.x      = spec.width;
+            m_Size.y      = spec.height;
             m_Framebuffer = Framebuffer::Create(spec);
-            m_TextureId = m_Framebuffer->GetColorAttachmentRendererId();
+            m_TextureId   = m_Framebuffer->GetColorAttachmentRendererId();
         }
         ~Viewport() = default;
 
@@ -76,7 +73,7 @@ namespace EVA
         bool IsFocused() const { return m_Focused; }
         bool IsHovered() const { return m_Hovered; }
 
-        void SetTexture(uint32_t id) {m_TextureId = id;}
+        void SetTexture(uint32_t id) { m_TextureId = id; }
 
       private:
         glm::vec2 m_Size = {0.0f, 0.0f};
@@ -87,4 +84,4 @@ namespace EVA
         bool m_Resize  = false;
         uint32_t m_TextureId;
     };
-}
+} // namespace EVA

@@ -56,7 +56,7 @@ namespace EVA::NE
     }
     bool SerializeKind(DataObject& data, const std::string& key, NE::PinKind& kind)
     {
-        int value   = static_cast<int>(kind);
+        int value    = static_cast<int>(kind);
         bool changed = data.Serialize(key, value);
         kind         = static_cast<NE::PinKind>(value);
         return changed;
@@ -83,7 +83,6 @@ namespace EVA::NE
         Pin(NE::PinId id, NE::PinKind kind, uint32_t type, Node* node, const std::string& name, bool required = true) :
           id(id), kind(kind), type(type), node(node), name(name), required(required)
         {
-
         }
 
         void AddConnected(Pin* pin) { connectedPins.push_back(pin); }
@@ -105,6 +104,7 @@ namespace EVA::NE
     class Node : public ISerializeable
     {
         inline static bool s_SetPinIds = true;
+
       public:
         NE::NodeId id;
         std::string name;
@@ -144,15 +144,15 @@ namespace EVA::NE
             }
         }
 
-        void Serialize(DataObject& data) override 
-        { 
+        void Serialize(DataObject& data) override
+        {
             if (data.Inspector()) return;
 
             SerializeId(data, "id", id);
             data.Serialize("name", name);
             data.Serialize("deletable", deletable);
 
-            if (!data.Inspector()) 
+            if (!data.Inspector())
             {
                 std::vector<uintptr_t> inputIds;
                 for (auto& pin : inputs)
@@ -168,8 +168,8 @@ namespace EVA::NE
                 }
                 data.Serialize("outputs", outputIds);
 
-                if (data.Load()) 
-                { 
+                if (data.Load())
+                {
                     inputs.clear();
                     outputs.clear();
 
@@ -198,7 +198,7 @@ namespace EVA::NE
         void AddOutputs(const std::vector<OutputPinInfo>& pins);
 
         template<class T, size_t... i>
-        bool IsInputType(uint32_t index);        
+        bool IsInputType(uint32_t index);
 
         template<class T, size_t... i>
         bool IsInputDataType(uint32_t index);
@@ -233,7 +233,7 @@ namespace EVA::NE
         template<class T>
         const T* GetInputDataPtr(uint32_t index)
         {
-            //EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
+            // EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
             if (inputs[index].connectedPins.empty()) return nullptr;
             return reinterpret_cast<T*>(inputs[index].connectedPins[0]->outputData);
         }
@@ -292,9 +292,9 @@ namespace EVA::NE
         void SetData(uintptr_t nextId, std::vector<Ref<Node>>& nodes, std::unordered_map<NE::LinkId, Link, LinkIdHasher>& links,
                      std::vector<std::pair<uintptr_t, glm::vec2>>& nodePositions)
         {
-            m_NextId = nextId;
-            m_Nodes  = nodes;
-            m_NodePositions  = nodePositions;
+            m_NextId        = nextId;
+            m_Nodes         = nodes;
+            m_NodePositions = nodePositions;
             m_Links.clear();
             m_Links.reserve(links.size());
             for (const auto& [key, value] : links)
@@ -315,8 +315,8 @@ namespace EVA::NE
         ImColor invalidLinkColor {1.0f, 0.0f, 0.0f};
 
         std::unordered_map<InputState, ImVec4> pinStateColors = {{InputState::Unchanged, {1.0f, 1.0f, 1.0f, 0.0f}},
-                                                                    {InputState::Changed, {1.0f, 1.0f, 0.0f, 1.0f}},
-                                                                    {InputState::Pending, {1.0f, 0.0f, 0.0f, 1.0f}}};
+                                                                 {InputState::Changed, {1.0f, 1.0f, 0.0f, 1.0f}},
+                                                                 {InputState::Pending, {1.0f, 0.0f, 0.0f, 1.0f}}};
 
         ImColor pinColor {1.0f, 1.0f, 1.0f};
         std::unordered_map<uint32_t, ImColor> pinColors;
@@ -324,8 +324,8 @@ namespace EVA::NE
         template<class T, size_t... i>
         void SetPinColor(const ImColor& color);
 
-        ImColor GetPinColor(uint32_t pinType) 
-        { 
+        ImColor GetPinColor(uint32_t pinType)
+        {
             auto it = pinColors.find(pinType);
             return (it == pinColors.end()) ? pinColor : (*it).second;
         }
@@ -341,10 +341,10 @@ namespace EVA::NE
         void DrawPin(const Pin& pin);
 
         template<class T, typename... Args>
-        void AddNode(glm::vec2 position = {}, Args && ... args)
+        void AddNode(glm::vec2 position = {}, Args&&... args)
         {
             auto node = CreateRef<T>(std::forward<Args>(args)...);
-           
+
             AddNode(node, position);
         }
 
@@ -384,13 +384,13 @@ namespace EVA::NE
         void AddCompatiblePinType(uint32_t input, uint32_t output) { m_CompatiblePinTypes[input].insert(output); }
 
         bool IsPinsCompatible(uint32_t input, uint32_t output)
-        { 
+        {
             return (input == output) || (m_CompatiblePinTypes[input].find(output) != m_CompatiblePinTypes[input].end());
         }
 
         NodeEditorStyle& GetStyle() { return m_Style; }
 
-        void Clear() 
+        void Clear()
         {
             if (m_Context != nullptr) { NE::DestroyEditor(m_Context); }
 
@@ -405,10 +405,10 @@ namespace EVA::NE
             m_SelectedNodes.clear();
         }
 
-        void New() 
-        { 
+        void New()
+        {
             Clear();
-            m_CurrentNodeGraph = CreateRef<NodeGraph>(); 
+            m_CurrentNodeGraph = CreateRef<NodeGraph>();
         }
 
         void Save(const std::filesystem::path& path)
@@ -416,7 +416,8 @@ namespace EVA::NE
             NE::SetCurrentEditor(m_Context);
 
             std::vector<std::pair<uintptr_t, glm::vec2>> nodePositions;
-            for (const auto& node : m_Nodes) {
+            for (const auto& node : m_Nodes)
+            {
                 auto pos = NE::GetNodePosition(node->id);
                 nodePositions.push_back({node->id.Get(), {pos.x, pos.y}});
             }
@@ -429,23 +430,23 @@ namespace EVA::NE
                 AssetManager::Save(m_CurrentNodeGraph, path);
         }
 
-        void Load(const std::filesystem::path& path) 
-        { 
-            Clear(); 
+        void Load(const std::filesystem::path& path)
+        {
+            Clear();
             m_CurrentNodeGraph = AssetManager::Load<NodeGraph>(path);
-            m_NextId = m_CurrentNodeGraph->GetNextId();
+            m_NextId           = m_CurrentNodeGraph->GetNextId();
 
             m_Nodes = m_CurrentNodeGraph->GetNodes();
-            for (auto& node : m_Nodes) 
+            for (auto& node : m_Nodes)
             {
                 node->editor = this;
             }
 
             auto links = m_CurrentNodeGraph->GetLinks();
-            for (const auto& [id, in, out] : links) 
+            for (const auto& [id, in, out] : links)
             {
-                auto pIn    = GetPin(in);
-                auto pOut   = GetPin(out);
+                auto pIn  = GetPin(in);
+                auto pOut = GetPin(out);
                 pIn->AddConnected(pOut);
                 pOut->AddConnected(pIn);
                 m_Links[id] = Link(id, pIn, pOut);
@@ -557,7 +558,7 @@ namespace EVA::NE
             for (auto& con : pin.connectedPins)
             {
                 if (!con->node->processed) return false;
-                if (!editor->IsPinsCompatible(pin.type, con->type)) return false; 
+                if (!editor->IsPinsCompatible(pin.type, con->type)) return false;
             }
         }
         return true;
@@ -608,7 +609,7 @@ namespace EVA::NE
             ImGui::PopID();
             NE::EndNode();
         }
-        
+
         //
         // Draw Links
         //
@@ -726,13 +727,11 @@ namespace EVA::NE
             while (NE::QueryDeletedNode(&nodeId))
             {
                 auto it = std::find_if(m_Nodes.begin(), m_Nodes.end(), [nodeId](const Ref<Node>& node) { return node->id == nodeId; });
-                if (it != m_Nodes.end()) 
-                { 
-                    if ((*it)->deletable) {
-                        if (NE::AcceptDeletedItem())
-                        {
-                            m_Nodes.erase(it);
-                        }
+                if (it != m_Nodes.end())
+                {
+                    if ((*it)->deletable)
+                    {
+                        if (NE::AcceptDeletedItem()) { m_Nodes.erase(it); }
                     }
                     else
                     {
@@ -758,10 +757,10 @@ namespace EVA::NE
         //
         // Process
         //
-        for (const auto node : m_Nodes) 
+        for (const auto node : m_Nodes)
         {
-            if (!node->processed) 
-            { 
+            if (!node->processed)
+            {
                 node->DoProcess();
                 if (node->processed) break;
             }
@@ -791,7 +790,7 @@ namespace EVA::NE
         {
             NE::PinPivotAlignment({0, 0.5f});
 
-            auto pos   = ImGui::GetCursorScreenPos();
+            auto pos = ImGui::GetCursorScreenPos();
 
             auto color = m_Style.GetPinColor(pin.type);
             drawList->AddCircleFilled(pos + ImVec2(0, h), radius, color);
@@ -817,7 +816,7 @@ namespace EVA::NE
             ImGui::Text(pin.name.c_str());
             ImGui::SameLine();
 
-            auto pos = ImGui::GetCursorScreenPos();
+            auto pos   = ImGui::GetCursorScreenPos();
             auto color = m_Style.GetPinColor(pin.type);
             drawList->AddCircleFilled(pos + ImVec2(0.0f, h), radius, color);
             ImGui::Dummy({radius, 0});

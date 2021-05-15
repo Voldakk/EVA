@@ -18,11 +18,11 @@ namespace EVA
         s_SceneData->projectionMatrix     = camera.GetProjectionMatrix();
         s_SceneData->viewProjectionMatrix = camera.GetViewProjectionMatrix();
 
-        auto invVm = glm::inverse(camera.GetViewMatrix());
+        auto invVm                  = glm::inverse(camera.GetViewMatrix());
         s_SceneData->cameraPosition = glm::vec3(invVm[3][0], invVm[3][1], invVm[3][2]);
 
         s_SceneData->environment = environment;
-        s_SceneData->lights = lights;
+        s_SceneData->lights      = lights;
     }
 
     void Renderer::EndScene() {}

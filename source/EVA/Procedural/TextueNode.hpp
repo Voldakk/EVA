@@ -14,7 +14,8 @@ namespace EVA
         class TextureNode : public NE::Node
         {
           protected:
-            TextureNode()       = default;
+            TextureNode() = default;
+
           public:
             virtual ~TextureNode() = default;
 
@@ -36,6 +37,7 @@ namespace EVA
         class Passthrough : public TextureNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Passthrough);
+
           public:
             Passthrough()          = default;
             virtual ~Passthrough() = default;
@@ -69,25 +71,23 @@ namespace EVA
         class Output : public TextureNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Output);
+
           public:
             Output(const std::vector<std::string>& outputs = {"Output"}) : m_Outputs(outputs) {}
             virtual ~Output() = default;
 
             void Process() override
             {
-                for (size_t i = 0; i < m_Textures.size(); i++) 
+                for (size_t i = 0; i < m_Textures.size(); i++)
                 {
                     const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(i);
-                    m_Textures[i]           = ref == nullptr? nullptr : *ref;
+                    m_Textures[i]           = ref == nullptr ? nullptr : *ref;
                 }
             }
 
             Ref<Texture> GetTexture() const override { return nullptr; }
 
-            void DrawFields() override
-            {
-                
-            }
+            void DrawFields() override {}
 
             Ref<Texture> GetTexture(size_t index) const { return m_Textures[index]; }
 
@@ -116,8 +116,9 @@ namespace EVA
         class Input : public TextureNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Input);
+
           public:
-            Input()           = default;
+            Input()          = default;
             virtual ~Input() = default;
 
             void Process() override
@@ -173,7 +174,8 @@ namespace EVA
 
                 for (size_t i = 0; i < inputs.size(); i++)
                 {
-                    if (!IsInputType<Ref<Texture>, 1>(i) && !IsInputType<Ref<Texture>, 4>(i) && !IsInputType<Ref<Texture>, 1, 4>(i)) continue;
+                    if (!IsInputType<Ref<Texture>, 1>(i) && !IsInputType<Ref<Texture>, 4>(i) && !IsInputType<Ref<Texture>, 1, 4>(i))
+                        continue;
 
                     const Ref<Texture>& ref = GetInputData<Ref<Texture>>(i);
                     m_Shader->BindImageTexture(i + 1, ref, TextureAccess::ReadOnly);
@@ -196,13 +198,13 @@ namespace EVA
                 ImGui::Text("Time: %6.2f ms", m_ProcessTime.count() / 1000.0f);
             }
 
-            void Serialize(DataObject& data) override 
+            void Serialize(DataObject& data) override
             {
                 TextureNode::Serialize(data);
 
                 ImGui::Text("Time: %6.2f ms", m_ProcessTime.count() / 1000.0f);
-                if (ImGui::Button("Reload shaders")) 
-                { 
+                if (ImGui::Button("Reload shaders"))
+                {
                     m_Shader = Shader::Create(std::string(ShaderPath) + m_ShaderName);
                     DoProcess();
                 }
@@ -217,11 +219,11 @@ namespace EVA
                 if (m_ShaderName == name) return;
 
                 m_ShaderName = name;
-                m_Shader = Shader::Create(std::string(ShaderPath) + name);
+                m_Shader     = Shader::Create(std::string(ShaderPath) + name);
             }
 
-            void SetTexture(TextureFormat format) 
-            { 
+            void SetTexture(TextureFormat format)
+            {
                 if (m_Texture != nullptr && m_Texture->GetFormat() == format) return;
                 m_Texture = TextureManager::CreateTexture(512, 512, format);
             }
@@ -240,6 +242,7 @@ namespace EVA
         class VoronoiNoise : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::VoronoiNoise);
+
           public:
             VoronoiNoise()
             {
@@ -251,7 +254,7 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Voronoi noise";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}}); 
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
             }
 
             void SetUniforms() const override
@@ -260,7 +263,7 @@ namespace EVA
                 m_Shader->SetUniformFloat2("u_Position", m_Position);
             }
 
-            void Serialize(DataObject& data) override 
+            void Serialize(DataObject& data) override
             {
                 ComputeNode::Serialize(data);
 
@@ -278,6 +281,7 @@ namespace EVA
         class GradientNoise : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::GradientNoise);
+
           public:
             GradientNoise()
             {
@@ -289,7 +293,7 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Gradient noise";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}}); 
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
             }
 
             void SetUniforms() const override
@@ -299,7 +303,7 @@ namespace EVA
                 m_Shader->SetUniformInt("u_Octaves", m_Octaves);
             }
 
-            void Serialize(DataObject& data) override 
+            void Serialize(DataObject& data) override
             {
                 ComputeNode::Serialize(data);
 
@@ -314,12 +318,12 @@ namespace EVA
             float m_Scale = 10.0f;
             glm::vec2 m_Position {};
             int m_Octaves = 4;
-
         };
 
         class Blend : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Blend);
+
           public:
             Blend()
             {
@@ -331,20 +335,20 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Blend";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}}); 
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
                 AddInputs<Ref<Texture>, 1, 4>({{"A"}, {"B"}});
                 AddInputs<float>({{"Frac", false}});
             }
 
             void Process() override
             {
-                if (GetInputDataType(0) != GetInputDataType(1)) 
-                { 
+                if (GetInputDataType(0) != GetInputDataType(1))
+                {
                     processed = false;
                     return;
                 }
 
-                if (IsInputDataType<Ref<Texture>, 1>(0)) 
+                if (IsInputDataType<Ref<Texture>, 1>(0))
                 {
                     SetShader("blend_grayscale.glsl");
                     SetTexture(TextureFormat::R32F);
@@ -361,13 +365,13 @@ namespace EVA
                 ComputeNode::Process();
             }
 
-            void SetUniforms() const override 
-            { 
+            void SetUniforms() const override
+            {
                 m_Shader->SetUniformFloat("u_Opacity", m_Opacity);
-                m_Shader->SetUniformInt("u_BlendMode", m_BlendMode); 
+                m_Shader->SetUniformInt("u_BlendMode", m_BlendMode);
             }
 
-            void Serialize(DataObject& data) override 
+            void Serialize(DataObject& data) override
             {
                 ComputeNode::Serialize(data);
 
@@ -375,8 +379,8 @@ namespace EVA
                 {
                     if (!InputConnected(2)) { data.changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0.0f, 1.0f); }
 
-                    const char* items[] = {"Copy", "Add", "Substract", "Multiply", "Divide", "Darken", "Lighten", 
-                        "Screen", "Overlay", "Hard Light", "Soft Light", "Difference", "Color Dodge", "Color Burn"};
+                    const char* items[] = {"Copy",   "Add",     "Substract",  "Multiply",   "Divide",     "Darken",      "Lighten",
+                                           "Screen", "Overlay", "Hard Light", "Soft Light", "Difference", "Color Dodge", "Color Burn"};
                     data.changed |= ImGui::Combo("Blend mode", &m_BlendMode, items, IM_ARRAYSIZE(items));
                 }
                 else
@@ -396,6 +400,7 @@ namespace EVA
         class Bricks : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Bricks);
+
           public:
             Bricks()
             {
@@ -407,7 +412,7 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Bricks";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}}); 
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
             }
 
             void SetUniforms() const override
@@ -419,11 +424,11 @@ namespace EVA
                 m_Shader->SetUniformFloat2("u_Height", m_Height);
             }
 
-            void Serialize(DataObject& data) override 
+            void Serialize(DataObject& data) override
             {
                 ComputeNode::Serialize(data);
 
-                data.Serialize("Num bricks", m_numBricks);               
+                data.Serialize("Num bricks", m_numBricks);
                 data.Serialize("Gap", m_Gap);
                 data.Serialize("Bevel", m_Bevel);
                 data.Serialize("Height", m_Height);
@@ -447,6 +452,7 @@ namespace EVA
         class Levels : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Levels);
+
           public:
             Levels()
             {
@@ -551,13 +557,13 @@ namespace EVA
             }
 
           private:
-            int m_SelectedChannel   = 0;
+            int m_SelectedChannel = 0;
 
             glm::vec2 m_InputRange  = {0.0f, 1.0f};
             glm::vec2 m_OutputRange = {0.0f, 1.0f};
             float m_Midtone         = 0.5f;
 
-            glm::vec4 m_InputRangeMin  = glm::vec4(0.0f);
+            glm::vec4 m_InputRangeMin = glm::vec4(0.0f);
             glm::vec4 m_InputRangeMax = glm::vec4(1.0f);
 
             glm::vec4 m_OutputRangeMin = glm::vec4(0.0f);
@@ -569,6 +575,7 @@ namespace EVA
         class GradientMap : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::GradientMap);
+
           public:
             GradientMap()
             {
@@ -584,15 +591,15 @@ namespace EVA
                 AddInputs<Ref<Texture>, 1>({{"In"}});
             }
 
-            void SetUniforms() const override 
-            { 
+            void SetUniforms() const override
+            {
                 int i = 0;
                 for (auto markIt = m_Gradient.getMarks().begin(); markIt != m_Gradient.getMarks().end(); ++markIt)
                 {
                     ImGradientMark mark = **markIt;
-                    auto u = "u_Marks[" + std::to_string(i) + "].";
+                    auto u              = "u_Marks[" + std::to_string(i) + "].";
                     m_Shader->SetUniformFloat(u + "position", mark.position);
-                    m_Shader->SetUniformFloat4(u + "color", glm::vec4(mark.color[0], mark.color[1], mark.color[2], mark.color[3])); 
+                    m_Shader->SetUniformFloat4(u + "color", glm::vec4(mark.color[0], mark.color[1], mark.color[2], mark.color[3]));
                     i++;
                 }
                 m_Shader->SetUniformInt("u_Count", m_Gradient.getMarks().size());
@@ -602,14 +609,11 @@ namespace EVA
             {
                 ComputeNode::Serialize(data);
 
-                static bool show = false;
+                static bool show                    = false;
                 static ImGradientMark* draggingMark = nullptr;
                 static ImGradientMark* selectedMark = nullptr;
                 if (ImGui::GradientButton(&m_Gradient)) { show = !show; }
-                if (show)
-                { 
-                    data.changed |= ImGui::GradientEditor(&m_Gradient, draggingMark, selectedMark);
-                }
+                if (show) { data.changed |= ImGui::GradientEditor(&m_Gradient, draggingMark, selectedMark); }
                 processed &= !data.changed;
             }
 
@@ -620,12 +624,13 @@ namespace EVA
         class Uniform : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Uniform);
+
           public:
             Uniform()
             {
-                //SetShader("uniform_rgba.glsl");
-                //SetShader("uniform_grayscale.glsl");
-                //SetTexture(TextureFormat::RGBA32F);
+                // SetShader("uniform_rgba.glsl");
+                // SetShader("uniform_grayscale.glsl");
+                // SetTexture(TextureFormat::RGBA32F);
             }
 
             void SetupNode() override
@@ -665,16 +670,15 @@ namespace EVA
             {
                 ComputeNode::Serialize(data);
 
-                if (data.Inspector()) 
-                { 
+                if (data.Inspector())
+                {
                     const char* items[] = {"Grayscale", "Color"};
                     data.changed |= ImGui::Combo("Mode", &m_Mode, items, IM_ARRAYSIZE(items));
 
                     if (m_Mode == 0)
-                        data.changed |= ImGui::SliderFloat("Value", &m_Value, 0.0f, 1.0f); 
-                    else 
-                        data.changed |= ImGui::ColorPicker4("Color", glm::value_ptr(m_Color)); 
-
+                        data.changed |= ImGui::SliderFloat("Value", &m_Value, 0.0f, 1.0f);
+                    else
+                        data.changed |= ImGui::ColorPicker4("Color", glm::value_ptr(m_Color));
                 }
                 else
                 {
@@ -696,6 +700,7 @@ namespace EVA
         class HeightToNormal : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::HeightToNormal);
+
           public:
             HeightToNormal()
             {

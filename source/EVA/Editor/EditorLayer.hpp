@@ -102,10 +102,7 @@ namespace EVA
 
             m_Environment = CreateRef<Environment>("./assets/textures/space_1k.hdr");
         }
-        void LoadShaders()
-        {
-            m_PBRShader    = Shader::Create("./assets/shaders/pbr.glsl");
-        }
+        void LoadShaders() { m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl"); }
 
         inline static float timer = 0.0f;
         void OnUpdate() override

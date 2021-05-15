@@ -12,7 +12,7 @@ namespace EVA
         virtual void Serialize(DataObject& data);
         virtual std::string GetTypeId() const { return ""; }
     };
-} // namespace EVA::AssetManagement
+} // namespace EVA
 
 
 #include "EVA/Utility/ClassMap.hpp"
