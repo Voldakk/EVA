@@ -1,5 +1,5 @@
 #include "InspectorFields.hpp"
-#include "EVA/Assets/ISerializeable.hpp"
+#include "EVA/Assets/DataObject.hpp"
 
 namespace EVA
 {
@@ -10,8 +10,7 @@ namespace EVA
         {
             ImGui::Indent(INDENT);
 
-            DataObject data;
-            data.mode = DataObject::DataMode::Inspector;
+            DataObject data(DataMode::Inspector);
             value->Serialize(data);
 
             ImGui::Unindent(INDENT);
@@ -19,7 +18,7 @@ namespace EVA
         return changed;
     }
 
-    bool InspectorFields::Default(const char* name, Ref<ISerializeable>& value) { return Serializeable(name, value); }
+    //bool InspectorFields::Default(const char* name, Ref<ISerializeable>& value) { return Serializeable(name, value); }
 
     bool InspectorFields::Serializeable(const char* name, ISerializeable& value)
     {
@@ -28,8 +27,7 @@ namespace EVA
         {
             ImGui::Indent(INDENT);
 
-            DataObject data;
-            data.mode = DataObject::DataMode::Inspector;
+            DataObject data(DataMode::Inspector);
             value.Serialize(data);
 
             ImGui::Unindent(INDENT);

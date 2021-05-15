@@ -3,13 +3,13 @@
 #include <charconv>
 #include <cstring>
 #include <imgui.h>
+#include <type_traits>
 
 #include "EVA/Assets/FileSystem.hpp"
+#include "EVA/Assets/ISerializeable.hpp"
 
 namespace EVA
 {
-    class ISerializeable;
-
     class InspectorFields
     {
       public:
@@ -23,6 +23,11 @@ namespace EVA
             strcpy_s(C_STRING, 10000, value.c_str());
             return C_STRING;
         }
+
+        inline static uint32_t s_Counter = 0;
+        static uint32_t Count() { return s_Counter++; }
+        static void ResetCounter() { s_Counter = 0; }
+
 
         bool EnterInt(const char* name, int& value)
         {
@@ -156,7 +161,6 @@ namespace EVA
         inline static bool Default(const char* name, std::filesystem::path& value) { return Path(name, value); }
 
         static bool Default(const char* name, ISerializeable& value);
-        static bool Default(const char* name, Ref<ISerializeable>& value);
 
         template<typename T, typename Alloc>
         inline static bool Default(const char* name, std::vector<T, Alloc>& value)
@@ -168,6 +172,47 @@ namespace EVA
         inline static bool Default(const char* name, T& value)
         {
             return Integral(name, value);
+        }
+
+        template<typename T, typename U>
+        inline static bool Default(const char* name, std::pair<T, U>& value)
+        {
+            ImGui::Text(name);
+            ImGui::PushID(&value);
+            ImGui::Indent(INDENT);
+
+            bool changed = false;
+            changed |= Default("0", std::get<0>(value));
+            changed |= Default("1", std::get<1>(value));
+
+            ImGui::Unindent(INDENT);
+            ImGui::PopID();
+
+            return changed;
+        }
+
+        template<typename... T>
+        inline static bool Default(const char* name, std::tuple<T...>& value)
+        {
+            ImGui::Text(name);
+            ImGui::PushID(&value);
+            ImGui::Indent(INDENT);
+
+            ResetCounter();
+            bool changed = false;
+
+            std::apply([&](auto&... x) { changed = (... | Default(std::to_string(Count()).c_str(), x)); }, value);
+
+            ImGui::Unindent(INDENT);
+            ImGui::PopID();
+
+            return changed;
+        }
+
+        template<typename T>
+        static bool Default(const char* name, Ref<T>& value)
+        {
+            return Default(name, *value);
         }
     };
 

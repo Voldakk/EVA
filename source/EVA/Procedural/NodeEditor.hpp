@@ -4,7 +4,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui_internal.h>
 
-#include "EVA/Assets/ISerializeable.hpp"
+#include "EVA/Assets.hpp"
 
 namespace EVA::NE
 {
@@ -33,28 +33,28 @@ namespace EVA::NE
         void* data = nullptr;
     };
 
-    bool SerializeId(DataObject& data, const std::string& key, NE::PinId id)
+    bool SerializeId(DataObject& data, const std::string& key, NE::PinId& id)
     {
         auto value   = id.Get();
         bool changed = data.Serialize(key, value);
         id           = NE::PinId(value);
         return changed;
     }
-    bool SerializeId(DataObject& data, const std::string& key, NE::NodeId id)
+    bool SerializeId(DataObject& data, const std::string& key, NE::NodeId& id)
     {
         auto value   = id.Get();
         bool changed = data.Serialize(key, value);
         id           = NE::NodeId(value);
         return changed;
     }
-    bool SerializeId(DataObject& data, const std::string& key, NE::LinkId id)
+    bool SerializeId(DataObject& data, const std::string& key, NE::LinkId& id)
     {
         auto value   = id.Get();
         bool changed = data.Serialize(key, value);
         id           = NE::LinkId(value);
         return changed;
     }
-    bool SerializeKind(DataObject& data, const std::string& key, NE::PinKind kind)
+    bool SerializeKind(DataObject& data, const std::string& key, NE::PinKind& kind)
     {
         int value   = static_cast<int>(kind);
         bool changed = data.Serialize(key, value);
@@ -62,7 +62,7 @@ namespace EVA::NE
         return changed;
     }
 
-    struct Pin : public ISerializeable
+    struct Pin
     {
         NE::PinId id;
         NE::PinKind kind;
@@ -83,15 +83,7 @@ namespace EVA::NE
         Pin(NE::PinId id, NE::PinKind kind, uint32_t type, Node* node, const std::string& name, bool required = true) :
           id(id), kind(kind), type(type), node(node), name(name), required(required)
         {
-        }
 
-        void Serialize(DataObject& data) override
-        {
-            SerializeId(data, "id", id);
-            SerializeKind(data, "kind", kind);
-            data.Serialize("type", type);
-            data.Serialize("name", name);
-            data.Serialize("required", required);
         }
 
         void AddConnected(Pin* pin) { connectedPins.push_back(pin); }
@@ -112,6 +104,7 @@ namespace EVA::NE
 
     class Node : public ISerializeable
     {
+        inline static bool s_SetPinIds = true;
       public:
         NE::NodeId id;
         std::string name;
@@ -153,12 +146,47 @@ namespace EVA::NE
 
         void Serialize(DataObject& data) override 
         { 
-            if (data.mode == DataObject::DataMode::Inspector) return;
+            if (data.Inspector()) return;
 
             SerializeId(data, "id", id);
             data.Serialize("name", name);
-            data.Serialize("inputs", inputs);
-            data.Serialize("outputs", outputs);
+            data.Serialize("deletable", deletable);
+
+            if (!data.Inspector()) 
+            {
+                std::vector<uintptr_t> inputIds;
+                for (auto& pin : inputs)
+                {
+                    inputIds.push_back(pin.id.Get());
+                }
+                data.Serialize("inputs", inputIds);
+
+                std::vector<uintptr_t> outputIds;
+                for (auto& pin : outputs)
+                {
+                    outputIds.push_back(pin.id.Get());
+                }
+                data.Serialize("outputs", outputIds);
+
+                if (data.Load()) 
+                { 
+                    inputs.clear();
+                    outputs.clear();
+
+                    s_SetPinIds = false;
+                    SetupNode();
+                    s_SetPinIds = true;
+
+                    for (size_t i = 0; i < inputs.size(); i++)
+                    {
+                        inputs[i].id = inputIds[i];
+                    }
+                    for (size_t i = 0; i < outputs.size(); i++)
+                    {
+                        outputs[i].id = outputIds[i];
+                    }
+                }
+            }
         }
 
         bool InputConnected(uint32_t index) { return !inputs[index].connectedPins.empty(); }
@@ -205,7 +233,8 @@ namespace EVA::NE
         template<class T>
         const T* GetInputDataPtr(uint32_t index)
         {
-            EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
+            //EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
+            if (inputs[index].connectedPins.empty()) return nullptr;
             return reinterpret_cast<T*>(inputs[index].connectedPins[0]->outputData);
         }
 
@@ -243,6 +272,43 @@ namespace EVA::NE
         std::size_t operator()(const NE::LinkId& k) const { return std::hash<uintptr_t>()(k.Get()); }
     };
 
+    struct NodeGraph : public Asset
+    {
+        uintptr_t m_NextId;
+        std::vector<Ref<Node>> m_Nodes;
+        std::vector<std::tuple<uintptr_t, uintptr_t, uintptr_t>> m_Links;
+        std::vector<std::pair<uintptr_t, glm::vec2>> m_NodePositions;
+
+        void Serialize(DataObject& data) override
+        {
+            if (data.Inspector()) return;
+
+            data.Serialize("nextId", m_NextId);
+            data.Serialize("nodes", m_Nodes);
+            data.Serialize("links", m_Links);
+            data.Serialize("positions", m_NodePositions);
+        }
+
+        void SetData(uintptr_t nextId, std::vector<Ref<Node>>& nodes, std::unordered_map<NE::LinkId, Link, LinkIdHasher>& links,
+                     std::vector<std::pair<uintptr_t, glm::vec2>>& nodePositions)
+        {
+            m_NextId = nextId;
+            m_Nodes  = nodes;
+            m_NodePositions  = nodePositions;
+            m_Links.clear();
+            m_Links.reserve(links.size());
+            for (const auto& [key, value] : links)
+            {
+                m_Links.push_back(std::make_tuple(value.id.Get(), value.input->id.Get(), value.output->id.Get()));
+            }
+        }
+
+        uintptr_t GetNextId() { return m_NextId; }
+        std::vector<Ref<Node>>& GetNodes() { return m_Nodes; }
+        std::vector<std::tuple<uintptr_t, uintptr_t, uintptr_t>>& GetLinks() { return m_Links; }
+        std::vector<std::pair<uintptr_t, glm::vec2>>& GetNodePositions() { return m_NodePositions; }
+    };
+
     struct NodeEditorStyle
     {
         ImColor linkColor {1.0f, 1.0f, 1.0f};
@@ -275,7 +341,7 @@ namespace EVA::NE
         void DrawPin(const Pin& pin);
 
         template<class T, typename... Args>
-        void AddNode(Args&&... args, glm::vec2 position = {})
+        void AddNode(glm::vec2 position = {}, Args && ... args)
         {
             auto node = CreateRef<T>(std::forward<Args>(args)...);
            
@@ -324,30 +390,110 @@ namespace EVA::NE
 
         NodeEditorStyle& GetStyle() { return m_Style; }
 
+        void Clear() 
+        {
+            if (m_Context != nullptr) { NE::DestroyEditor(m_Context); }
+
+            NE::Config config;
+            config.SettingsFile = "NodeEditor.json";
+            m_Context           = NE::CreateEditor(&config);
+
+            m_NextId = 1;
+            m_Links.clear();
+            m_Nodes.clear();
+            m_ProcessQueue.clear();
+            m_SelectedNodes.clear();
+        }
+
+        void New() 
+        { 
+            Clear();
+            m_CurrentNodeGraph = CreateRef<NodeGraph>(); 
+        }
+
+        void Save(const std::filesystem::path& path)
+        {
+            NE::SetCurrentEditor(m_Context);
+
+            std::vector<std::pair<uintptr_t, glm::vec2>> nodePositions;
+            for (const auto& node : m_Nodes) {
+                auto pos = NE::GetNodePosition(node->id);
+                nodePositions.push_back({node->id.Get(), {pos.x, pos.y}});
+            }
+
+            m_CurrentNodeGraph->SetData(m_NextId, m_Nodes, m_Links, nodePositions);
+
+            if (path.empty())
+                AssetManager::Save(m_CurrentNodeGraph);
+            else
+                AssetManager::Save(m_CurrentNodeGraph, path);
+        }
+
+        void Load(const std::filesystem::path& path) 
+        { 
+            Clear(); 
+            m_CurrentNodeGraph = AssetManager::Load<NodeGraph>(path);
+            m_NextId = m_CurrentNodeGraph->GetNextId();
+
+            m_Nodes = m_CurrentNodeGraph->GetNodes();
+            for (auto& node : m_Nodes) 
+            {
+                node->editor = this;
+            }
+
+            auto links = m_CurrentNodeGraph->GetLinks();
+            for (const auto& [id, in, out] : links) 
+            {
+                auto pIn    = GetPin(in);
+                auto pOut   = GetPin(out);
+                pIn->AddConnected(pOut);
+                pOut->AddConnected(pIn);
+                m_Links[id] = Link(id, pIn, pOut);
+                pIn->SetChanged();
+            }
+
+            NE::SetCurrentEditor(m_Context);
+            auto positions = m_CurrentNodeGraph->GetNodePositions();
+            for (const auto& [id, pos] : positions)
+            {
+                NE::SetNodePosition(id, {pos.x, pos.y});
+            }
+        }
+
+        template<class T>
+        inline std::vector<Ref<T>> GetNodesOfType()
+        {
+            std::vector<Ref<T>> nodes;
+
+            for (auto& node : m_Nodes)
+            {
+                T* pointer = dynamic_cast<T*>(node.get());
+                if (pointer != nullptr) nodes.push_back(std::static_pointer_cast<T>(node));
+            }
+            return nodes;
+        }
+
       private:
         inline static uint32_t s_PinTypeCounter = 1;
 
-        NE::EditorContext* m_Context;
+        NE::EditorContext* m_Context = nullptr;
 
         std::vector<Ref<Node>> m_Nodes;
         std::vector<Node*> m_ProcessQueue;
 
         std::unordered_map<NE::LinkId, Link, LinkIdHasher> m_Links;
-        uintptr_t m_NextId = 1;
+        uintptr_t m_NextId;
 
         std::vector<Node*> m_SelectedNodes;
 
         std::unordered_map<uint32_t, std::unordered_set<uint32_t>> m_CompatiblePinTypes;
 
         NodeEditorStyle m_Style;
+
+        Ref<NodeGraph> m_CurrentNodeGraph;
     };
 
-    NodeEditor::NodeEditor()
-    {
-        NE::Config config;
-        config.SettingsFile = "NodeEditor.json";
-        m_Context           = NE::CreateEditor(&config);
-    }
+    NodeEditor::NodeEditor() { New(); }
 
     NodeEditor::~NodeEditor() { DestroyEditor(m_Context); }
 
@@ -363,7 +509,8 @@ namespace EVA::NE
         auto type = NodeEditor::GetPinType<T, i...>();
         for (const auto& pin : pins)
         {
-            inputs.push_back(Pin(editor->NextPinId(), PinKind::Input, type, this, pin.name, pin.required));
+            auto id = s_SetPinIds ? editor->NextPinId() : 0;
+            inputs.push_back(Pin(id, PinKind::Input, type, this, pin.name, pin.required));
         }
     }
 
@@ -373,7 +520,8 @@ namespace EVA::NE
         auto type = NodeEditor::GetPinType<T, i...>();
         for (const auto& pin : pins)
         {
-            Pin p(editor->NextPinId(), PinKind::Output, type, this, pin.name);
+            auto id = s_SetPinIds ? editor->NextPinId() : 0;
+            Pin p(id, PinKind::Output, type, this, pin.name);
             p.outputData = pin.data;
             outputs.push_back(p);
         }

@@ -9,12 +9,35 @@ namespace EVA
 {
     void Material::Bind(const Ref<Shader> shader)
     {
-        if (albedo) shader->BindTexture("u_AlbedoMap", albedo);
-        if (normal) shader->BindTexture("u_NormalMap", normal);
-        if (metallic) shader->BindTexture("u_MetallicMap", metallic);
-        if (roughness) shader->BindTexture("u_RoughnessMap", roughness);
-        if (ambientOcclusion) shader->BindTexture("u_AmbientOcclusionMap", ambientOcclusion);
-        if (emissive) shader->BindTexture("u_EmissiveMap", emissive);
+        if (albedo)
+            shader->BindTexture("u_AlbedoMap", albedo);
+        else
+            shader->BindTexture("u_AlbedoMap", TextureTarget::Texture2D, 0);
+
+        if (normal)
+            shader->BindTexture("u_NormalMap", normal);
+        else
+            shader->BindTexture("u_NormalMap", TextureTarget::Texture2D, 0);
+
+        if (metallic)
+            shader->BindTexture("u_MetallicMap", metallic);
+        else
+            shader->BindTexture("u_MetallicMap", TextureTarget::Texture2D, 0);
+
+        if (roughness)
+            shader->BindTexture("u_RoughnessMap", roughness);
+        else
+            shader->BindTexture("u_RoughnessMap", TextureTarget::Texture2D, 0);
+
+        if (ambientOcclusion)
+            shader->BindTexture("u_AmbientOcclusionMap", ambientOcclusion);
+        else
+            shader->BindTexture("u_AmbientOcclusionMap", TextureTarget::Texture2D, 0);
+
+        if (emissive)
+            shader->BindTexture("u_EmissiveMap", emissive);
+        else
+            shader->BindTexture("u_EmissiveMap", TextureTarget::Texture2D, 0);
     }
 
     Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) : m_Material(material)

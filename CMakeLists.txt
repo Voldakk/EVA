@@ -61,6 +61,16 @@ set(EVA_ECS_ENABLE_BENCHMARKS OFF CACHE BOOL "" FORCE)
 add_subdirectory(dependencies/ecs)
 target_link_libraries(eva PUBLIC EVA_ECS)
 
+# NLohmann JSON
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(dependencies/json)
+target_link_libraries(eva PUBLIC nlohmann_json::nlohmann_json)
+
+# Graeme-Hill CrossGuid
+set(CROSSGUID_TESTS OFF CACHE INTERNAL "")
+add_subdirectory(dependencies/crossguid)
+target_link_libraries(eva PUBLIC crossguid)
+
 # Platforms
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	add_compile_definitions(EVA_PLATFORM_WINDOWS)

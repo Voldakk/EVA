@@ -1,59 +1,23 @@
 #pragma once
 
-#include "EVA/Editor/InspectorFields.hpp"
+#include "Json.hpp"
 
 namespace EVA
 {
-    class DataObject
-    {
-      public:
-        enum class DataMode
-        {
-            Save,
-            Load,
-            Inspector
-        };
-
-        DataObject() = default;
-
-        template<typename T>
-        bool Serialize(const std::string& key, T& value);
-
-        template<typename T>
-        bool Serialize(const std::string& key, T& value, float min, float max);
-
-        DataMode mode = DataMode::Inspector;
-        bool changed  = false;
-        
-        inline bool Inspector() const { return mode == DataMode::Inspector; }
-    };
-
+    class DataObject;
     class ISerializeable
     {
       public:
-        virtual void Serialize(DataObject& data) {}
+        virtual ~ISerializeable() = default;
+        virtual void Serialize(DataObject& data);
+        virtual std::string GetTypeId() const { return ""; }
     };
+} // namespace EVA::AssetManagement
 
-    template<typename T>
-    bool DataObject::Serialize(const std::string& key, T& value)
-    {
-        switch (mode)
-        {
-            case DataMode::Save:
-                // Set(key, value);
-                return false;
 
-            case DataMode::Load:
-                // value   = Get(key, value);
-                changed = true;
-                return true;
+#include "EVA/Utility/ClassMap.hpp"
 
-            case DataMode::Inspector:
-                bool c = InspectorFields::Default(key.c_str(), value);
-                if (c) changed = true;
-                return c;
-        }
-        EVA_INTERNAL_ASSERT(false, "Unknown DataMode");
-        return false;
-    }
-} // namespace EVA
+CREATE_CLASS_MAP(EVAISerializeable, EVA::ISerializeable)
+
+// Macro for registering a component. Should be put inside the class declaration
+#define REGISTER_SERIALIZABLE(TYPE) REGISTER_CLASS(EVAISerializeable, TYPE, #TYPE)

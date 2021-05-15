@@ -13,8 +13,9 @@ namespace EVA
 
         class TextureNode : public NE::Node
         {
-          public:
+          protected:
             TextureNode()       = default;
+          public:
             virtual ~TextureNode() = default;
 
             virtual Ref<Texture> GetTexture() const = 0;
@@ -34,6 +35,7 @@ namespace EVA
 
         class Passthrough : public TextureNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Passthrough);
           public:
             Passthrough()          = default;
             virtual ~Passthrough() = default;
@@ -66,30 +68,54 @@ namespace EVA
 
         class Output : public TextureNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Output);
           public:
-            Output(const std::string& n = "Output") { name = n; }
+            Output(const std::vector<std::string>& outputs = {"Output"}) : m_Outputs(outputs) {}
             virtual ~Output() = default;
 
             void Process() override
             {
-                const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(0);
-                m_Texture               = *ref;
+                for (size_t i = 0; i < m_Textures.size(); i++) 
+                {
+                    const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(i);
+                    m_Textures[i]           = ref == nullptr? nullptr : *ref;
+                }
             }
 
-            Ref<Texture> GetTexture() const override { return m_Texture; }
+            Ref<Texture> GetTexture() const override { return nullptr; }
+
+            void DrawFields() override
+            {
+                
+            }
+
+            Ref<Texture> GetTexture(size_t index) const { return m_Textures[index]; }
 
             void SetupNode() override
             {
-                //name = "Output";
-                AddInputs<Ref<Texture>, 1, 4>({{"In"}});
+                name = "Output";
+                for (const auto& o : m_Outputs)
+                {
+                    AddInputs<Ref<Texture>, 1, 4>({{o, false}});
+                }
+                m_Textures.resize(m_Outputs.size());
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                data.Serialize("Outputs", m_Outputs);
+                TextureNode::Serialize(data);
+                processed &= !data.changed;
             }
 
           private:
-            Ref<Texture> m_Texture;
+            std::vector<Ref<Texture>> m_Textures;
+            std::vector<std::string> m_Outputs;
         };
 
         class Input : public TextureNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Input);
           public:
             Input()           = default;
             virtual ~Input() = default;
@@ -213,6 +239,7 @@ namespace EVA
 
         class VoronoiNoise : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::VoronoiNoise);
           public:
             VoronoiNoise()
             {
@@ -250,6 +277,7 @@ namespace EVA
 
         class GradientNoise : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::GradientNoise);
           public:
             GradientNoise()
             {
@@ -291,6 +319,7 @@ namespace EVA
 
         class Blend : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Blend);
           public:
             Blend()
             {
@@ -366,6 +395,7 @@ namespace EVA
 
         class Bricks : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Bricks);
           public:
             Bricks()
             {
@@ -416,6 +446,7 @@ namespace EVA
 
         class Levels : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Levels);
           public:
             Levels()
             {
@@ -537,6 +568,7 @@ namespace EVA
 
         class GradientMap : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::GradientMap);
           public:
             GradientMap()
             {
@@ -587,6 +619,7 @@ namespace EVA
 
         class Uniform : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Uniform);
           public:
             Uniform()
             {
@@ -662,6 +695,7 @@ namespace EVA
 
         class HeightToNormal : public ComputeNode
         {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::HeightToNormal);
           public:
             HeightToNormal()
             {

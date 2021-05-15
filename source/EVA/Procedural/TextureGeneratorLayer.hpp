@@ -16,6 +16,10 @@ namespace EVA
         void OnEvent(EVA::Event& e) override;
         void OnImGuiRender() override;
 
+        void New();
+        void Load(std::filesystem::path path);
+        void Save(std::filesystem::path path);
+
       private:
         Viewport m_Viewport;
         Ref<Environment> m_Environment;
@@ -23,13 +27,7 @@ namespace EVA
         Ref<Mesh> m_CubeMesh;
         Ref<Shader> m_PBRShader;
         Material m_Material;
-
-        std::vector<Ref<TextureNodes::Output>> m_OutputNodes;
-        Ref<TextureNodes::Output> m_Emissive;
-        Ref<TextureNodes::Output> m_Normal;
-        Ref<TextureNodes::Output> m_Metallic;
-        Ref<TextureNodes::Output> m_Roughness;
-        Ref<TextureNodes::Output> m_AO;
+        Ref<TextureNodes::Output> m_OutputNode;
 
         NE::NodeEditor m_NodeEditor;
     };
@@ -47,16 +45,7 @@ namespace EVA
         m_CubeMesh    = Mesh::LoadMesh("./assets/models/cube.obj")[0];
         m_PBRShader   = Shader::Create("./assets/shaders/pbr.glsl");
 
-        std::vector<std::string> names = {"Albedo", "Normal", "Metallic", "Roughness", "AO", "Emissive"};
-        float pos = 0;
-        for (const auto& name : names)
-        {
-            auto node       = CreateRef<TextureNodes::Output>(name);
-            node->deletable = false;
-            m_NodeEditor.AddNode(node, {200.0f, pos});
-            m_OutputNodes.push_back(node);
-            pos += 250.0f;
-        }
+        New();
     }
 
     void TextureGeneratorLayer::OnUpdate()
@@ -79,12 +68,12 @@ namespace EVA
 
         m_Environment->DrawSkyBox();
 
-        m_Material.albedo = m_OutputNodes[0]->GetTexture();
-        m_Material.normal = m_OutputNodes[1]->GetTexture();
-        m_Material.metallic = m_OutputNodes[2]->GetTexture();
-        m_Material.roughness = m_OutputNodes[3]->GetTexture();
-        m_Material.ambientOcclusion = m_OutputNodes[4]->GetTexture();
-        m_Material.emissive = m_OutputNodes[5]->GetTexture();
+        m_Material.albedo = m_OutputNode->GetTexture(0);
+        m_Material.normal = m_OutputNode->GetTexture(1);
+        m_Material.metallic = m_OutputNode->GetTexture(2);
+        m_Material.roughness = m_OutputNode->GetTexture(3);
+        m_Material.ambientOcclusion = m_OutputNode->GetTexture(4);
+        m_Material.emissive = m_OutputNode->GetTexture(5);
 
         m_PBRShader->Bind();
         m_PBRShader->ResetTextureUnit();
@@ -105,6 +94,12 @@ namespace EVA
     void TextureGeneratorLayer::OnImGuiRender()
     {
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+        ImGui::BeginMainMenuBar();
+        if (ImGui::MenuItem("New")) { New(); }
+        if (ImGui::MenuItem("Load")) { Load("./assets/graphs/new.graph"); }
+        if (ImGui::MenuItem("Save")) { Save("./assets/graphs/new.graph"); }
+        ImGui::EndMainMenuBar();
 
         ImGui::Begin("Node editor");
         m_NodeEditor.Draw();
@@ -130,8 +125,7 @@ namespace EVA
         ImGui::Begin("Selected");
         auto& selected = m_NodeEditor.GetSelectedNodes();
         if (!selected.empty()) { 
-            DataObject d;
-            d.mode = DataObject::DataMode::Inspector;
+            DataObject d(DataMode::Inspector);
             reinterpret_cast<TextureNodes::TextureNode*>(selected[0])->Serialize(d);
         }
         ImGui::End();
@@ -149,6 +143,26 @@ namespace EVA
         ImGui::End();
 
         m_Viewport.Draw();
+    }
+
+    void TextureGeneratorLayer::New() 
+    {
+        m_NodeEditor.New();
+        std::vector<std::string> names = {"Albedo", "Normal", "Metallic", "Roughness", "AO", "Emissive"};
+        m_OutputNode                   = CreateRef<TextureNodes::Output>(names);
+        m_NodeEditor.AddNode(m_OutputNode, {200.0f, 0.0f});
+    }
+
+    void TextureGeneratorLayer::Load(std::filesystem::path path) 
+    {
+        m_NodeEditor.Load(path);
+        auto outputs = m_NodeEditor.GetNodesOfType<TextureNodes::Output>();
+        if (!outputs.empty()) { m_OutputNode = outputs[0]; }
+    }
+
+    void TextureGeneratorLayer::Save(std::filesystem::path path) 
+    {
+         m_NodeEditor.Save(path);
     }
 
 } // namespace EVA
