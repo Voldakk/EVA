@@ -609,11 +609,26 @@ namespace EVA
             {
                 ComputeNode::Serialize(data);
 
-                static bool show                    = false;
-                static ImGradientMark* draggingMark = nullptr;
-                static ImGradientMark* selectedMark = nullptr;
-                if (ImGui::GradientButton(&m_Gradient)) { show = !show; }
-                if (show) { data.changed |= ImGui::GradientEditor(&m_Gradient, draggingMark, selectedMark); }
+                if (data.Inspector())
+                {
+                    static bool show                    = false;
+                    static ImGradientMark* draggingMark = nullptr;
+                    static ImGradientMark* selectedMark = nullptr;
+                    if (ImGui::GradientButton(&m_Gradient)) { show = !show; }
+                    if (show) { data.changed |= ImGui::GradientEditor(&m_Gradient, draggingMark, selectedMark); }
+                }
+                else if (data.Save())
+                {
+                    auto marks = m_Gradient.getSerializeableMarks();
+                    data.Serialize("marks", marks);
+                }
+                else if (data.Load())
+                {
+                    ImGradient::MarksVector marks;
+                    data.Serialize("marks", marks);
+                    m_Gradient.setFromSerializeableMarks(marks);
+                }
+
                 processed &= !data.changed;
             }
 

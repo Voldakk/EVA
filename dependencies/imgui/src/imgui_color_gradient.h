@@ -4,6 +4,12 @@
 //
 //  Created by David Gallardo on 11/06/16.
 
+//
+// Edits:
+// - Added alpha channel
+// - Added functions to convert to/from std::vector<std::tuple<float, float, float, float, float>>
+//
+
 /*
 
  Usage:
@@ -50,6 +56,8 @@
 #include "imgui.h"
 
 #include <list>
+#include <vector>
+#include <tuple>
 
 struct ImGradientMark
 {
@@ -60,6 +68,8 @@ struct ImGradientMark
 class ImGradient
 {
   public:
+    using MarksVector = std::vector<std::tuple<float, float, float, float, float>>;
+
     ImGradient();
     ~ImGradient();
 
@@ -69,6 +79,35 @@ class ImGradient
     void refreshCache();
     std::list<ImGradientMark*>& getMarks() { return m_marks; }
     const std::list<ImGradientMark*>& getMarks() const { return m_marks; }
+
+    MarksVector getSerializeableMarks() 
+    {  
+        MarksVector marks;
+        for (const auto& mark : m_marks) {
+            marks.push_back(std::make_tuple(mark->position, mark->color[0], mark->color[1], mark->color[2], mark->color[3]));
+        }
+        return marks;
+    }
+
+    void setFromSerializeableMarks(const MarksVector& marks) 
+    {
+        for (ImGradientMark* mark : m_marks)
+        {
+            delete mark;
+        }
+        m_marks.clear();
+
+        for (const auto& mark : marks) 
+        {
+            ImGradientMark* m = new ImGradientMark();
+            m->position       = std::get<0>(mark);
+            m->color[0]       = std::get<1>(mark);
+            m->color[1]       = std::get<2>(mark);
+            m->color[2]       = std::get<3>(mark);
+            m->color[3]       = std::get<4>(mark);
+            m_marks.push_back(m);
+        }
+    }
 
   private:
     void computeColorAt(float position, float* color) const;

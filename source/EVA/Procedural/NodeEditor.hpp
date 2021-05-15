@@ -459,6 +459,8 @@ namespace EVA::NE
             {
                 NE::SetNodePosition(id, {pos.x, pos.y});
             }
+
+            NE::NavigateToContent();
         }
 
         template<class T>

@@ -71,6 +71,10 @@ set(CROSSGUID_TESTS OFF CACHE INTERNAL "")
 add_subdirectory(dependencies/crossguid)
 target_link_libraries(eva PUBLIC crossguid)
 
+#Portable File Dialogs
+add_subdirectory(dependencies/portable-file-dialogs)
+target_link_libraries(eva PUBLIC portable_file_dialogs)
+
 # Platforms
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	add_compile_definitions(EVA_PLATFORM_WINDOWS)

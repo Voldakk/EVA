@@ -3,6 +3,7 @@
 #include "EVA.hpp"
 #include "NodeEditor.hpp"
 #include "TextueNode.hpp"
+#include "EVA/Assets/FileDialog.hpp"
 
 namespace EVA
 {
@@ -94,8 +95,16 @@ namespace EVA
 
         ImGui::BeginMainMenuBar();
         if (ImGui::MenuItem("New")) { New(); }
-        if (ImGui::MenuItem("Load")) { Load("./assets/graphs/new.graph"); }
-        if (ImGui::MenuItem("Save")) { Save("./assets/graphs/new.graph"); }
+        if (ImGui::MenuItem("Load"))
+        {
+            auto path = FileDialog::OpenFile({"Node graph", "*.graph"});
+            if (!path.empty()) Load(path[0]);
+        }
+        if (ImGui::MenuItem("Save"))
+        {
+            auto path = FileDialog::SaveFile({".graph"});
+            if (!path.empty()) Save(path);
+        }
         ImGui::EndMainMenuBar();
 
         ImGui::Begin("Node editor");

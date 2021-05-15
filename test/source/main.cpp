@@ -16,6 +16,7 @@ int main()
 	app->GetWindow().SetVSync(false);
 
     EVA::AssetManager::Register<EVA::NE::NodeGraph>(".graph", false);
+    EVA::FileDialog::Register(".graph", "Node graph");
 
     EVA_PROFILE_END_SESSION();
 
