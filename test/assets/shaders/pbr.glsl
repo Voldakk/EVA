@@ -9,25 +9,33 @@ layout (location = 2) in vec3 a_Normal;
 layout (location = 3) in vec3 a_Tangent;
 layout (location = 4) in vec3 a_Bitangent;  
 
-out vec3 fragPos;
-out vec2 fragUV;
-out mat3 fragTBN;
+out VTOF {
+    vec3 fragPos;
+    vec2 UV;
+    mat3 TBN;
+    vec3 tangentFragPos;
+    vec3 tangentViewPos;
+} vOut;
 
+uniform vec3 u_CameraPosition;
 uniform mat4 u_ViewProjection;
 uniform mat4 u_Model;
 
 void main()
 {
-    fragPos = vec3(u_Model * vec4(a_Position, 1.0));
+    vOut.fragPos = vec3(u_Model * vec4(a_Position, 1.0));
 
-    fragUV = a_TexCoords;
+    vOut.UV = a_TexCoords;
 
 
     // Calculate TBN matrix
-	vec3 T = normalize(vec3(u_Model * vec4(a_Tangent,   0.0)));
-	vec3 B = normalize(vec3(u_Model * vec4(a_Bitangent, 0.0)));
-	vec3 N = normalize(vec3(u_Model * vec4(a_Normal,    0.0)));
-	fragTBN = mat3(T, B, N);
+	vec3 T = normalize(mat3(u_Model) * a_Tangent);
+	vec3 B = normalize(mat3(u_Model) * a_Bitangent);
+	vec3 N = normalize(mat3(u_Model) * a_Normal);
+    vOut.TBN = mat3(T, B, N);
+
+    vOut.tangentViewPos  = vOut.TBN * u_CameraPosition;
+    vOut.tangentFragPos  = vOut.TBN * vOut.fragPos;
 
     gl_Position =  u_ViewProjection * u_Model * vec4(a_Position, 1.0);
 }
@@ -43,12 +51,17 @@ void main()
 #define MAX_LIGHTS 10
 const float PI = 3.14159265359;
 
-in vec3 fragPos;
-in vec2 fragUV;
-in mat3 fragTBN;
-//in vec4 allFragPosLightSpace [MAX_LIGHTS];
+in VTOF {
+    vec3 fragPos;
+    vec2 UV;
+    mat3 TBN;
+    vec3 tangentFragPos;
+    vec3 tangentViewPos;
+} fIn;
 
 out vec4 fragColor;
+
+uniform vec3 u_CameraPosition;
 
 // Material
 uniform sampler2D u_AlbedoMap;
@@ -57,8 +70,9 @@ uniform sampler2D u_MetallicMap;
 uniform sampler2D u_RoughnessMap;
 uniform sampler2D u_AmbientOcclusionMap;
 uniform sampler2D u_EmissiveMap;
+uniform sampler2D u_HeightMap;
 
-uniform vec3 u_CameraPosition;
+uniform float u_HeightScale;
 
 // IBL
 uniform samplerCube u_IrradianceMap;
@@ -74,6 +88,52 @@ uniform struct Light
    float attenuation;
 } u_AllLights[MAX_LIGHTS];
 
+// ----------------------------------------------------------------------------
+float SampleDepth(vec2 uv)
+{
+    return 1 - texture(u_HeightMap, uv).r;
+}
+vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
+{ 
+    // number of depth layers
+    const float minLayers = 8;
+    const float maxLayers = 32;
+    float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));  
+    // calculate the size of each layer
+    float layerDepth = 1.0 / numLayers;
+    // depth of current layer
+    float currentLayerDepth = 0.0;
+    // the amount to shift the texture coordinates per layer (from vector P)
+    vec2 P = viewDir.xy / viewDir.z * u_HeightScale; 
+    vec2 deltaTexCoords = P / numLayers;
+  
+    // get initial values
+    vec2  currentTexCoords     = texCoords;
+    float currentDepthMapValue = SampleDepth(currentTexCoords);
+      
+    while(currentLayerDepth < currentDepthMapValue)
+    {
+        // shift texture coordinates along direction of P
+        currentTexCoords -= deltaTexCoords;
+        // get depthmap value at current texture coordinates
+        currentDepthMapValue = SampleDepth(currentTexCoords);  
+        // get depth of next layer
+        currentLayerDepth += layerDepth;  
+    }
+    
+    // get texture coordinates before collision (reverse operations)
+    vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+
+    // get depth after and before collision for linear interpolation
+    float afterDepth  = currentDepthMapValue - currentLayerDepth;
+    float beforeDepth = SampleDepth(prevTexCoords) - currentLayerDepth + layerDepth;
+ 
+    // interpolation of texture coordinates
+    float weight = afterDepth / (afterDepth - beforeDepth);
+    vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+
+    return finalTexCoords;
+}
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -185,19 +245,25 @@ vec3 CalcLight(vec3 point, vec3 N, vec3 V, vec3 F0, float roughness, float metal
 // ----------------------------------------------------------------------------
 void main()
 {	
-    vec2 UV = fragUV;
+    vec3 viewDir = normalize(fIn.tangentViewPos - fIn.tangentFragPos);
+    vec2 UV = fIn.UV;
+    UV = ParallaxMapping(UV,  viewDir);       
+    if(UV.x > 1.0 || UV.y > 1.0 || UV.x < 0.0 || UV.y < 0.0)
+        discard;
+
 
     vec3 albedo = pow(texture(u_AlbedoMap, UV).rgb, vec3(2.2));
     float metallic = texture(u_MetallicMap, UV).r;
     float roughness = texture(u_RoughnessMap, UV).r;
     float ao = texture(u_AmbientOcclusionMap, UV).r;
     vec3 emissive = texture(u_EmissiveMap, UV).rgb;
+    float height = texture(u_HeightMap, UV).r;
 
     vec3 N = texture(u_NormalMap, UV).rgb;
     N = normalize(N * 2.0 - 1.0);
-	N = normalize(fragTBN * N);
+	N = normalize(fIn.TBN * N);
 
-    vec3 V = normalize(u_CameraPosition - fragPos);
+    vec3 V = normalize(u_CameraPosition - fIn.fragPos);
     vec3 R = reflect(-V, N); 
 
     // Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 of 0.04
@@ -206,7 +272,7 @@ void main()
 
 
     vec3 ambient = Ambient(N, V, R, F0, roughness, metallic, ao, albedo);
-    vec3 Lo = CalcLight(fragPos, N, V, F0, roughness, metallic, albedo);
+    vec3 Lo = CalcLight(fIn.fragPos, N, V, F0, roughness, metallic, albedo);
     
     vec3 color = ambient + Lo + emissive;
 

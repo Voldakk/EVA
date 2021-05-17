@@ -89,7 +89,7 @@ namespace EVA
 
             void DrawFields() override {}
 
-            Ref<Texture> GetTexture(size_t index) const { return m_Textures[index]; }
+            Ref<Texture> GetTexture(size_t index) const { return index < m_Textures.size() ? m_Textures[index] : nullptr; }
 
             void SetupNode() override
             {

@@ -72,6 +72,7 @@ namespace EVA
         m_Material.roughness        = m_OutputNode->GetTexture(3);
         m_Material.ambientOcclusion = m_OutputNode->GetTexture(4);
         m_Material.emissive         = m_OutputNode->GetTexture(5);
+        m_Material.height           = m_OutputNode->GetTexture(6);
 
         m_PBRShader->Bind();
         m_PBRShader->ResetTextureUnit();
@@ -114,6 +115,12 @@ namespace EVA
         ImGui::Begin("Nodes");
         if (ImGui::Button("Input")) { m_NodeEditor.AddNode<TextureNodes::Input>(); }
         if (ImGui::Button("Output")) { m_NodeEditor.AddNode<TextureNodes::Output>(); }
+        if (ImGui::Button("Material output")) 
+        { 
+            std::vector<std::string> names = {"Albedo", "Normal", "Metallic", "Roughness", "AO", "Emissive", "Height"};
+            m_OutputNode                   = CreateRef<TextureNodes::Output>(names);
+            m_NodeEditor.AddNode(m_OutputNode, {200.0f, 0.0f});
+        }
         if (ImGui::Button("Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
         ImGui::Spacing();
         if (ImGui::Button("Uniform")) { m_NodeEditor.AddNode<TextureNodes::Uniform>(); }
@@ -149,13 +156,17 @@ namespace EVA
         }
         ImGui::End();
 
+        ImGui::Begin("Settings");
+        ImGui::SliderFloat("Height scale", &m_Material.heightScale, 0.0f, 1.0f);
+        ImGui::End();
+
         m_Viewport.Draw();
     }
 
     void TextureGeneratorLayer::New()
     {
         m_NodeEditor.New();
-        std::vector<std::string> names = {"Albedo", "Normal", "Metallic", "Roughness", "AO", "Emissive"};
+        std::vector<std::string> names = {"Albedo", "Normal", "Metallic", "Roughness", "AO", "Emissive", "Height"};
         m_OutputNode                   = CreateRef<TextureNodes::Output>(names);
         m_NodeEditor.AddNode(m_OutputNode, {200.0f, 0.0f});
     }

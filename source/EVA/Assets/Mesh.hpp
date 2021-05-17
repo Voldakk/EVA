@@ -23,6 +23,9 @@ namespace EVA
         Ref<Texture> roughness;
         Ref<Texture> ambientOcclusion;
         Ref<Texture> emissive;
+        Ref<Texture> height;
+
+        float heightScale = 0;
 
         void Bind(const Ref<Shader> shader);
     };

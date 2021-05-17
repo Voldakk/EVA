@@ -38,6 +38,13 @@ namespace EVA
             shader->BindTexture("u_EmissiveMap", emissive);
         else
             shader->BindTexture("u_EmissiveMap", TextureTarget::Texture2D, 0);
+
+        if (height)
+            shader->BindTexture("u_HeightMap", height);
+        else
+            shader->BindTexture("u_HeightMap", TextureTarget::Texture2D, 0);
+
+        shader->SetUniformFloat("u_HeightScale", heightScale);
     }
 
     Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) : m_Material(material)
