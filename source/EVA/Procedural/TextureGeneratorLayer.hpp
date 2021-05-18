@@ -157,7 +157,7 @@ namespace EVA
         ImGui::End();
 
         ImGui::Begin("Settings");
-        ImGui::SliderFloat("Height scale", &m_Material.heightScale, 0.0f, 1.0f);
+        ImGui::SliderFloat("Height scale", &m_Material.heightScale, 0.0f, 0.1f);
         ImGui::End();
 
         m_Viewport.Draw();

@@ -1,35 +1,13 @@
 #pragma once
 
 #include "EVA/Renderer/VertexArray.hpp"
+#include "EVA//Renderer/Vertex.hpp"
+#include "EVA//Renderer/Material.hpp"
 #include "EVA/Renderer/Texture.hpp"
 #include "EVA//Renderer/Shader.hpp"
 
 namespace EVA
 {
-    struct Vertex
-    {
-        glm::vec3 position;
-        glm::vec2 texCoords;
-        glm::vec3 normal;
-        glm::vec3 tangent;
-        glm::vec3 bitangent;
-    };
-
-    struct Material
-    {
-        Ref<Texture> albedo;
-        Ref<Texture> normal;
-        Ref<Texture> metallic;
-        Ref<Texture> roughness;
-        Ref<Texture> ambientOcclusion;
-        Ref<Texture> emissive;
-        Ref<Texture> height;
-
-        float heightScale = 0;
-
-        void Bind(const Ref<Shader> shader);
-    };
-
     class Mesh
     {
       public:

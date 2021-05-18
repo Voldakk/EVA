@@ -1,7 +1,7 @@
 #include "OpenGLContext.hpp"
 
 #include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#include "OpenGL.hpp"
 
 namespace EVA
 {
@@ -29,12 +29,14 @@ namespace EVA
 
     glm::ivec3 OpenGLContext::MaxComputeWorkGroupSize()
     {
-        static glm::ivec3 size {0, 0, 0};
-        if (size.x > 0) return size;
+        EVA_PROFILE_FUNCTION();
 
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &size[0]);
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &size[1]);
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &size[2]);
+        static glm::ivec3 size {0, 0, 0};
+        if (size.x > 0) { return size; };
+
+        EVA_GL_CALL(glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &size[0]));
+        EVA_GL_CALL(glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &size[1]));
+        EVA_GL_CALL(glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &size[2]));
 
         EVA_INTERNAL_INFO("MaxComputeWorkGroupSize: {}, {}, {}", size[0], size[1], size[2]);
 

@@ -1,8 +1,6 @@
 //#type vertex
 #version 330 core
 
-#define MAX_LIGHTS 10
-
 layout (location = 0) in vec3 a_Position;
 layout (location = 1) in vec2 a_TexCoords;
 layout (location = 2) in vec3 a_Normal;
@@ -29,9 +27,15 @@ void main()
 
 
     // Calculate TBN matrix
-	vec3 T = normalize(mat3(u_Model) * a_Tangent);
-	vec3 B = normalize(mat3(u_Model) * a_Bitangent);
+	//vec3 T = normalize(mat3(u_Model) * a_Tangent);
+	//vec3 B = normalize(mat3(u_Model) * a_Bitangent);
+	//vec3 N = normalize(mat3(u_Model) * a_Normal);
+
+    vec3 T = normalize(mat3(u_Model) * a_Tangent);
 	vec3 N = normalize(mat3(u_Model) * a_Normal);
+    T = normalize(T - dot(T, N) * N);
+    vec3 B = cross(N, T);
+
     vOut.TBN = mat3(T, B, N);
 
     vOut.tangentViewPos  = vOut.TBN * u_CameraPosition;
@@ -91,7 +95,7 @@ uniform struct Light
 // ----------------------------------------------------------------------------
 float SampleDepth(vec2 uv)
 {
-    return 1 - texture(u_HeightMap, uv).r;
+    return 1.0 - texture(u_HeightMap, uv).r;
 }
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 { 

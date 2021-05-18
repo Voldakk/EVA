@@ -1,6 +1,6 @@
 #include "OpenGLBuffer.hpp"
 
-#include <glad/glad.h>
+#include "OpenGL.hpp"
 
 namespace EVA
 {
@@ -8,32 +8,58 @@ namespace EVA
 
     OpenGLVertexBuffer::OpenGLVertexBuffer(const void* vertices, uint32_t size) : m_Size(size)
     {
-        glCreateBuffers(1, &m_RendererId);
-        glBindBuffer(GL_ARRAY_BUFFER, m_RendererId);
-        glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glCreateBuffers(1, &m_RendererId));
+        EVA_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, m_RendererId));
+        EVA_GL_CALL(glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW));
     }
 
-    OpenGLVertexBuffer::~OpenGLVertexBuffer() { glDeleteBuffers(1, &m_RendererId); }
+    OpenGLVertexBuffer::~OpenGLVertexBuffer()
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glDeleteBuffers(1, &m_RendererId));
+    }
 
-    void OpenGLVertexBuffer::Bind() const { glBindBuffer(GL_ARRAY_BUFFER, m_RendererId); }
+    void OpenGLVertexBuffer::Bind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, m_RendererId));
+    }
 
-    void OpenGLVertexBuffer::Unbind() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+    void OpenGLVertexBuffer::Unbind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    }
 
 #pragma endregion
 #pragma region OpenGLIndexBuffer
 
-    OpenGLIndexBuffer::OpenGLIndexBuffer(const uint32_t* indices, uint32_t count) : m_Count(count)
+    OpenGLIndexBuffer::OpenGLIndexBuffer(const std::vector<uint32_t>& indices) : m_Count(indices.size())
     {
-        glCreateBuffers(1, &m_RendererId);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererId);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * count, indices, GL_STATIC_DRAW);
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glCreateBuffers(1, &m_RendererId));
+        EVA_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererId));
+        EVA_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * m_Count, indices.data(), GL_STATIC_DRAW));
     }
 
-    OpenGLIndexBuffer::~OpenGLIndexBuffer() { glDeleteBuffers(1, &m_RendererId); }
+    OpenGLIndexBuffer::~OpenGLIndexBuffer()
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glDeleteBuffers(1, &m_RendererId));
+    }
 
-    void OpenGLIndexBuffer::Bind() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererId); }
+    void OpenGLIndexBuffer::Bind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererId));
+    }
 
-    void OpenGLIndexBuffer::Unbind() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
+    void OpenGLIndexBuffer::Unbind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
 
 #pragma endregion
 } // namespace EVA

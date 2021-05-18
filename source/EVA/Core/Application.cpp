@@ -9,11 +9,12 @@ namespace EVA
 {
     Application::Application(const WindowProperties& properties)
     {
-        EVA_PROFILE_FUNCTION();
-
         EVA_INTERNAL_ASSERT(s_Instance == nullptr, "Application already exists");
         s_Instance = this;
         EVA_LOG_INIT();
+
+        EVA_PROFILE_FUNCTION();
+
         EVA_INTERNAL_INFO("Platform: {}", EVA_PLATFORM);
         EVA_INTERNAL_INFO("Architecture: {}", EVA_ARCHITECTURE);
         EVA_INTERNAL_INFO("Configuration: {}", EVA_CONFIGURATION);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Vertex.hpp"
+
 namespace EVA
 {
     enum class ShaderDataType
@@ -120,6 +122,7 @@ namespace EVA
         virtual const BufferLayout& GetLayout() const      = 0;
 
         static Ref<VertexBuffer> Create(const void* vertices, uint32_t size);
+        static Ref<VertexBuffer> Create(const std::vector<Vertex>& vertices);
     };
 
     class IndexBuffer
@@ -132,6 +135,6 @@ namespace EVA
 
         virtual uint32_t GetCount() const = 0;
 
-        static Ref<IndexBuffer> Create(const uint32_t* indices, uint32_t count);
+        static Ref<IndexBuffer> Create(const std::vector<uint32_t>& indices);
     };
 } // namespace EVA

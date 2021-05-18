@@ -11,7 +11,11 @@ namespace EVA
 
     static void GLFWErrorCallback(int error, const char* description) { EVA_INTERNAL_ERROR("GLFW error ({0}): {1}", error, description); }
 
-    std::unique_ptr<Window> Window::Create(const WindowProperties& properties) { return std::make_unique<GLFWWindow>(properties); }
+    std::unique_ptr<Window> Window::Create(const WindowProperties& properties)
+    {
+        EVA_PROFILE_FUNCTION();
+        return std::make_unique<GLFWWindow>(properties);
+    }
 
     GLFWWindow::GLFWWindow(const WindowProperties& properties) { Init(properties); }
 
@@ -119,7 +123,12 @@ namespace EVA
         });
     }
 
-    void GLFWWindow::Shutdown() { glfwDestroyWindow(m_Window); }
+    void GLFWWindow::Shutdown()
+    {
+        EVA_PROFILE_FUNCTION();
+
+        glfwDestroyWindow(m_Window);
+    }
 
     void GLFWWindow::OnUpdate()
     {
@@ -131,6 +140,8 @@ namespace EVA
 
     void GLFWWindow::SetVSync(bool enabled)
     {
+        EVA_PROFILE_FUNCTION();
+
         if (enabled)
             glfwSwapInterval(1);
         else

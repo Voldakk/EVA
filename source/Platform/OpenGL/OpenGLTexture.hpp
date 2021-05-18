@@ -2,8 +2,6 @@
 
 #include "EVA/Renderer/Texture.hpp"
 
-#include <glad/glad.h>
-
 namespace EVA
 {
     class OpenGLTexture
@@ -17,14 +15,14 @@ namespace EVA
 
         static void GenerateMipMaps(const Texture& texture);
 
-        static GLenum GetGLTarget(const TextureTarget value);
+        static unsigned int GetGLTarget(const TextureTarget value);
 
-        static GLenum GetGLFormat(const TextureFormat format);
-        static GLenum GetGLDataType(const TextureDataType dataType);
+        static unsigned int GetGLFormat(const TextureFormat format);
+        static unsigned int GetGLDataType(const TextureDataType dataType);
 
-        static GLint GetGLMinFilter(const TextureMinFilter value);
-        static GLint GetGLMagFilter(const TextureMagFilter value);
-        static GLint GetGLWrapping(const TextureWrapping value);
-        static GLenum GetGLAccess(const TextureAccess value);
+        static int GetGLMinFilter(const TextureMinFilter value);
+        static int GetGLMagFilter(const TextureMagFilter value);
+        static int GetGLWrapping(const TextureWrapping value);
+        static unsigned int GetGLAccess(const TextureAccess value);
     };
 } // namespace EVA

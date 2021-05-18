@@ -59,8 +59,7 @@ namespace EVA
                 m_TriangleVertexArray->AddVertexBuffer(vb);
 
                 // Index buffer
-                uint32_t indices[3] = {0, 1, 2};
-                Ref<IndexBuffer> ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+                Ref<IndexBuffer> ib = IndexBuffer::Create({0, 1, 2});
                 m_TriangleVertexArray->SetIndexBuffer(ib);
             }
             {
@@ -73,10 +72,7 @@ namespace EVA
                 vb->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float2, "a_TexCoord"}});
                 m_SquareVertexArray->AddVertexBuffer(vb);
 
-                uint32_t indices[6] = {
-                  0, 1, 2, 2, 3, 0,
-                };
-                Ref<IndexBuffer> ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+                Ref<IndexBuffer> ib = IndexBuffer::Create({0, 1, 2, 2, 3, 0});
                 m_SquareVertexArray->SetIndexBuffer(ib);
             }
             {

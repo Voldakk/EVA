@@ -7,46 +7,6 @@
 
 namespace EVA
 {
-    void Material::Bind(const Ref<Shader> shader)
-    {
-        if (albedo)
-            shader->BindTexture("u_AlbedoMap", albedo);
-        else
-            shader->BindTexture("u_AlbedoMap", TextureTarget::Texture2D, 0);
-
-        if (normal)
-            shader->BindTexture("u_NormalMap", normal);
-        else
-            shader->BindTexture("u_NormalMap", TextureTarget::Texture2D, 0);
-
-        if (metallic)
-            shader->BindTexture("u_MetallicMap", metallic);
-        else
-            shader->BindTexture("u_MetallicMap", TextureTarget::Texture2D, 0);
-
-        if (roughness)
-            shader->BindTexture("u_RoughnessMap", roughness);
-        else
-            shader->BindTexture("u_RoughnessMap", TextureTarget::Texture2D, 0);
-
-        if (ambientOcclusion)
-            shader->BindTexture("u_AmbientOcclusionMap", ambientOcclusion);
-        else
-            shader->BindTexture("u_AmbientOcclusionMap", TextureTarget::Texture2D, 0);
-
-        if (emissive)
-            shader->BindTexture("u_EmissiveMap", emissive);
-        else
-            shader->BindTexture("u_EmissiveMap", TextureTarget::Texture2D, 0);
-
-        if (height)
-            shader->BindTexture("u_HeightMap", height);
-        else
-            shader->BindTexture("u_HeightMap", TextureTarget::Texture2D, 0);
-
-        shader->SetUniformFloat("u_HeightScale", heightScale);
-    }
-
     Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) : m_Material(material)
     {
         EVA_PROFILE_FUNCTION();
@@ -54,7 +14,7 @@ namespace EVA
         m_VertexArray = EVA::VertexArray::Create();
 
         // Vertex buffer
-        auto vb = EVA::VertexBuffer::Create(vertices.data(), sizeof(Vertex) * vertices.size());
+        auto vb = EVA::VertexBuffer::Create(vertices);
 
         EVA::BufferLayout layout = {
           {EVA::ShaderDataType::Float3, "a_Position"},  {EVA::ShaderDataType::Float2, "a_TexCoords"},
@@ -65,7 +25,7 @@ namespace EVA
         m_VertexArray->AddVertexBuffer(vb);
 
         // Index buffer
-        auto ib = EVA::IndexBuffer::Create(indices.data(), indices.size());
+        auto ib = EVA::IndexBuffer::Create(indices);
         m_VertexArray->SetIndexBuffer(ib);
     }
 
@@ -109,7 +69,7 @@ namespace EVA
                     const glm::vec3& v2 = vertices[i2].position;
                     const glm::vec3& v3 = vertices[i3].position;
 
-                    const glm::vec2& w1 = vertices[i1].position;
+                    const glm::vec2& w1 = vertices[i1].texCoords;
                     const glm::vec2& w2 = vertices[i2].texCoords;
                     const glm::vec2& w3 = vertices[i3].texCoords;
 

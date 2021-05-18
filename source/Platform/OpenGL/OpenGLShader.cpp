@@ -1,15 +1,16 @@
 #include "OpenGLShader.hpp"
 
-#include <fstream>
-#include <glm/gtc/type_ptr.hpp>
-#include <glad/glad.h>
-
+#include "OpenGL.hpp"
 #include "OpenGLTexture.hpp"
+
+#include <fstream>
 
 namespace EVA
 {
     static GLenum ShaderTypeFromString(const std::string& type)
     {
+        EVA_PROFILE_FUNCTION();
+
         if (type == "vertex") return GL_VERTEX_SHADER;
         if (type == "fragment") return GL_FRAGMENT_SHADER;
         if (type == "geometry") return GL_GEOMETRY_SHADER;
@@ -95,9 +96,9 @@ namespace EVA
         EVA_PROFILE_FUNCTION();
 
         // Get a program object.
-        GLuint program = glCreateProgram();
+        EVA_GL_CALL(GLuint program = glCreateProgram());
 
-        std::array<GLenum, 5> shaderIds;
+        std::vector<GLenum> shaderIds(sources.size());
         int shaderIdIndex = 0;
 
         for (const auto& kv : sources)
@@ -106,29 +107,29 @@ namespace EVA
             const auto& source = kv.second;
 
             // Create an empty vertex shader handle
-            GLuint shader = glCreateShader(type);
+            EVA_GL_CALL(GLuint shader = glCreateShader(type));
 
             // Send the vertex shader source code to GL
             // Note that std::string's .c_str is NULL character terminated.
             const GLchar* sourceCStr = source.c_str();
-            glShaderSource(shader, 1, &sourceCStr, 0);
+            EVA_GL_CALL(glShaderSource(shader, 1, &sourceCStr, 0));
 
             // Compile the vertex shader
-            glCompileShader(shader);
+            EVA_GL_CALL(glCompileShader(shader));
 
             GLint isCompiled = 0;
-            glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+            EVA_GL_CALL(glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled));
             if (isCompiled == GL_FALSE)
             {
                 GLint maxLength = 0;
-                glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+                EVA_GL_CALL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength));
 
                 // The maxLength includes the NULL character
                 std::vector<GLchar> infoLog(maxLength);
-                glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
+                EVA_GL_CALL(glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]));
 
                 // We don't need the shader anymore.
-                glDeleteShader(shader);
+                EVA_GL_CALL(glDeleteShader(shader));
 
                 EVA_INTERNAL_ERROR("{0}", infoLog.data());
                 EVA_INTERNAL_ASSERT(false, "Shader compilation failure\n");
@@ -136,30 +137,32 @@ namespace EVA
             }
 
             // Attach our shaders to our program
-            glAttachShader(program, shader);
+            EVA_GL_CALL(glAttachShader(program, shader));
             shaderIds[shaderIdIndex++] = shader;
         }
 
         // Link our program
-        glLinkProgram(program);
+        EVA_GL_CALL(glLinkProgram(program));
 
         // Note the different functions here: glGetProgram* instead of glGetShader*.
         GLint isLinked = 0;
-        glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked);
+        EVA_GL_CALL(glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked));
         if (isLinked == GL_FALSE)
         {
             GLint maxLength = 0;
-            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+            EVA_GL_CALL(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength));
 
             // The maxLength includes the NULL character
             std::vector<GLchar> infoLog(maxLength);
-            glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+            EVA_GL_CALL(glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]));
 
             // We don't need the program anymore.
-            glDeleteProgram(program);
+            EVA_GL_CALL(glDeleteProgram(program));
             // Don't leak shaders either.
             for (auto id : shaderIds)
-                glDeleteShader(id);
+            {
+                EVA_GL_CALL(glDeleteShader(id));
+            }
 
             EVA_INTERNAL_ASSERT(false, "Shader link failure\n {0}", infoLog.data());
             return;
@@ -167,117 +170,144 @@ namespace EVA
 
         // Always detach shaders after a successful link.
         for (auto id : shaderIds)
-            glDetachShader(program, id);
-
+        {
+            EVA_GL_CALL(glDetachShader(program, id));
+        }
         m_RendererId = program;
     }
 
-    OpenGLShader::~OpenGLShader() { glDeleteProgram(m_RendererId); }
+    OpenGLShader::~OpenGLShader()
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glDeleteProgram(m_RendererId));
+    }
 
-    void OpenGLShader::Bind() const { glUseProgram(m_RendererId); }
+    void OpenGLShader::Bind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glUseProgram(m_RendererId));
+    }
 
-    void OpenGLShader::Unbind() const { glUseProgram(0); }
+    void OpenGLShader::Unbind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glUseProgram(0));
+    }
 
     void OpenGLShader::SetUniformBool(const std::string& name, const bool value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform1i(location, value);
+        EVA_GL_CALL(glUniform1i(location, value));
     }
 
     void OpenGLShader::SetUniformInt(const std::string& name, const int value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform1i(location, value);
+        EVA_GL_CALL(glUniform1i(location, value));
     }
 
     void OpenGLShader::SetUniformInt2(const std::string& name, const glm::ivec2& value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform2i(location, value.x, value.y);
+        EVA_GL_CALL(glUniform2i(location, value.x, value.y));
     }
 
     void OpenGLShader::SetUniformInt3(const std::string& name, const glm::ivec3& value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform3i(location, value.x, value.y, value.z);
+        EVA_GL_CALL(glUniform3i(location, value.x, value.y, value.z));
     }
 
     void OpenGLShader::SetUniformInt4(const std::string& name, const glm::ivec4& value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform4i(location, value.x, value.y, value.z, value.w);
+        EVA_GL_CALL(glUniform4i(location, value.x, value.y, value.z, value.w));
     }
 
     void OpenGLShader::SetUniformFloat(const std::string& name, const float value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform1f(location, value);
+        EVA_GL_CALL(glUniform1f(location, value));
     }
 
     void OpenGLShader::SetUniformFloat2(const std::string& name, const glm::vec2& value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform2f(location, value.x, value.y);
+        EVA_GL_CALL(glUniform2f(location, value.x, value.y));
     }
 
     void OpenGLShader::SetUniformFloat3(const std::string& name, const glm::vec3& value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform3f(location, value.x, value.y, value.z);
+        EVA_GL_CALL(glUniform3f(location, value.x, value.y, value.z));
     }
 
     void OpenGLShader::SetUniformFloat4(const std::string& name, const glm::vec4& value)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniform4f(location, value.x, value.y, value.z, value.w);
+        EVA_GL_CALL(glUniform4f(location, value.x, value.y, value.z, value.w));
     }
 
     void OpenGLShader::SetUniformMat3(const std::string& name, const glm::mat3& matrix)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+        EVA_GL_CALL(glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix)));
     }
 
     void OpenGLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
-        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+        EVA_GL_CALL(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix)));
     }
 
     void OpenGLShader::BindTexture(const std::string& name, const Ref<Texture>& texture)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
         if (location == -1) return;
 
         auto unit = m_TextureUnit++;
-        glUniform1i(location, unit);
-        glActiveTexture(GL_TEXTURE0 + unit);
-        glBindTexture(OpenGLTexture::GetGLTarget(texture->GetTarget()), texture->GetRendererId());
+        EVA_GL_CALL(glUniform1i(location, unit));
+        EVA_GL_CALL(glActiveTexture(GL_TEXTURE0 + unit));
+        EVA_GL_CALL(glBindTexture(OpenGLTexture::GetGLTarget(texture->GetTarget()), texture->GetRendererId()));
     }
 
     void OpenGLShader::BindTexture(const std::string& name, const TextureTarget target, const uint32_t rendererId)
     {
+        EVA_PROFILE_FUNCTION();
         auto location = GetUniformLocation(name);
         if (location == -1) return;
 
         auto unit = m_TextureUnit++;
-        glUniform1i(location, unit);
-        glActiveTexture(GL_TEXTURE0 + unit);
-        glBindTexture(OpenGLTexture::GetGLTarget(target), rendererId);
+        EVA_GL_CALL(glUniform1i(location, unit));
+        EVA_GL_CALL(glActiveTexture(GL_TEXTURE0 + unit));
+        EVA_GL_CALL(glBindTexture(OpenGLTexture::GetGLTarget(target), rendererId));
     }
 
     void OpenGLShader::BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const TextureAccess access)
     {
-        glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, OpenGLTexture::GetGLAccess(access),
-                           OpenGLTexture::GetGLFormat(texture->GetFormat()));
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, OpenGLTexture::GetGLAccess(access),
+                                       OpenGLTexture::GetGLFormat(texture->GetFormat())));
     }
 
     void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ)
     {
         EVA_PROFILE_FUNCTION();
-        glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+        EVA_GL_CALL(glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ));
 #ifdef EVA_DEBUG
-        glFinish();
+        EVA_GL_CALL(glFinish());
 #endif // EVA_DEBUG
     }
 
@@ -285,9 +315,9 @@ namespace EVA
                                        uint32_t groupSizeY, uint32_t groupSizeZ)
     {
         EVA_PROFILE_FUNCTION();
-        glDispatchComputeGroupSizeARB(numGroupsX, numGroupsY, numGroupsZ, groupSizeX, groupSizeY, groupSizeZ);
+        EVA_GL_CALL(glDispatchComputeGroupSizeARB(numGroupsX, numGroupsY, numGroupsZ, groupSizeX, groupSizeY, groupSizeZ));
 #ifdef EVA_DEBUG
-        glFinish();
+        EVA_GL_CALL(glFinish());
 #endif // EVA_DEBUG
     }
 
@@ -296,7 +326,7 @@ namespace EVA
         auto it = m_UniformLocationMap.find(name);
         if (it != m_UniformLocationMap.end()) { return (*it).second; }
 
-        const GLint location = glGetUniformLocation(m_RendererId, name.c_str());
+        EVA_GL_CALL(const GLint location = glGetUniformLocation(m_RendererId, name.c_str()));
 #ifdef EVA_DEBUG
         if (location == -1) { EVA_INTERNAL_WARN("{} - Invalid uniform name: {}", m_Name, name); }
 #endif

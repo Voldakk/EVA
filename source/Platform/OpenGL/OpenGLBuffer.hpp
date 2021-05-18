@@ -26,7 +26,7 @@ namespace EVA
         uint32_t m_Count;
 
       public:
-        OpenGLIndexBuffer(const uint32_t* indices, uint32_t count);
+        OpenGLIndexBuffer(const std::vector<uint32_t>& indices);
         virtual ~OpenGLIndexBuffer();
 
         virtual void Bind() const override;

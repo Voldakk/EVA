@@ -82,3 +82,6 @@ namespace EVA
 #else
 #    define EVA_FUNC_SIG
 #endif
+
+#define EVA_PROFILER_TRACE         0
+#define EVA_LOG_RENDERER_API_CALLS 0

@@ -1,10 +1,10 @@
 #include "OpenGLVertexArray.hpp"
 
-#include <glad/glad.h>
+#include "OpenGL.hpp"
 
 namespace EVA
 {
-    [[nodiscard]] static GLenum ShaderDataTypeToGLBaseType(ShaderDataType type)
+    static GLenum ShaderDataTypeToGLBaseType(ShaderDataType type)
     {
         switch (type)
         {
@@ -25,28 +25,46 @@ namespace EVA
         return 0;
     }
 
-    OpenGLVertexArray::OpenGLVertexArray() { glGenVertexArrays(1, &m_RendererId); }
+    OpenGLVertexArray::OpenGLVertexArray()
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glGenVertexArrays(1, &m_RendererId));
+    }
 
-    OpenGLVertexArray::~OpenGLVertexArray() { glDeleteVertexArrays(1, &m_RendererId); }
+    OpenGLVertexArray::~OpenGLVertexArray()
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glDeleteVertexArrays(1, &m_RendererId));
+    }
 
-    void OpenGLVertexArray::Bind() const { glBindVertexArray(m_RendererId); }
+    void OpenGLVertexArray::Bind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindVertexArray(m_RendererId));
+    }
 
-    void OpenGLVertexArray::Unbind() const { glBindVertexArray(0); }
+    void OpenGLVertexArray::Unbind() const
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindVertexArray(0));
+    }
 
     void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& buffer)
     {
+        EVA_PROFILE_FUNCTION();
+
         EVA_INTERNAL_ASSERT(!buffer->GetLayout().GetElements().empty(), "Vertex buffer has no layout");
 
-        glBindVertexArray(m_RendererId);
+        EVA_GL_CALL(glBindVertexArray(m_RendererId));
         buffer->Bind();
 
         uint32_t index     = 0;
         const auto& layout = buffer->GetLayout();
         for (const auto& element : layout)
         {
-            glEnableVertexAttribArray(index);
-            glVertexAttribPointer(index, element.GetComponentCount(), ShaderDataTypeToGLBaseType(element.type),
-                                  element.normalized ? GL_TRUE : GL_FALSE, layout.GetStride(), (const void*)((size_t)element.offset));
+            EVA_GL_CALL(glEnableVertexAttribArray(index));
+            EVA_GL_CALL(glVertexAttribPointer(index, element.GetComponentCount(), ShaderDataTypeToGLBaseType(element.type),
+                                              element.normalized ? GL_TRUE : GL_FALSE, layout.GetStride(), (const void*)((size_t)element.offset)));
             index++;
         }
 
@@ -55,7 +73,9 @@ namespace EVA
 
     void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& buffer)
     {
-        glBindVertexArray(m_RendererId);
+        EVA_PROFILE_FUNCTION();
+
+        EVA_GL_CALL(glBindVertexArray(m_RendererId));
         buffer->Bind();
 
         m_IndexBuffer = buffer;

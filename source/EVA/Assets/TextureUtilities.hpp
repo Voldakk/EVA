@@ -22,7 +22,7 @@ namespace EVA
                   1.0f,  1.0f,  0.0f, 1.0f, 1.0f, -1.0f, 1.0f,  0.0f, 0.0f, 1.0f,
                 };
 
-                uint32_t indices[] = {0, 1, 2, 0, 2, 3};
+                std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
 
                 s_QuadVAO = EVA::VertexArray::Create();
 
@@ -33,7 +33,7 @@ namespace EVA
                 vb->SetLayout(layout);
                 s_QuadVAO->AddVertexBuffer(vb);
 
-                auto ib = EVA::IndexBuffer::Create(&indices[0], 6);
+                auto ib = EVA::IndexBuffer::Create(indices);
                 s_QuadVAO->SetIndexBuffer(ib);
             }
             s_QuadVAO->Bind();

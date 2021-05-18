@@ -9,6 +9,7 @@
 #include <mutex>
 #include <sstream>
 
+
 namespace EVA::Profiler
 {
     using FloatingPointMicroseconds = std::chrono::duration<double, std::micro>;
@@ -188,9 +189,19 @@ namespace EVA::Profiler
 #if EVA_DEBUG
 #    define EVA_PROFILE_BEGIN_SESSION(filepath) ::EVA::Profiler::Instrumentor::Get().BeginSession("", filepath)
 #    define EVA_PROFILE_END_SESSION()           ::EVA::Profiler::Instrumentor::Get().EndSession()
-#    define EVA_PROFILE_SCOPE_LINE2(name, line)                                                                                            \
-        constexpr auto fixedName##line = ::EVA::Profiler::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");                        \
-        ::EVA::Profiler::InstrumentationTimer timer##line(fixedName##line.Data)
+
+#    if EVA_PROFILER_TRACE
+#        define EVA_PROFILE_SCOPE_LINE2(name, line)                                                                                        \
+            constexpr auto fixedName##line = ::EVA::Profiler::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");                    \
+            ::EVA::Profiler::InstrumentationTimer timer##line(fixedName##line.Data);                                                       \
+            EVA_INTERNAL_TRACE("{}", fixedName##line.Data)
+#    else
+#        define EVA_PROFILE_SCOPE_LINE2(name, line)                                                                                        \
+            constexpr auto fixedName##line = ::EVA::Profiler::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");                    \
+            ::EVA::Profiler::InstrumentationTimer timer##line(fixedName##line.Data)
+#    endif // EVA_PROFILER_TRACE
+
+
 #    define EVA_PROFILE_SCOPE_LINE(name, line) EVA_PROFILE_SCOPE_LINE2(name, line)
 #    define EVA_PROFILE_SCOPE(name)            EVA_PROFILE_SCOPE_LINE(name, __LINE__)
 #    define EVA_PROFILE_FUNCTION()             EVA_PROFILE_SCOPE(EVA_FUNC_SIG)

@@ -1,0 +1,586 @@
+{
+    "links": [
+        [
+            34,
+            22,
+            27
+        ],
+        [
+            49,
+            48,
+            45
+        ],
+        [
+            53,
+            52,
+            27
+        ],
+        [
+            59,
+            57,
+            51
+        ],
+        [
+            60,
+            56,
+            47
+        ],
+        [
+            66,
+            63,
+            27
+        ],
+        [
+            67,
+            64,
+            55
+        ],
+        [
+            77,
+            75,
+            71
+        ],
+        [
+            78,
+            74,
+            62
+        ],
+        [
+            79,
+            19,
+            73
+        ],
+        [
+            80,
+            25,
+            73
+        ],
+        [
+            89,
+            87,
+            39
+        ],
+        [
+            90,
+            85,
+            29
+        ],
+        [
+            91,
+            86,
+            24
+        ],
+        [
+            92,
+            83,
+            18
+        ],
+        [
+            93,
+            84,
+            42
+        ],
+        [
+            94,
+            82,
+            21
+        ],
+        [
+            95,
+            88,
+            73
+        ]
+    ],
+    "nextId": 96,
+    "nodes": [
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::HeightToNormal",
+            "Strength": 1.0,
+            "deletable": true,
+            "id": 17,
+            "inputs": [
+                19
+            ],
+            "name": "Height to Normal",
+            "outputs": [
+                18
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientMap",
+            "deletable": true,
+            "id": 20,
+            "inputs": [
+                22
+            ],
+            "marks": [
+                [
+                    0.0,
+                    0.5652173757553101,
+                    0.5652117133140564,
+                    1.0,
+                    0.0
+                ],
+                [
+                    0.44366201758384705,
+                    0.7868338823318481,
+                    0.3120705783367157,
+                    0.06906377524137497,
+                    1.0
+                ]
+            ],
+            "name": "Gradient map",
+            "outputs": [
+                21
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
+            "deletable": true,
+            "id": 23,
+            "inputs": [
+                25
+            ],
+            "m_InputRange": [
+                0.0,
+                1.0
+            ],
+            "m_InputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_InputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_Midtone": 0.5,
+            "m_Midtones": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+            ],
+            "m_OutputRange": [
+                0.8180000185966492,
+                1.0
+            ],
+            "m_OutputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_OutputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_SelectedChannel": 0,
+            "name": "Levels",
+            "outputs": [
+                24
+            ]
+        },
+        {
+            "Bevel": [
+                0.20000000298023224,
+                0.20000000298023224
+            ],
+            "Gap": [
+                4.0,
+                4.0
+            ],
+            "Height": [
+                0.699999988079071,
+                1.0
+            ],
+            "ISerializeableTypeId": "::EVA::TextureNodes::Bricks",
+            "Num bricks": [
+                4,
+                8
+            ],
+            "Offset": 0.5,
+            "deletable": true,
+            "id": 26,
+            "inputs": null,
+            "name": "Bricks",
+            "outputs": [
+                27
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "deletable": true,
+            "id": 28,
+            "inputs": null,
+            "mode": 0,
+            "name": "Uniform color",
+            "outputs": [
+                29
+            ],
+            "value": 0.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                9.999999974752427e-07,
+                9.999899930335232e-07,
+                9.999899930335232e-07,
+                1.0
+            ],
+            "deletable": true,
+            "id": 38,
+            "inputs": null,
+            "mode": 1,
+            "name": "Uniform color",
+            "outputs": [
+                39
+            ],
+            "value": 0.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "deletable": true,
+            "id": 41,
+            "inputs": null,
+            "mode": 0,
+            "name": "Uniform color",
+            "outputs": [
+                42
+            ],
+            "value": 0.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::VoronoiNoise",
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 7.300000190734863,
+            "deletable": true,
+            "id": 44,
+            "inputs": null,
+            "name": "Voronoi noise",
+            "outputs": [
+                45
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
+            "deletable": true,
+            "id": 46,
+            "inputs": [
+                48
+            ],
+            "m_InputRange": [
+                0.0,
+                0.04500000178813934
+            ],
+            "m_InputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_InputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_Midtone": 0.5,
+            "m_Midtones": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+            ],
+            "m_OutputRange": [
+                1.0,
+                0.0
+            ],
+            "m_OutputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_OutputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_SelectedChannel": 0,
+            "name": "Levels",
+            "outputs": [
+                47
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
+            "deletable": true,
+            "id": 50,
+            "inputs": [
+                52
+            ],
+            "m_InputRange": [
+                0.8069999814033508,
+                0.8069999814033508
+            ],
+            "m_InputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_InputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_Midtone": 0.5,
+            "m_Midtones": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+            ],
+            "m_OutputRange": [
+                0.0,
+                1.0
+            ],
+            "m_OutputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_OutputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_SelectedChannel": 0,
+            "name": "Levels",
+            "outputs": [
+                51
+            ]
+        },
+        {
+            "BlendMode": 3,
+            "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
+            "Opacity": 1.0,
+            "deletable": true,
+            "id": 54,
+            "inputs": [
+                56,
+                57,
+                58
+            ],
+            "name": "Blend",
+            "outputs": [
+                55
+            ]
+        },
+        {
+            "BlendMode": 2,
+            "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
+            "Opacity": 0.35100001096725464,
+            "deletable": true,
+            "id": 61,
+            "inputs": [
+                63,
+                64,
+                65
+            ],
+            "name": "Blend",
+            "outputs": [
+                62
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
+            "Octaves": 4,
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 40.0,
+            "deletable": true,
+            "id": 70,
+            "inputs": null,
+            "name": "Gradient noise",
+            "outputs": [
+                71
+            ]
+        },
+        {
+            "BlendMode": 0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
+            "Opacity": 0.04600000008940697,
+            "deletable": true,
+            "id": 72,
+            "inputs": [
+                74,
+                75,
+                76
+            ],
+            "name": "Blend",
+            "outputs": [
+                73
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Output",
+            "Outputs": [
+                "Albedo",
+                "Normal",
+                "Metallic",
+                "Roughness",
+                "AO",
+                "Emissive",
+                "Height"
+            ],
+            "deletable": true,
+            "id": 81,
+            "inputs": [
+                82,
+                83,
+                84,
+                85,
+                86,
+                87,
+                88
+            ],
+            "name": "Output",
+            "outputs": null
+        }
+    ],
+    "positions": [
+        [
+            17,
+            [
+                49.0,
+                573.0
+            ]
+        ],
+        [
+            20,
+            [
+                49.0,
+                305.0
+            ]
+        ],
+        [
+            23,
+            [
+                24.0,
+                944.0
+            ]
+        ],
+        [
+            26,
+            [
+                -1071.0,
+                501.0
+            ]
+        ],
+        [
+            28,
+            [
+                369.0,
+                1061.0
+            ]
+        ],
+        [
+            38,
+            [
+                625.0,
+                1029.0
+            ]
+        ],
+        [
+            41,
+            [
+                369.0,
+                357.0
+            ]
+        ],
+        [
+            44,
+            [
+                -1071.0,
+                -58.0
+            ]
+        ],
+        [
+            46,
+            [
+                -847.0,
+                -63.0
+            ]
+        ],
+        [
+            50,
+            [
+                -847.0,
+                228.0
+            ]
+        ],
+        [
+            54,
+            [
+                -575.0,
+                -63.0
+            ]
+        ],
+        [
+            61,
+            [
+                -607.0,
+                526.0
+            ]
+        ],
+        [
+            70,
+            [
+                -591.0,
+                853.0
+            ]
+        ],
+        [
+            72,
+            [
+                -255.0,
+                656.0
+            ]
+        ],
+        [
+            81,
+            [
+                600.0,
+                714.0
+            ]
+        ]
+    ]
+}

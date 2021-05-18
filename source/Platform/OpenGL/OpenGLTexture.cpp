@@ -1,4 +1,5 @@
 #include "OpenGLTexture.hpp"
+#include "OpenGL.hpp"
 
 namespace EVA
 {
@@ -9,18 +10,18 @@ namespace EVA
         auto format = texture.GetFormat();
 
         uint32_t rendererId;
-        glCreateTextures(GL_TEXTURE_2D, 1, &rendererId);
-        glTextureStorage2D(rendererId, 1, GetGLFormat(format), texture.GetWidth(), texture.GetHeight());
+        EVA_GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &rendererId));
+        EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(format), texture.GetWidth(), texture.GetHeight()));
 
-        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping));
-        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping));
-        glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter));
-        glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
 
-        glTextureSubImage2D(rendererId, 0, 0, 0, texture.GetWidth(), texture.GetHeight(), GetGLFormat(GetTextureFormat(format)),
-                            GetGLDataType(GetTextureDataType(format)), data);
+        EVA_GL_CALL(glTextureSubImage2D(rendererId, 0, 0, 0, texture.GetWidth(), texture.GetHeight(), GetGLFormat(GetTextureFormat(format)),
+                                        GetGLDataType(GetTextureDataType(format)), data));
 
-        if (id != "") { glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str()); }
+        if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
 
         return rendererId;
     }
@@ -32,18 +33,18 @@ namespace EVA
         auto format = texture.GetFormat();
 
         uint32_t rendererId;
-        glGenTextures(1, &rendererId);
-        glBindTexture(GL_TEXTURE_2D, rendererId);
+        EVA_GL_CALL(glGenTextures(1, &rendererId));
+        EVA_GL_CALL(glBindTexture(GL_TEXTURE_2D, rendererId));
 
-        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping));
-        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping));
-        glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter));
-        glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
-                     GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr);
+        EVA_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
+                                 GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr));
 
-        if (id != "") { glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str()); }
+        if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
 
         return rendererId;
     }
@@ -55,23 +56,23 @@ namespace EVA
         auto format = texture.GetFormat();
 
         uint32_t rendererId;
-        glGenTextures(1, &rendererId);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rendererId);
+        EVA_GL_CALL(glGenTextures(1, &rendererId));
+        EVA_GL_CALL(glBindTexture(GL_TEXTURE_CUBE_MAP, rendererId));
 
-        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping));
-        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping));
-        glTextureParameteri(rendererId, GL_TEXTURE_WRAP_R, GetGLWrapping(texture.GetSettings().wrapping));
-        glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter));
-        glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_R, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
 
         for (unsigned int i = 0; i < 6; ++i)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
-                         GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr);
+            EVA_GL_CALL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
+                                     GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr));
         }
 
 
-        if (id != "") { glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str()); }
+        if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
 
         return rendererId;
     }
@@ -81,15 +82,15 @@ namespace EVA
         EVA_PROFILE_FUNCTION();
 
         auto rendererId = texture.GetRendererId();
-        glDeleteTextures(1, &rendererId);
+        EVA_GL_CALL(glDeleteTextures(1, &rendererId));
     }
 
     void OpenGLTexture::GenerateMipMaps(const Texture& texture)
     {
         EVA_PROFILE_FUNCTION();
 
-        glBindTexture(GetGLTarget(texture.GetTarget()), texture.GetRendererId());
-        glGenerateMipmap(GetGLTarget(texture.GetTarget()));
+        EVA_GL_CALL(glBindTexture(GetGLTarget(texture.GetTarget()), texture.GetRendererId()));
+        EVA_GL_CALL(glGenerateMipmap(GetGLTarget(texture.GetTarget())));
     }
 
     GLenum OpenGLTexture::GetGLTarget(const TextureTarget value)

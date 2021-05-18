@@ -16,12 +16,17 @@ namespace EVA
         return nullptr;
     }
 
-    Ref<IndexBuffer> IndexBuffer::Create(const uint32_t* indices, uint32_t count)
+    Ref<VertexBuffer> VertexBuffer::Create(const std::vector<Vertex>& vertices)
+    {
+        return Create(vertices.data(), sizeof(Vertex) * vertices.size());
+    }
+
+    Ref<IndexBuffer> IndexBuffer::Create(const std::vector<uint32_t>& indices)
     {
         switch (Renderer::GetAPI())
         {
             case RendererAPI::API::None: return nullptr;
-            case RendererAPI::API::OpenGL: return CreateRef<OpenGLIndexBuffer>(indices, count);
+            case RendererAPI::API::OpenGL: return CreateRef<OpenGLIndexBuffer>(indices);
         }
         EVA_INTERNAL_ASSERT(false, "Unknown RendererAPI");
         return nullptr;
