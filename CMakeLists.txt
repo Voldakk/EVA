@@ -36,7 +36,7 @@ add_compile_definitions(GLFW_INCLUDE_NONE)
 target_link_libraries(eva PUBLIC glfw ${GLFW_LIBRARIES})
 
 # GLAD
-add_subdirectory(dependencies/glad2)
+add_subdirectory(dependencies/glad)
 target_link_libraries(eva PUBLIC glad)
 
 # GLM
