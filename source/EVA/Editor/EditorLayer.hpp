@@ -76,15 +76,15 @@ namespace EVA
                 m_SquareVertexArray->SetIndexBuffer(ib);
             }
             {
-                m_CubeMesh = Mesh::LoadMesh("./assets/models/cube.obj")[0];
+                m_CubeMesh = AssetManager::Load<Mesh>("models/cube.obj");
             }
 
             // Shaders
-            m_FlatColorShader = Shader::Create("./assets/shaders/color.glsl");
-            m_TextureShader   = Shader::Create("./assets/shaders/texture.glsl");
+            m_FlatColorShader = AssetManager::Load<Shader>("shaders/color.glsl");
+            m_TextureShader   = AssetManager::Load<Shader>("shaders/texture.glsl");
 
             // Texture
-            m_Texture = TextureManager::LoadTexture("assets/textures/uv.png");
+            m_Texture = AssetManager::Load<Texture>("textures/uv.png");
 
             // Viewport
             FramebufferSpecification spec;
@@ -93,12 +93,11 @@ namespace EVA
             m_Viewport  = CreateRef<Viewport>(spec);
 
             // Ship
-            auto mesh  = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
-            m_ShipMesh = mesh[0];
+            m_ShipMesh = AssetManager::Load<Mesh>("models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
 
-            m_Environment = CreateRef<Environment>("./assets/textures/space_1k.hdr");
+            m_Environment = CreateRef<Environment>("textures/space_1k.hdr");
         }
-        void LoadShaders() { m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl"); }
+        void LoadShaders() { m_PBRShader = AssetManager::Load<Shader>("shaders/pbr.glsl"); }
 
         inline static float timer = 0.0f;
         void OnUpdate() override

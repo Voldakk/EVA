@@ -3,6 +3,7 @@
 #include "EVA/Renderer/Renderer.hpp"
 #include "Platform/OpenGL/OpenGLTexture.hpp"
 #include <stb_image.h>
+
 namespace EVA
 {
     TextureFormat GetFormat(int channels, bool isHDR)
@@ -23,7 +24,7 @@ namespace EVA
     {
         EVA_PROFILE_FUNCTION();
 
-        const auto pathString = FileSystem::ToString(path);
+        const auto pathString = FileSystem::ToString(FileSystem::ToSystemPath(path));
 
         // Return the id if the texture's already loaded
         auto it = s_Textures.find(pathString);

@@ -8,151 +8,164 @@
 
 namespace EVA
 {
-    Ref<Asset> AssetManager::CreateAsset(const std::filesystem::path& path)
+    Ref<Asset> AssetManager::CreateAsset(const Path& path)
     {
-        EVA_INTERNAL_TRACE("{}", FileSystem::ToString(path));
-        const auto info = GetFileInfo(path.extension());
-        EVA_INTERNAL_ASSERT(!info.useMetaFile, "Unable to create binary asset");
-        auto asset = info.createInstance();
+        EVA_PROFILE_FUNCTION();
+        FileInfo info;
+        if (!GetFileInfo(info, path.extension())) { return nullptr; }
+        auto asset = info.create();
+        asset->m_Guid   = NewGuid();
         Save(asset, path);
         return asset;
     }
 
     bool AssetManager::DeleteAsset(const Ref<Asset>& asset) { return DeleteAsset(asset->m_Path); }
 
-    bool AssetManager::DeleteAsset(const std::filesystem::path& path)
+    bool AssetManager::DeleteAsset(const Path& path)
     {
+        EVA_PROFILE_FUNCTION();
         const auto pathString = FileSystem::ToString(path);
-        EVA_INTERNAL_TRACE("{}", pathString);
 
-        auto it = m_Assets.find(pathString);
-        if (it == m_Assets.end()) return false;
+        auto it = s_Assets.find(pathString);
+        if (it == s_Assets.end()) return false;
 
-        m_Assets.erase(pathString);
-        return std::filesystem::remove(path);
+        s_Assets.erase(pathString);
+
+        auto metaPath = path;
+        metaPath += ".meta";
+        FileSystem::DeleteFile(metaPath);
+        return FileSystem::DeleteFile(path);
     }
 
-    Ref<Asset> AssetManager::LoadAsset(const std::filesystem::path& path)
+    Ref<Asset> AssetManager::LoadAsset(const Path& path)
     {
-        EVA_INTERNAL_TRACE("{}", FileSystem::ToString(path));
-        const auto info = GetFileInfo(path.extension());
-        auto asset      = info.createInstance();
-        asset->m_Path   = path;
-        return LoadAsset(asset, path);
-    }
+        EVA_PROFILE_FUNCTION();
 
-    Ref<Asset> AssetManager::LoadAsset(Ref<Asset>& asset)
-    {
-        EVA_INTERNAL_TRACE("{}", FileSystem::ToString(asset->GetPath()));
-        return LoadAsset(asset, asset->m_Path);
-    }
-
-    Ref<Asset> AssetManager::LoadAsset(Ref<Asset>& asset, const std::filesystem::path& path)
-    {
         const auto pathString = FileSystem::ToString(path);
-        EVA_INTERNAL_TRACE("{}, {}", FileSystem::ToString(asset->GetPath()), pathString);
 
-        auto existing = m_Assets.find(pathString);
-        if (existing != m_Assets.end()) return existing->second;
+        auto existing = s_Assets.find(pathString);
+        if (existing != s_Assets.end()) return existing->second;
 
-        const auto info = GetFileInfo(path.extension());
+        FileInfo info;
+        if (!GetFileInfo(info, path.extension())) { return nullptr; }
 
-        auto loadPath = path;
-        if (info.useMetaFile)
+        auto metaPath = path;
+        metaPath += ".meta";
+
+        // Create a .meta file is it does not exist
+        if (!FileSystem::FileExists(metaPath))
         {
-            loadPath += ".meta";
-            if (!std::filesystem::exists(loadPath)) Save(asset, path);
+            json jsonNewMeta;
+            jsonNewMeta["guid"] = NewGuid();
+
+            bool res = WriteFile(metaPath, jsonNewMeta);
+            if (!res) { return nullptr; }
         }
 
-        std::ifstream is;
-        is.open(loadPath);
-        if (is.fail())
+        // File
+        json jsonFile;
+        if (info.isJson)
         {
-            EVA_INTERNAL_ERROR("Failed to open file: {}", FileSystem::ToString(loadPath));
-            return nullptr;
+            jsonFile = ReadFile(path);
         }
+        DataObject file(DataMode::Load, jsonFile);
 
-        json j;
-        is >> j;
-        is.close();
+        // Meta
+        json jsonMeta = ReadFile(metaPath);
+        DataObject meta(DataMode::Load, jsonMeta);
 
-        DataObject data(DataMode::Load, j);
-
+        auto asset = info.load(path, file, meta);
         asset->m_Path = path;
-        asset->Serialize(data);
+        s_Assets[pathString] = asset;
 
-        m_Assets[pathString] = asset;
+        Guid null;
+        asset->m_Guid = meta.Get<Guid>("guid", null);
+        if (asset->m_Guid == null)
+        {
+            EVA_INTERNAL_WARN("Guid not found for {}", FileSystem::ToString(path));
+            asset->m_Guid = NewGuid();
+        }
 
         return asset;
     }
 
+    Ref<Asset> AssetManager::LoadAsset(const Guid& guid) 
+    { 
+        EVA_PROFILE_FUNCTION();
+
+        //TODO
+        return nullptr;
+    }
+
     bool AssetManager::Save(Ref<Asset>& asset)
     {
-        EVA_INTERNAL_TRACE("{}", FileSystem::ToString(asset->GetPath()));
+        EVA_INTERNAL_ASSERT(!asset->GetPath().empty(), "Can't save an asset without a path");
         return Save(asset, asset->m_Path);
     }
 
-    bool AssetManager::Save(Ref<Asset>& asset, const std::filesystem::path& newPath)
+    bool AssetManager::Save(Ref<Asset>& asset, const Path& path)
     {
+        EVA_PROFILE_FUNCTION();
+
         const auto assetPathString = FileSystem::ToString(asset->GetPath());
-        const auto newPathString   = FileSystem::ToString(newPath);
+        const auto pathString = FileSystem::ToString(path);
 
-        EVA_INTERNAL_TRACE("Saving {} as {}", assetPathString, newPathString);
+        FileInfo info;
+        if (!GetFileInfo(info, path.extension())) { return false; }
 
-        const auto info = GetFileInfo(newPath.extension());
+        json jsonFile;
+        DataObject file(DataMode::Save, jsonFile);
+        json jsonMeta;
+        DataObject meta(DataMode::Save, jsonMeta);
 
-        json j;
-        DataObject data(DataMode::Save, j);
-        asset->Serialize(data);
+        info.save(asset, path, file, meta);
 
-        std::filesystem::create_directories(newPath.parent_path());
-
-        auto savePath = newPath;
-        if (info.useMetaFile) savePath += ".meta";
-
-        std::ofstream os;
-        os.open(savePath);
-        if (os.fail())
+        // File
+        if (info.isJson)
         {
-            EVA_INTERNAL_ERROR("Failed to open file: {}", FileSystem::ToString(savePath));
-            return false;
+            if (!WriteFile(path, jsonFile)) { return false; }
         }
 
-        os << j.dump(JSON_INDENT_WIDTH);
-        os.close();
+        // Meta
+        auto metaPath = path;
+        metaPath += ".meta";
+        if (!WriteFile(metaPath, jsonMeta)) { return false; }
 
-        if (newPath != asset->m_Path)
+        // Cache
+        if (path != asset->m_Path)
         {
-            m_Assets.erase(assetPathString);
-            asset->m_Path           = newPath;
-            m_Assets[newPathString] = asset;
+            s_Assets.erase(assetPathString);
+            asset->m_Path        = path;
+            s_Assets[pathString] = asset;
         }
 
         return true;
     }
 
-    uuid AssetManager::AddShared(const Ref<ISerializeable>& value)
+    Guid AssetManager::AddShared(const Ref<ISerializeable>& value)
     {
-        auto it = m_SharedPtrToIdMap.find(value);
-        if (it == m_SharedPtrToIdMap.end())
+        EVA_PROFILE_FUNCTION();
+
+        auto it = s_SharedPtrToIdMap.find(value);
+        if (it == s_SharedPtrToIdMap.end())
         {
-            auto id                   = NewUUID();
-            m_SharedPtrToIdMap[value] = id;
-            m_SharedIdToPtrMap[id]    = value;
+            auto id                   = NewGuid();
+            s_SharedPtrToIdMap[value] = id;
+            s_SharedIdToPtrMap[id]    = value;
             return id;
         }
         return it->second;
     }
 
-    bool AssetManager::SaveShared() { return SaveShared(m_SharedPtrAssetPath); }
+    bool AssetManager::SaveShared() { return SaveShared(s_SharedPtrAssetPath); }
 
-    bool AssetManager::SaveShared(const std::filesystem::path& path)
+    bool AssetManager::SaveShared(const Path& path)
     {
-        EVA_INTERNAL_TRACE("{}", FileSystem::ToString(path));
+        EVA_PROFILE_FUNCTION();
 
         json j;
-        std::vector<uuid> deleteIds;
-        for (auto& [key, value] : m_SharedIdToPtrMap)
+        std::vector<Guid> deleteIds;
+        for (auto& [key, value] : s_SharedIdToPtrMap)
         {
             if (value.use_count() == 2)
             {
@@ -165,47 +178,29 @@ namespace EVA
             j.push_back({key, v});
         }
 
-        std::ofstream os;
-        os.open(path);
-        if (os.fail())
-        {
-            EVA_INTERNAL_ERROR("Failed to open file: {}", FileSystem::ToString(path));
-            return false;
-        }
-
-        os << j.dump(JSON_INDENT_WIDTH);
-        os.close();
+        if (!WriteFile(path, j)) { return false; }
 
         for (auto& id : deleteIds)
         {
-            auto value = m_SharedIdToPtrMap[id];
-            m_SharedIdToPtrMap.erase(id);
-            m_SharedPtrToIdMap.erase(value);
+            auto value = s_SharedIdToPtrMap[id];
+            s_SharedIdToPtrMap.erase(id);
+            s_SharedPtrToIdMap.erase(value);
         }
         return true;
     }
 
-    bool AssetManager::LoadShared() { return LoadShared(m_SharedPtrAssetPath); }
+    bool AssetManager::LoadShared() { return LoadShared(s_SharedPtrAssetPath); }
 
-    bool AssetManager::LoadShared(const std::filesystem::path& path)
+    bool AssetManager::LoadShared(const Path& path)
     {
-        EVA_INTERNAL_TRACE("{}", FileSystem::ToString(path));
+        EVA_PROFILE_FUNCTION();
 
-        std::ifstream is;
-        is.open(path);
-        if (is.fail())
-        {
-            EVA_INTERNAL_ERROR("Failed to open file: {}", FileSystem::ToString(path));
-            return false;
-        }
+        json j = ReadFile(path);
 
-        json j;
-        is >> j;
-        is.close();
         for (auto& i : j)
         {
-            auto id              = i[0].get<uuid>();
-            m_SharedIdToJson[id] = i[1];
+            auto id              = i[0].get<Guid>();
+            s_SharedIdToJson[id] = i[1];
         }
 
         return true;
@@ -213,14 +208,15 @@ namespace EVA
 
     void AssetManager::ClearAssets()
     {
-        m_Assets.clear();
+        EVA_PROFILE_FUNCTION();
 
-        m_SharedPtrToIdMap.clear();
-        m_SharedIdToPtrMap.clear();
-        m_SharedIdToJson.clear();
+        s_Assets.clear();
+        s_SharedPtrToIdMap.clear();
+        s_SharedIdToPtrMap.clear();
+        s_SharedIdToJson.clear();
     }
 
-    void AssetManager::ClearRegistered() { m_FileTypes.clear(); }
+    void AssetManager::ClearRegistered() { s_FileTypes.clear(); }
 
     void AssetManager::ClearAll()
     {
@@ -228,41 +224,75 @@ namespace EVA
         ClearRegistered();
     }
 
-    const AssetManager::FileInfo& AssetManager::GetFileInfo(const std::filesystem::path& extension)
+    bool AssetManager::GetFileInfo(FileInfo& info, const Path& extension)
     {
-        const auto extensionString = FileSystem::ToString(extension);
-        EVA_INTERNAL_TRACE("{}", extensionString);
+        EVA_PROFILE_FUNCTION();
 
-        auto info = m_FileTypes.find(extensionString);
-        EVA_INTERNAL_ASSERT(info != m_FileTypes.end(), "Unknown extension: {}", extensionString);
-        return info->second;
+        const auto extensionString = FileSystem::ToString(extension);
+        
+        auto it = s_FileTypes.find(extensionString);
+
+        if (it != s_FileTypes.end()) {
+            info = it->second;
+            return true;
+        }
+
+        EVA_INTERNAL_WARN("Unknown extension: {}", extensionString);
+        return false;
     }
 
-    Ref<ISerializeable> AssetManager::GetExistingShared(const uuid id)
+    Ref<ISerializeable> AssetManager::GetExistingShared(const Guid guid)
     {
-        EVA_INTERNAL_TRACE("{}", id.str().c_str());
+        EVA_PROFILE_FUNCTION();
 
-        auto it = m_SharedIdToPtrMap.find(id);
-        if (it != m_SharedIdToPtrMap.end()) return it->second;
+        auto it = s_SharedIdToPtrMap.find(guid);
+        if (it != s_SharedIdToPtrMap.end()) return it->second;
         return nullptr;
     }
 
-    Ref<ISerializeable> AssetManager::GetSharedFromJson(const uuid id, Ref<ISerializeable>& value)
+    Ref<ISerializeable> AssetManager::GetSharedFromJson(const Guid guid, Ref<ISerializeable>& value)
     {
-        EVA_INTERNAL_TRACE("{}", id.str().c_str());
+        EVA_PROFILE_FUNCTION();
 
-        auto it = m_SharedIdToJson.find(id);
-        if (it != m_SharedIdToJson.end())
+        auto it = s_SharedIdToJson.find(guid);
+        if (it != s_SharedIdToJson.end())
         {
             DataObject d = DataObject(DataMode::Load, it->second);
             value->Serialize(d);
 
-            m_SharedIdToPtrMap[id]    = value;
-            m_SharedPtrToIdMap[value] = id;
-            m_SharedIdToJson.erase(id);
+            s_SharedIdToPtrMap[guid]  = value;
+            s_SharedPtrToIdMap[value] = guid;
+            s_SharedIdToJson.erase(guid);
 
             return value;
         }
         return nullptr;
+    }
+
+    json AssetManager::ReadFile(const Path& path) 
+    {
+        EVA_PROFILE_FUNCTION();
+
+        json data;
+        std::ifstream stream;
+        if (!FileSystem::OpenFile(stream, path)) { return nullptr; }
+        stream >> data;
+        stream.close();
+
+        return data;
+    }
+
+    bool AssetManager::WriteFile(const Path& path, const json& data) 
+    {
+        EVA_PROFILE_FUNCTION();
+
+        FileSystem::CreateDirectories(path.parent_path());
+
+        std::ofstream stream;
+        if (!FileSystem::OpenFile(stream, path)) { return nullptr; }
+        stream << data.dump(JSON_INDENT_WIDTH);
+        stream.close();
+
+        return true;
     }
 } // namespace EVA

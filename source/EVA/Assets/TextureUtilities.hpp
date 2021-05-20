@@ -3,6 +3,7 @@
 #include "TextureManager.hpp"
 #include "EVA/Renderer/Framebuffer.hpp"
 #include "Mesh.hpp"
+#include "EVA/Assets.hpp"
 
 namespace EVA
 {
@@ -44,7 +45,7 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            if (s_Cube == nullptr) { s_Cube = Mesh::LoadMesh("./assets/models/cube.obj")[0]; }
+            if (s_Cube == nullptr) { s_Cube = AssetManager::Load<Mesh>("models/cube.obj"); }
 
             s_Cube->GetVertexArray()->Bind();
             RenderCommand::Clear();
@@ -90,7 +91,7 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            auto shader = Shader::Create("./assets/shaders/equirectangular_to_cubemap.glsl");
+            auto shader = AssetManager::Load<Shader>("shaders/equirectangular_to_cubemap.glsl");
             TextureSettings settings;
             settings.wrapping  = TextureWrapping::ClampToEdge;
             settings.minFilter = TextureMinFilter::LinearMipmapLinear;
@@ -107,7 +108,7 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            auto shader = Shader::Create("./assets/shaders/cubemap_convolution.glsl");
+            auto shader = AssetManager::Load<Shader>("shaders/cubemap_convolution.glsl");
             auto out    = TextureManager::CreateCubeMap(size, size, TextureFormat::RGB16F);
 
             ConvertCube(cubemap, "u_EnvironmentMap", out, shader);
@@ -119,7 +120,7 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            auto shader = Shader::Create("./assets/shaders/pre_filter_map.glsl");
+            auto shader = AssetManager::Load<Shader>("shaders/pre_filter_map.glsl");
             TextureSettings settings;
             settings.minFilter = TextureMinFilter::LinearMipmapLinear;
             auto out           = TextureManager::CreateCubeMap(size, size, TextureFormat::RGB16F, settings);
@@ -174,7 +175,7 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            return TextureManager::LoadTexture("./assets/textures/ibl_brdf_lut.png");
+            return AssetManager::Load<Texture>("textures/ibl_brdf_lut.png");
 
             /*auto shader = Shader::Create("pre_compute_brdf.glsl");
 

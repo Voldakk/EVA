@@ -190,12 +190,11 @@ namespace EVA
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_Ssbo->GetRendererId());
 
             // Ship
-            auto mesh = Mesh::LoadMesh("./assets/models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
-            m_ShipMesh = mesh[0];
+            m_ShipMesh       = AssetManager::Load<Mesh>("models/colonial_fighter_red_fox/colonial_fighter_red_fox.obj");
             m_ShipController = CreateRef<ShipController>(glm::vec3(5.0f, 0.0f, 0.0f));
 
             // Enviroment
-            m_Environment = CreateRef<Environment>("./assets/textures/space_1k.hdr");
+            m_Environment = CreateRef<Environment>("textures/space_1k.hdr");
 
             // Cameras
             m_CameraController = CreateRef<PerspectiveCameraController>(glm::vec3(0, 2, -5), 0.0f, 0.0f, Application::Get().GetWindow().GetAspect());
@@ -210,8 +209,8 @@ namespace EVA
 
         void LoadShaders()
         {
-            m_ComputeShader = Shader::Create("./assets/shaders/compute.glsl");
-            m_PBRShader = Shader::Create("./assets/shaders/pbr.glsl");
+            m_ComputeShader = AssetManager::Load<Shader>("shaders/compute.glsl");
+            m_PBRShader     = AssetManager::Load<Shader>("shaders/pbr.glsl");
         }
 
         inline static float timer = 0.0f;

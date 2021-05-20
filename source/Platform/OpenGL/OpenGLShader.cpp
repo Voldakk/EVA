@@ -22,19 +22,15 @@ namespace EVA
         return 0;
     }
 
-    OpenGLShader::OpenGLShader(const std::string& filepath)
+    OpenGLShader::OpenGLShader(const Path& filepath)
     {
         EVA_PROFILE_FUNCTION();
 
+        m_Name       = filepath.filename().string();
+        m_Path       = filepath;
         auto source  = ReadFile(filepath);
         auto sources = PreProcess(source);
         Compile(sources);
-
-        auto lastSlash = filepath.find_last_of("/\\");
-        lastSlash      = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-        auto lastDot   = filepath.rfind('.');
-        auto count     = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
-        m_Name         = filepath.substr(lastSlash, count);
     }
 
     OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource) : m_Name(name)
@@ -47,15 +43,16 @@ namespace EVA
         Compile(sources);
     }
 
-    std::string OpenGLShader::ReadFile(const std::string& filepath)
+    std::string OpenGLShader::ReadFile(const Path& filepath)
     {
         EVA_PROFILE_FUNCTION();
 
+        std::ifstream in;
+        bool res = FileSystem::OpenFile(in, filepath, std::ios::in | std::ios::binary);
+
+        EVA_INTERNAL_ASSERT(res, "Could not open file: '{}'", filepath);
+
         std::string result;
-        std::ifstream in(filepath, std::ios::in | std::ios::binary);
-
-        EVA_INTERNAL_ASSERT(in, "Could not open file: '{0}'", filepath);
-
         in.seekg(0, std::ios::end);
         result.resize(in.tellg());
         in.seekg(0, std::ios::beg);

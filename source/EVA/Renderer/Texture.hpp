@@ -1,5 +1,8 @@
 #pragma once
 
+#include "EVA/Assets/Asset.hpp"
+#include "EVA/Assets/ISerializeable.hpp"
+
 namespace EVA
 {
     enum class TextureAccess
@@ -140,18 +143,23 @@ namespace EVA
         RGBA,
     };
 
-    struct TextureSettings
+    struct TextureSettings : public ISerializeable
     {
         TextureWrapping wrapping   = TextureWrapping::Repeat;
         TextureMinFilter minFilter = TextureMinFilter::Linear;
         TextureMagFilter magFilter = TextureMagFilter::Linear;
+
+        void Serialize(DataObject& data) override 
+        {
+            
+        }
     };
 
     inline static TextureSettings DefaultTextureSettings = {};
 
     class TextureManager;
 
-    class Texture
+    class Texture : public Asset
     {
         friend TextureManager;
 
@@ -164,10 +172,13 @@ namespace EVA
         inline const uint32_t GetHeight() const { return m_Height; }
         inline const TextureTarget GetTarget() const { return m_Target; }
         inline const TextureFormat GetFormat() const { return m_Format; }
-        inline const TextureSettings GetSettings() const { return m_Settings; }
         inline const std::filesystem::path GetPath() const { return m_Path; }
 
         inline const glm::vec2 GetSize() const { return glm::vec2(m_Width, m_Height); }
+
+        inline TextureSettings& GetSettings() { return m_Settings; }
+        inline const TextureSettings& GetSettings() const { return m_Settings; }
+
 
 
       private:

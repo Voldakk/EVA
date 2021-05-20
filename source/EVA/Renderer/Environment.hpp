@@ -12,14 +12,14 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            m_EquirectangularMap = TextureManager::LoadTexture(equirectangularMap);
+            m_EquirectangularMap = AssetManager::Load<Texture>(equirectangularMap);
             m_EnvironmentMap     = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
             m_IrradianceMap      = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
             m_PreFilterMap       = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
             m_BrdfLUT            = TextureUtilities::PreComputeBRDF();
 
-            m_SkyboxMesh   = Mesh::LoadMesh("./assets/models/cube_inverted.obj")[0];
-            m_SkyboxShader = Shader::Create("./assets/shaders/skybox.glsl");
+            m_SkyboxMesh   = AssetManager::Load<Mesh>("models/cube_inverted.obj");
+            m_SkyboxShader = AssetManager::Load<Shader>("shaders/skybox.glsl");
         }
 
         void DrawSkyBox() const

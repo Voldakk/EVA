@@ -4,7 +4,7 @@
 #include <type_traits>
 
 #include "Json.hpp"
-#include "UUID.hpp"
+#include "Guid.hpp"
 #include "AssetManager.hpp"
 #include "ISerializeable.hpp"
 #include "EVA/Editor/InspectorFields.hpp"
@@ -201,7 +201,7 @@ namespace EVA
         template<typename T>
         typename std::enable_if<std::is_base_of<Asset, T>::value>::type Set(const std::string& key, Ref<T>& value) const
         {
-            if (value != nullptr) m_Json[key] = FileSystem::ToString(value->GetPath());
+            if (value != nullptr) m_Json[key] = value->GetUUID();
         }
 
         template<typename T>
@@ -209,9 +209,9 @@ namespace EVA
         {
             if (m_Json.find(key) == m_Json.end()) return defaultValue;
 
-            std::filesystem::path path = m_Json[key].get<std::string>();
+            Guid guid = m_Json[key].get<Guid>();
 
-            return AssetManager::Load<T>(path);
+            return AssetManager::Load<T>(guid);
         }
 
         // std::vector<T>

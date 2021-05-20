@@ -10,7 +10,7 @@ namespace EVA
         inline static std::unordered_map<std::string, WeakRef<RawTexture>> s_RawTextures = {};
 
       public:
-        static Ref<Texture> LoadTexture(const std::filesystem::path& path, const TextureSettings& settings = DefaultTextureSettings);
+        static Ref<Texture> LoadTexture(const std::filesystem::path& path, const TextureSettings& settings);
 
         static Ref<Texture> CreateTexture(uint32_t width, uint32_t height, TextureFormat format, const TextureSettings& settings = DefaultTextureSettings);
         static Ref<Texture> CreateCubeMap(uint32_t width, uint32_t height, TextureFormat format, const TextureSettings& settings = DefaultTextureSettings);

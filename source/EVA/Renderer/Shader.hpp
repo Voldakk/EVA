@@ -1,10 +1,11 @@
 #pragma once
 
+#include "EVA/Assets/Asset.hpp"
 #include "EVA/Renderer/Texture.hpp"
 
 namespace EVA
 {
-    class Shader
+    class Shader : public Asset
     {
       public:
         virtual ~Shader() = default;
@@ -37,7 +38,7 @@ namespace EVA
 
         virtual void ResetTextureUnit() = 0;
 
-        static Ref<Shader> Create(const std::string& path);
+        static Ref<Shader> Create(const Path& path);
         static Ref<Shader> Create(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource);
     };
 

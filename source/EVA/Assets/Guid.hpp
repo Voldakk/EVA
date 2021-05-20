@@ -5,8 +5,9 @@
 
 namespace EVA
 {
-    using uuid = xg::Guid;
-    inline uuid NewUUID() { return xg::newGuid(); };
+    using Guid = xg::Guid;
+    inline Guid NewGuid() { return xg::newGuid(); };
+
 } // namespace EVA
 
 namespace xg

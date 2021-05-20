@@ -35,5 +35,14 @@ namespace EVA
         return changed;
     }
 
+    bool InspectorFields::AssetPath(const char* name, Ref<Asset>& value)
+    {
+        std::filesystem::path path;
+        if (value) { path = value->GetPath(); }
+        bool changed = Path(name, path);
+        if (changed) { value = AssetManager::LoadAsset(path); }
+        return changed;
+    }
+
     bool InspectorFields::Default(const char* name, ISerializeable& value) { return Serializeable(name, value); }
 } // namespace EVA

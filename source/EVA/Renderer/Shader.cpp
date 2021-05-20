@@ -2,10 +2,11 @@
 
 #include "Platform/OpenGL/OpenGLShader.hpp"
 #include "Renderer.hpp"
+#include "EVA/Assets.hpp"
 
 namespace EVA
 {
-    Ref<Shader> Shader::Create(const std::string& path)
+    Ref<Shader> Shader::Create(const std::filesystem::path& path)
     {
         switch (Renderer::GetAPI())
         {
@@ -43,14 +44,14 @@ namespace EVA
 
     Ref<Shader> ShaderLibrary::Load(const std::string& filepath)
     {
-        auto shader = Shader::Create(filepath);
+        auto shader = AssetManager::Load<Shader>(filepath);
         Add(shader);
         return shader;
     }
 
     Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::string& filepath)
     {
-        auto shader = Shader::Create(filepath);
+        auto shader = AssetManager::Load<Shader>(filepath);
         Add(name, shader);
         return shader;
     }

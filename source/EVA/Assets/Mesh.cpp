@@ -2,12 +2,13 @@
 
 #include "FileSystem.hpp"
 #include "TextureManager.hpp"
-
+#include "AssetManager.hpp"
 #include "obj/OBJ_Loader.h"
 
 namespace EVA
 {
-    Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) : m_Material(material)
+    SubMesh::SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) :
+      m_Material(material)
     {
         EVA_PROFILE_FUNCTION();
 
@@ -29,7 +30,17 @@ namespace EVA
         m_VertexArray->SetIndexBuffer(ib);
     }
 
-    std::vector<Ref<Mesh>> Mesh::LoadMesh(const std::filesystem::path& path)
+    Mesh::Mesh(const std::vector<Ref<SubMesh>>& subMeshes) : m_SubMeshes(subMeshes)
+    {
+
+    }
+
+    Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material) 
+    {
+        m_SubMeshes.push_back(CreateRef<SubMesh>(vertices, indices, material));
+    }
+
+    Ref<Mesh> Mesh::LoadMesh(const std::filesystem::path& path)
     {
         EVA_PROFILE_FUNCTION();
 
@@ -39,7 +50,7 @@ namespace EVA
         bool loaded = loader.LoadFile(FileSystem::ToString(path));
         EVA_INTERNAL_ASSERT(loaded, "Failed to load file");
 
-        std::vector<Ref<Mesh>> meshes;
+        std::vector<Ref<SubMesh>> subMeshes;
 
         for (const auto& mesh : loader.LoadedMeshes)
         {
@@ -108,24 +119,24 @@ namespace EVA
             Ref<Material> material = CreateRef<Material>();
             {
                 if (mesh.MeshMaterial.map_Kd != "")
-                    material->albedo = TextureManager::LoadTexture(path.parent_path() / mesh.MeshMaterial.map_Kd);
+                    material->albedo = AssetManager::Load<Texture>(path.parent_path() / mesh.MeshMaterial.map_Kd);
 
                 if (mesh.MeshMaterial.map_Kd != "")
-                    material->emissive = TextureManager::LoadTexture(path.parent_path() / mesh.MeshMaterial.map_Ke);
+                    material->emissive = AssetManager::Load<Texture>(path.parent_path() / mesh.MeshMaterial.map_Ke);
 
                 if (mesh.MeshMaterial.map_Kd != "")
-                    material->normal = TextureManager::LoadTexture(path.parent_path() / mesh.MeshMaterial.norm);
+                    material->normal = AssetManager::Load<Texture>(path.parent_path() / mesh.MeshMaterial.norm);
 
                 if (mesh.MeshMaterial.map_Kd != "")
-                    material->metallic = TextureManager::LoadTexture(path.parent_path() / mesh.MeshMaterial.map_Pm);
+                    material->metallic = AssetManager::Load<Texture>(path.parent_path() / mesh.MeshMaterial.map_Pm);
 
                 if (mesh.MeshMaterial.map_Kd != "")
-                    material->roughness = TextureManager::LoadTexture(path.parent_path() / mesh.MeshMaterial.map_Pr);
+                    material->roughness = AssetManager::Load<Texture>(path.parent_path() / mesh.MeshMaterial.map_Pr);
             }
 
-            meshes.push_back(CreateRef<Mesh>(vertices, mesh.Indices, material));
+            subMeshes.push_back(CreateRef<SubMesh>(vertices, mesh.Indices, material));
         }
 
-        return meshes;
+        return CreateRef<Mesh>(subMeshes);
     }
 } // namespace EVA

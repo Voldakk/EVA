@@ -7,6 +7,7 @@
 
 #include "EVA/Assets/FileSystem.hpp"
 #include "EVA/Assets/ISerializeable.hpp"
+#include "EVA/Assets/Asset.hpp"
 
 namespace EVA
 {
@@ -144,6 +145,7 @@ namespace EVA
 
         static bool Serializeable(const char* name, ISerializeable& value);
         static bool Serializeable(const char* name, Ref<ISerializeable>& value);
+        static bool AssetPath(const char* name, Ref<Asset>& value);
 
         inline static bool Default(const char* name, bool& value) { return ImGui::Checkbox(name, &value); }
         inline static bool Default(const char* name, int& value) { return ImGui::InputInt(name, &value); }
@@ -170,6 +172,7 @@ namespace EVA
         inline static bool Default(const char* name, std::filesystem::path& value) { return Path(name, value); }
 
         static bool Default(const char* name, ISerializeable& value);
+
 
         template<typename T, typename Alloc>
         inline static bool Default(const char* name, std::vector<T, Alloc>& value)
@@ -218,10 +221,21 @@ namespace EVA
             return changed;
         }
 
+        // Ref<T>
         template<typename T>
-        static bool Default(const char* name, Ref<T>& value)
+        static typename std::enable_if<!std::is_base_of<Asset, T>::value, bool>::type Default(const char* name, Ref<T>& value)
         {
             return Default(name, *value);
+        }
+
+        // Ref<Asset>
+        template<typename T>
+        static typename std::enable_if<std::is_base_of<Asset, T>::value, bool>::type Default(const char* name, Ref<T>& value)
+        {
+            auto ref = std::static_pointer_cast<Asset>(value);
+            bool changed = AssetPath(name, ref);
+            value        = std::static_pointer_cast<T>(ref);
+            return changed;
         }
     };
 

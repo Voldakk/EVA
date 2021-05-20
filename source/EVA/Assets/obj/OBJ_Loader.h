@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "EVA/Assets/FileSystem.hpp"
+
 // Iostream - STD I/O Library
 #include <iostream>
 
@@ -442,16 +444,16 @@ namespace objl
 		//
 		// If the file is unable to be found
 		// or unable to be loaded return false
-		bool LoadFile(std::string Path)
+		bool LoadFile(const EVA::Path& path)
 		{
+            std::string pathString = EVA::FileSystem::ToString(EVA::FileSystem::ToSystemPath(path));
 			// If the file is not an .obj file return false
-			if (Path.substr(Path.size() - 4, 4) != ".obj")
+            if (pathString.substr(pathString.size() - 4, 4) != ".obj")
 				return false;
 
 
-			std::ifstream file(Path);
-
-			if (!file.is_open())
+			std::ifstream file;
+            if (!EVA::FileSystem::OpenFile(file, path))
 				return false;
 
 			LoadedMeshes.clear();
@@ -657,7 +659,7 @@ namespace objl
 
 					// Generate a path to the material file
 					std::vector<std::string> temp;
-					algorithm::split(Path, temp, "/");
+                    algorithm::split(pathString, temp, "/");
 
 					std::string pathtomat = "";
 

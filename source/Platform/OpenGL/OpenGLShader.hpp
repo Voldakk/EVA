@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glad/glad.h>
-
 #include "EVA/Renderer/Shader.hpp"
 
 namespace EVA
@@ -9,7 +7,7 @@ namespace EVA
     class OpenGLShader : public Shader
     {
       public:
-        explicit OpenGLShader(const std::string& filepath);
+        explicit OpenGLShader(const Path& filepath);
         explicit OpenGLShader(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource);
         virtual ~OpenGLShader();
 
@@ -42,16 +40,16 @@ namespace EVA
         void ResetTextureUnit() override { m_TextureUnit = 0; }
 
       private:
-        std::string ReadFile(const std::string& filepath);
-        std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
-        void Compile(const std::unordered_map<GLenum, std::string>& sources);
+        std::string ReadFile(const Path& filepath);
+        std::unordered_map<unsigned int, std::string> PreProcess(const std::string& source);
+        void Compile(const std::unordered_map<unsigned int, std::string>& sources);
 
-        GLint GetUniformLocation(const std::string& name);
+        int GetUniformLocation(const std::string& name);
         void ResetUniformLocations() { m_UniformLocationMap.clear(); }
 
         uint32_t m_RendererId;
         std::string m_Name;
-        std::unordered_map<std::string, GLint> m_UniformLocationMap;
+        std::unordered_map<std::string, int> m_UniformLocationMap;
         uint32_t m_TextureUnit = 0;
     };
 } // namespace EVA

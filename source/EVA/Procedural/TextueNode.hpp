@@ -9,7 +9,7 @@ namespace EVA
 {
     namespace TextureNodes
     {
-        constexpr std::string_view ShaderPath = "./assets/procedural/shaders/";
+        constexpr std::string_view ShaderPath = "procedural/shaders/";
 
         class TextureNode : public NE::Node
         {
@@ -123,7 +123,7 @@ namespace EVA
 
             void Process() override
             {
-                m_Texture = TextureManager::LoadTexture(m_Path);
+                m_Texture = AssetManager::Load<Texture>(m_Path);
                 processed = m_Texture != nullptr;
 
                 if (m_Texture != nullptr)
@@ -205,7 +205,7 @@ namespace EVA
                 ImGui::Text("Time: %6.2f ms", m_ProcessTime.count() / 1000.0f);
                 if (ImGui::Button("Reload shaders"))
                 {
-                    m_Shader = Shader::Create(std::string(ShaderPath) + m_ShaderName);
+                    m_Shader = AssetManager::Load<Shader>(std::string(ShaderPath) + m_ShaderName);
                     DoProcess();
                 }
             }
@@ -219,7 +219,7 @@ namespace EVA
                 if (m_ShaderName == name) return;
 
                 m_ShaderName = name;
-                m_Shader     = Shader::Create(std::string(ShaderPath) + name);
+                m_Shader     = AssetManager::Load<Shader>(std::string(ShaderPath) + name);
             }
 
             void SetTexture(TextureFormat format)

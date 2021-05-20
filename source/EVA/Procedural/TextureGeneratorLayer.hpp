@@ -25,8 +25,8 @@ namespace EVA
         Viewport m_Viewport;
         Ref<Environment> m_Environment;
         OrbitalCameraController m_CameraController;
-        Ref<Mesh> m_CubeMesh;
-        Ref<Shader> m_PBRShader;
+        Ref<Mesh> m_Mesh;
+        Ref<Shader> m_Shader;
         Material m_Material;
         Ref<TextureNodes::Output> m_OutputNode;
 
@@ -43,9 +43,9 @@ namespace EVA
         m_NodeEditor.GetStyle().SetPinColor<Ref<Texture>, 4>({0.9f, 0.7f, 0.1f});
         m_NodeEditor.GetStyle().SetPinColor<Ref<Texture>, 1, 4>({0.9f, 0.8f, 0.5f});
 
-        m_Environment = CreateRef<Environment>("./assets/textures/parking_lot_2_1k.hdr");
-        m_CubeMesh    = Mesh::LoadMesh("./assets/models/cube.obj")[0];
-        m_PBRShader   = Shader::Create("./assets/shaders/pbr.glsl");
+        m_Environment = CreateRef<Environment>("textures/parking_lot_2_1k.hdr");
+        m_Mesh        = AssetManager::Load<Mesh>("models/cube.obj");
+        m_Shader      = AssetManager::Load<Shader>("shaders/pbr.glsl");
 
         New();
     }
@@ -74,10 +74,13 @@ namespace EVA
         m_Material.emissive         = m_OutputNode->GetTexture(5);
         m_Material.height           = m_OutputNode->GetTexture(6);
 
-        m_PBRShader->Bind();
-        m_PBRShader->ResetTextureUnit();
-        m_Material.Bind(m_PBRShader);
-        Renderer::Submit(m_PBRShader, m_CubeMesh->GetVertexArray());
+        if (m_Shader)
+        {
+            m_Shader->Bind();
+            m_Shader->ResetTextureUnit();
+            m_Material.Bind(m_Shader);
+            Renderer::Submit(m_Shader, m_Mesh->GetVertexArray());
+        }
 
         Renderer::EndScene();
         m_Viewport.Unbind();
@@ -115,8 +118,8 @@ namespace EVA
         ImGui::Begin("Nodes");
         if (ImGui::Button("Input")) { m_NodeEditor.AddNode<TextureNodes::Input>(); }
         if (ImGui::Button("Output")) { m_NodeEditor.AddNode<TextureNodes::Output>(); }
-        if (ImGui::Button("Material output")) 
-        { 
+        if (ImGui::Button("Material output"))
+        {
             std::vector<std::string> names = {"Albedo", "Normal", "Metallic", "Roughness", "AO", "Emissive", "Height"};
             m_OutputNode                   = CreateRef<TextureNodes::Output>(names);
             m_NodeEditor.AddNode(m_OutputNode, {200.0f, 0.0f});
@@ -157,6 +160,11 @@ namespace EVA
         ImGui::End();
 
         ImGui::Begin("Settings");
+        if (ImGui::Button("Reload shader")) 
+        { m_Shader = AssetManager::Load<Shader>(m_Shader->GetPath()); 
+        }
+        InspectorFields::Default("Shader", m_Shader);
+
         ImGui::SliderFloat("Height scale", &m_Material.heightScale, 0.0f, 0.1f);
         ImGui::End();
 
