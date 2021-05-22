@@ -1,11 +1,6 @@
 {
     "links": [
         [
-            130,
-            128,
-            112
-        ],
-        [
             49,
             48,
             45
@@ -16,34 +11,19 @@
             170
         ],
         [
-            67,
-            64,
-            55
-        ],
-        [
-            131,
-            129,
-            119
-        ],
-        [
             195,
             193,
             71
         ],
         [
+            251,
+            63,
+            73
+        ],
+        [
             123,
             120,
             122
-        ],
-        [
-            124,
-            114,
-            119
-        ],
-        [
-            78,
-            74,
-            62
         ],
         [
             89,
@@ -56,9 +36,19 @@
             29
         ],
         [
+            219,
+            216,
+            47
+        ],
+        [
             91,
             86,
             24
+        ],
+        [
+            220,
+            217,
+            212
         ],
         [
             92,
@@ -81,34 +71,14 @@
             153
         ],
         [
-            125,
-            113,
-            27
-        ],
-        [
-            135,
-            133,
-            127
-        ],
-        [
             136,
             52,
-            134
-        ],
-        [
-            137,
-            63,
             134
         ],
         [
             138,
             22,
             134
-        ],
-        [
-            139,
-            57,
-            47
         ],
         [
             140,
@@ -131,9 +101,9 @@
             143
         ],
         [
-            162,
-            142,
-            157
+            228,
+            57,
+            215
         ],
         [
             164,
@@ -146,17 +116,57 @@
             167
         ],
         [
-            176,
-            158,
-            73
-        ],
-        [
             196,
             75,
             192
+        ],
+        [
+            234,
+            231,
+            27
+        ],
+        [
+            235,
+            232,
+            119
+        ],
+        [
+            242,
+            233,
+            241
+        ],
+        [
+            243,
+            133,
+            230
+        ],
+        [
+            246,
+            218,
+            245
+        ],
+        [
+            247,
+            74,
+            134
+        ],
+        [
+            248,
+            158,
+            55
+        ],
+        [
+            249,
+            64,
+            157
+        ],
+        [
+            250,
+            142,
+            62
         ]
     ],
-    "nextId": 197,
+    "nextId": 252,
     "nodes": [
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::HeightToNormal",
@@ -407,8 +417,8 @@
                 52
             ],
             "m_InputRange": [
-                0.8069999814033508,
-                0.8069999814033508
+                0.7360000014305115,
+                0.7360000014305115
             ],
             "m_InputRangeMax": [
                 1.0,
@@ -485,7 +495,7 @@
         },
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
-            "Octaves": 4,
+            "Octaves": 5,
             "Position": [
                 0.0,
                 0.0
@@ -502,7 +512,7 @@
         {
             "BlendMode": 2,
             "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
-            "Opacity": 0.05299999937415123,
+            "Opacity": 0.21400000154972076,
             "deletable": true,
             "id": 72,
             "inputs": [
@@ -539,21 +549,6 @@
             ],
             "name": "Output",
             "outputs": null
-        },
-        {
-            "Angle": 90.0,
-            "ISerializeableTypeId": "::EVA::TextureNodes::DirectionalWarp",
-            "Intensity": 0.004999999888241291,
-            "deletable": true,
-            "id": 111,
-            "inputs": [
-                113,
-                114
-            ],
-            "name": "Directional warp",
-            "outputs": [
-                112
-            ]
         },
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
@@ -624,21 +619,6 @@
             ]
         },
         {
-            "Angle": 0.0,
-            "ISerializeableTypeId": "::EVA::TextureNodes::DirectionalWarp",
-            "Intensity": 0.004999999888241291,
-            "deletable": true,
-            "id": 126,
-            "inputs": [
-                128,
-                129
-            ],
-            "name": "Directional warp",
-            "outputs": [
-                127
-            ]
-        },
-        {
             "ISerializeableTypeId": "::EVA::TextureNodes::Passthrough",
             "deletable": true,
             "id": 132,
@@ -694,9 +674,9 @@
             ]
         },
         {
-            "BlendMode": 2,
+            "BlendMode": 6,
             "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
-            "Opacity": 0.4729999899864197,
+            "Opacity": 1.0,
             "deletable": true,
             "id": 156,
             "inputs": [
@@ -827,196 +807,299 @@
             "outputs": [
                 192
             ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
+            "Octaves": 4,
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 32.400001525878906,
+            "deletable": true,
+            "id": 211,
+            "inputs": null,
+            "name": "Gradient noise",
+            "outputs": [
+                212
+            ]
+        },
+        {
+            "Angle": 0.0,
+            "Angle multiplier": 1.0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::NonUniformDirectionalWarp",
+            "Intensity": 0.04500000178813934,
+            "deletable": true,
+            "id": 214,
+            "inputs": [
+                216,
+                217,
+                218
+            ],
+            "name": "Directional warp",
+            "outputs": [
+                215
+            ]
+        },
+        {
+            "Angle": 0.0,
+            "Angle multiplier": 1.0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::NonUniformDirectionalWarp",
+            "Intensity": 0.004999999888241291,
+            "deletable": true,
+            "id": 229,
+            "inputs": [
+                231,
+                232,
+                233
+            ],
+            "name": "Directional warp",
+            "outputs": [
+                230
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
+            "Octaves": 4,
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 77.47000122070313,
+            "deletable": true,
+            "id": 240,
+            "inputs": null,
+            "name": "Gradient noise",
+            "outputs": [
+                241
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
+            "Octaves": 4,
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 20.0,
+            "deletable": true,
+            "id": 244,
+            "inputs": null,
+            "name": "Gradient noise",
+            "outputs": [
+                245
+            ]
         }
     ],
     "positions": [
         [
             17,
             [
-                1320.0,
+                1480.0,
                 589.0
             ]
         ],
         [
             20,
             [
-                1288.0,
+                1448.0,
                 272.0
             ]
         ],
         [
             23,
             [
-                1295.0,
+                1455.0,
                 960.0
             ]
         ],
         [
             26,
             [
-                -2943.0,
-                165.0
+                -3583.0,
+                -202.0
             ]
         ],
         [
             28,
             [
-                1640.0,
+                1800.0,
                 1077.0
             ]
         ],
         [
             38,
             [
-                1896.0,
+                2056.0,
                 1045.0
             ]
         ],
         [
             41,
             [
-                1640.0,
+                1800.0,
                 373.0
             ]
         ],
         [
             44,
             [
-                -2024.0,
-                1128.0
+                -2022.0,
+                1382.0
             ]
         ],
         [
             46,
             [
-                -1793.0,
-                1123.0
+                -1791.0,
+                1377.0
             ]
         ],
         [
             50,
             [
-                -1793.0,
-                851.0
+                -1567.0,
+                1312.0
             ]
         ],
         [
             54,
             [
-                -1512.0,
-                1026.0
+                -1320.0,
+                1378.0
             ]
         ],
         [
             61,
             [
-                -1288.0,
-                670.0
+                216.0,
+                640.0
             ]
         ],
         [
             70,
             [
-                -879.0,
-                1061.0
+                -1910.0,
+                713.0
             ]
         ],
         [
             72,
             [
-                -344.0,
-                670.0
+                -1455.0,
+                498.0
             ]
         ],
         [
             81,
             [
-                1871.0,
+                2031.0,
                 730.0
-            ]
-        ],
-        [
-            111,
-            [
-                -2671.0,
-                191.0
             ]
         ],
         [
             118,
             [
-                -2879.0,
-                452.0
+                -3503.0,
+                52.0
             ]
         ],
         [
             121,
             [
-                -3103.0,
-                453.0
-            ]
-        ],
-        [
-            126,
-            [
-                -2479.0,
-                399.0
+                -3727.0,
+                53.0
             ]
         ],
         [
             132,
             [
-                -2264.0,
-                405.0
+                -2840.0,
+                176.0
             ]
         ],
         [
             141,
             [
-                1048.0,
+                1208.0,
                 752.0
             ]
         ],
         [
             150,
             [
-                -15.0,
-                1413.0
+                -783.0,
+                1833.0
             ]
         ],
         [
             152,
             [
-                209.0,
-                1251.0
+                -559.0,
+                1671.0
             ]
         ],
         [
             156,
             [
-                392.0,
-                706.0
+                -111.0,
+                1246.0
             ]
         ],
         [
             166,
             [
-                -15.0,
-                1157.0
+                -783.0,
+                1577.0
             ]
         ],
         [
             169,
             [
-                424.0,
-                1264.0
+                -344.0,
+                1684.0
             ]
         ],
         [
             191,
             [
-                -623.0,
-                1060.0
+                -1654.0,
+                712.0
+            ]
+        ],
+        [
+            211,
+            [
+                -1782.0,
+                1650.0
+            ]
+        ],
+        [
+            214,
+            [
+                -1535.0,
+                1675.0
+            ]
+        ],
+        [
+            229,
+            [
+                -3144.0,
+                -1.0
+            ]
+        ],
+        [
+            240,
+            [
+                -3503.0,
+                309.0
+            ]
+        ],
+        [
+            244,
+            [
+                -1782.0,
+                1890.0
             ]
         ]
     ]

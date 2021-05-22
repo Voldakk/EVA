@@ -336,21 +336,88 @@ namespace EVA
                 else
                     m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
             }
-            
+
 
             void Serialize(DataObject& data) override
             {
                 ComputeNode::Serialize(data);
 
-                data.Serialize("Angle", m_Angle);
+                 if (data.Inspector())
+                {
+                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360);
+                }
+                else
+                {
+                    data.Serialize("Angle", m_Angle);
+                }
                 data.Serialize("Intensity", m_Intensity);
 
                 processed &= !data.changed;
             }
 
           private:
-            float m_Angle = 0;
+            float m_Angle     = 0;
             float m_Intensity = 1;
+        };
+
+        class NonUniformDirectionalWarp : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::NonUniformDirectionalWarp);
+
+          public:
+            NonUniformDirectionalWarp()
+            {
+                SetShader("non_uniform_directional_warp.glsl");
+                SetTexture(TextureFormat::R32F);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Directional warp";
+                AddOutputs<Ref<Texture>, 1>({{"Output", &m_Texture}});
+                AddInputs<Ref<Texture>, 1>({{"Input"}});
+                AddInputs<Ref<Texture>, 1>({{"Intensity"}});
+                AddInputs<Ref<Texture>, 1>({{"Angle"}});
+            }
+
+            void SetUniforms() const override
+            {
+                m_Shader->SetUniformFloat("u_Angle", m_Angle);
+                m_Shader->SetUniformFloat("u_AngleMultiplier", m_AngleMultiplier);
+                m_Shader->SetUniformFloat("u_Intensity", m_Intensity);
+
+                const Ref<Texture>& ref = GetInputData<Ref<Texture>>(0);
+                if (ref)
+                    m_Shader->BindTexture("u_InputMapSampler", ref);
+                else
+                    m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
+            }
+
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector()) 
+                {
+                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360);
+                    data.changed |= ImGui::SliderFloat("Angle multiplier", &m_AngleMultiplier, 0, 1);
+                }
+                else
+                {
+                    data.Serialize("Angle", m_Angle);
+                    data.Serialize("Angle multiplier", m_AngleMultiplier);
+                }
+                data.Serialize("Intensity", m_Intensity);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Angle           = 0;
+            float m_AngleMultiplier = 1;
+            float m_Intensity       = 1;
         };
     } // namespace TextureNodes
 } // namespace EVA

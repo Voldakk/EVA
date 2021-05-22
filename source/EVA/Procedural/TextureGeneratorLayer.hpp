@@ -140,6 +140,7 @@ namespace EVA
         if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::Levels>(); }
         if (ImGui::Button("Gradient map")) { m_NodeEditor.AddNode<TextureNodes::GradientMap>(); }
         if (ImGui::Button("Directional warp")) { m_NodeEditor.AddNode<TextureNodes::DirectionalWarp>(); }
+        if (ImGui::Button("Non uniform directional warp")) { m_NodeEditor.AddNode<TextureNodes::NonUniformDirectionalWarp>(); }
         ImGui::Spacing();
         if (ImGui::Button("Height to normal")) { m_NodeEditor.AddNode<TextureNodes::HeightToNormal>(); }
         ImGui::End();
