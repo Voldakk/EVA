@@ -74,12 +74,14 @@ namespace EVA
         m_Material.emissive         = m_OutputNode->GetTexture(5);
         m_Material.height           = m_OutputNode->GetTexture(6);
 
+        static Transform t;
+        t.Rotate(Platform::GetDeltaTime() * 10.0f);
         if (m_Shader)
         {
             m_Shader->Bind();
             m_Shader->ResetTextureUnit();
             m_Material.Bind(m_Shader);
-            Renderer::Submit(m_Shader, m_Mesh->GetVertexArray());
+            Renderer::Submit(m_Shader, m_Mesh->GetVertexArray(), t.GetModelMatrix());
         }
 
         Renderer::EndScene();

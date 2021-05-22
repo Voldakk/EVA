@@ -10,7 +10,6 @@ layout(binding = 2, r32f) uniform readonly image2D u_IntensityMap;
 uniform float u_Angle;
 uniform float u_Intensity;
 uniform sampler2D u_InputMapSampler;
-uniform sampler2D u_IntensityMapSampler;
 
 const ivec3 eps = ivec3(-1, 0, 1);
 
@@ -29,7 +28,6 @@ void main()
 	uv += dir * dist;
 
 	float value = texture(u_InputMapSampler, uv).r;
-	//float value = 0;
 
 	imageStore(u_Output, pixelCoords, vec4(value, 0.0, 0.0, 1.0));
 }

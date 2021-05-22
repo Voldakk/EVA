@@ -38,8 +38,8 @@ void main()
 
     vOut.TBN = mat3(T, B, N);
 
-    vOut.tangentViewPos  = vOut.TBN * u_CameraPosition;
-    vOut.tangentFragPos  = vOut.TBN * vOut.fragPos;
+    vOut.tangentViewPos  = inverse(vOut.TBN) * u_CameraPosition;
+    vOut.tangentFragPos  = inverse(vOut.TBN) * vOut.fragPos;
 
     gl_Position =  u_ViewProjection * u_Model * vec4(a_Position, 1.0);
 }
@@ -286,5 +286,7 @@ void main()
     color = pow(color, vec3(1.0/2.2)); 
 
     //fragColor = vec4((N + 1) / 2, 1.0);
+    //fragColor = vec4((fIn.TBN[1] + 1) / 2, 1.0);
+    //fragColor = vec4(albedo, 1.0);
     fragColor = vec4(color, 1.0);
 }

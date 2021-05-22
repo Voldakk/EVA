@@ -42,10 +42,13 @@ namespace EVA
         void* data;
         bool isHDR = stbi_is_hdr(pathString.c_str());
 
-        if (isHDR)
-            data = stbi_loadf(pathString.c_str(), &width, &height, &channels, 0);
-        else
-            data = stbi_load(pathString.c_str(), &width, &height, &channels, 0);
+        {
+            EVA_PROFILE_SCOPE("stbi_load");
+            if (isHDR)
+                data = stbi_loadf(pathString.c_str(), &width, &height, &channels, 0);
+            else
+                data = stbi_load(pathString.c_str(), &width, &height, &channels, 0);
+        }
 
         // If the image was loaded
         if (data)

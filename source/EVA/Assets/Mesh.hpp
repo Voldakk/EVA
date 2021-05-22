@@ -13,12 +13,21 @@ namespace EVA
       public:
         SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Ref<Material> material);
 
-        const Ref<VertexArray> GetVertexArray() { return m_VertexArray; }
-        const Ref<Material> GetMaterial() { return m_Material; }
+        Ref<VertexArray> GetVertexArray() { return m_VertexArray; }
+        const Ref<VertexArray> GetVertexArray() const { return m_VertexArray; }
+
+        Ref<Material> GetMaterial() { return m_Material; }
+        const Ref<Material> GetMaterial() const { return m_Material; }
+
+        const std::vector<Vertex>& GetVertices() const { return m_Vertices; }
+        const std::vector<uint32_t>& GetIndices() const { return m_Indices; }
 
       private:
         Ref<VertexArray> m_VertexArray;
         Ref<Material> m_Material;
+
+        std::vector<Vertex> m_Vertices;
+        std::vector<uint32_t> m_Indices;
     };
 
     class Mesh : public Asset

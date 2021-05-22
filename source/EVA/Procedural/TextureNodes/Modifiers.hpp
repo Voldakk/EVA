@@ -330,20 +330,11 @@ namespace EVA
                 m_Shader->SetUniformFloat("u_Angle", m_Angle);
                 m_Shader->SetUniformFloat("u_Intensity", m_Intensity);
 
-                {
-                    const Ref<Texture>& ref = GetInputData<Ref<Texture>>(0);
-                    if (ref)
-                        m_Shader->BindTexture("u_InputMapSampler", ref);
-                    else
-                        m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
-                }
-                {
-                    const Ref<Texture>& ref = GetInputData<Ref<Texture>>(1);
-                    if (ref)
-                        m_Shader->BindTexture("u_IntensityMapSampler", ref);
-                    else
-                        m_Shader->BindTexture("u_IntensityMapSampler", TextureTarget::Texture2D, 0);
-                }
+                const Ref<Texture>& ref = GetInputData<Ref<Texture>>(0);
+                if (ref)
+                    m_Shader->BindTexture("u_InputMapSampler", ref);
+                else
+                    m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
             }
             
 
