@@ -47,6 +47,8 @@ namespace EVA
         m_Mesh        = AssetManager::Load<Mesh>("models/cube.obj");
         m_Shader      = AssetManager::Load<Shader>("shaders/pbr.glsl");
 
+        m_Material.heightScale = 0.02f;
+
         New();
     }
 
@@ -75,7 +77,7 @@ namespace EVA
         m_Material.height           = m_OutputNode->GetTexture(6);
 
         static Transform t;
-        t.Rotate(Platform::GetDeltaTime() * 10.0f);
+        //t.Rotate(Platform::GetDeltaTime() * 10.0f);
         if (m_Shader)
         {
             m_Shader->Bind();

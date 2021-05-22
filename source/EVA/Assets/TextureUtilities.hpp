@@ -122,7 +122,9 @@ namespace EVA
 
             auto shader = AssetManager::Load<Shader>("shaders/pre_filter_map.glsl");
             TextureSettings settings;
+            settings.wrapping  = TextureWrapping::ClampToEdge;
             settings.minFilter = TextureMinFilter::LinearMipmapLinear;
+            settings.magFilter = TextureMagFilter::Linear;
             auto out           = TextureManager::CreateCubeMap(size, size, TextureFormat::RGB16F, settings);
             TextureManager::GenerateMipMaps(out);
 
@@ -143,7 +145,6 @@ namespace EVA
             spec.width       = out->GetWidth();
             spec.height      = out->GetHeight();
             auto frameBuffer = Framebuffer::Create(spec);
-            frameBuffer->Bind();
 
             RenderCommand::SetCullMode(CullMode::None);
 
@@ -155,6 +156,7 @@ namespace EVA
                 uint32_t mipHeight = size * std::pow(0.5, mip);
 
                 frameBuffer->Resize(mipWidth, mipHeight);
+                frameBuffer->Bind();
 
                 float roughness = (float)mip / (float)(maxMipLevels - 1);
                 shader->SetUniformFloat("u_Roughness", roughness);
@@ -175,29 +177,20 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            return AssetManager::Load<Texture>("textures/ibl_brdf_lut.png");
+            uint32_t workGroupSize = 16;
 
-            /*auto shader = Shader::Create("pre_compute_brdf.glsl");
-
+            auto shader = AssetManager::Load<Shader>("shaders/brdf.glsl");
             TextureSettings settings;
             settings.wrapping = TextureWrapping::ClampToEdge;
             auto out          = TextureManager::CreateTexture(size, size, TextureFormat::RG16F, settings);
 
-            FramebufferSpecification spec;
-            spec.width       = out->GetWidth();
-            spec.height      = out->GetHeight();
-            auto frameBuffer = Framebuffer::Create(spec);
-            frameBuffer->Bind();
-
-            frameBuffer->AttachTexture(out);
-
             shader->Bind();
+            shader->BindImageTexture(0, out, TextureAccess::ReadOnly);
+            uint32_t numWorkGroupsX = out->GetWidth() / workGroupSize;
+            uint32_t numWorkGroupsY = out->GetHeight() / workGroupSize;
+            shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1, workGroupSize, workGroupSize, 1);
 
-            RenderCommand::Clear();
-            renderQuad();
-
-
-            return out;*/
+            return out;
         }
     };
 } // namespace EVA

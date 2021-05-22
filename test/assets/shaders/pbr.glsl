@@ -200,6 +200,7 @@ vec3 Ambient(vec3 N, vec3 V, vec3 R, vec3 F0, float roughness, float metallic, f
     vec2 brdf  = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
+    //return specular;
     return (kD * diffuse + specular) * ao;
 }
 // ----------------------------------------------------------------------------
