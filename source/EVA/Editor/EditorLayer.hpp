@@ -79,10 +79,6 @@ namespace EVA
                 m_CubeMesh = AssetManager::Load<Mesh>("models/cube.obj");
             }
 
-            // Shaders
-            m_FlatColorShader = AssetManager::Load<Shader>("shaders/color.glsl");
-            m_TextureShader   = AssetManager::Load<Shader>("shaders/texture.glsl");
-
             // Texture
             m_Texture = AssetManager::Load<Texture>("textures/uv.png");
 
@@ -97,7 +93,12 @@ namespace EVA
 
             m_Environment = CreateRef<Environment>("textures/space_1k.hdr");
         }
-        void LoadShaders() { m_PBRShader = AssetManager::Load<Shader>("shaders/pbr.glsl"); }
+        void LoadShaders() 
+        { 
+            m_FlatColorShader = AssetManager::Load<Shader>("shaders/color.glsl", false);
+            m_TextureShader   = AssetManager::Load<Shader>("shaders/texture.glsl", false);
+            m_PBRShader       = AssetManager::Load<Shader>("shaders/pbr.glsl", false); 
+        }
 
         inline static float timer = 0.0f;
         void OnUpdate() override
@@ -143,7 +144,7 @@ namespace EVA
             m_Environment->DrawSkyBox();
 
             // Squares
-            m_FlatColorShader->Bind();
+            /*m_FlatColorShader->Bind();
             m_FlatColorShader->SetUniformFloat3("u_Color", m_SquareColor);
 
             auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
@@ -154,7 +155,7 @@ namespace EVA
                     auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(2 + x * 0.11f, y * 0.11f, 0.0f)) * scale;
                     Renderer::Submit(m_FlatColorShader, m_SquareVertexArray, transform);
                 }
-            }
+            }*/
 
             auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, 0.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
             /*m_TextureShader->Bind();

@@ -61,12 +61,12 @@ namespace EVA
         static bool DeleteAsset(const Path& path);
 
         template<typename T, typename = std::enable_if_t<std::is_base_of<Asset, T>::value>>
-        static Ref<T> Load(const Path& path);
-        static Ref<Asset> LoadAsset(const Path& path);
+        static Ref<T> Load(const Path& path, bool useCache = true);
+        static Ref<Asset> LoadAsset(const Path& path, bool useCache = true);
 
         template<typename T, typename = std::enable_if_t<std::is_base_of<Asset, T>::value>>
-        static Ref<T> Load(const Guid& guid);
-        static Ref<Asset> LoadAsset(const Guid& guid);
+        static Ref<T> Load(const Guid& guid, bool useCache = true);
+        static Ref<Asset> LoadAsset(const Guid& guid, bool useCache = true);
 
         static bool Save(Ref<Asset>& asset);
         static bool Save(Ref<Asset>& asset, const Path& path);
@@ -114,15 +114,15 @@ namespace EVA
     }
 
     template<typename T, typename>
-    inline Ref<T> AssetManager::Load(const Path& path)
+    inline Ref<T> AssetManager::Load(const Path& path, bool useCache)
     {
-        return std::static_pointer_cast<T>(LoadAsset(path));
+        return std::static_pointer_cast<T>(LoadAsset(path, useCache));
     }
 
     template<typename T, typename>
-    inline Ref<T> AssetManager::Load(const Guid& guid)
+    inline Ref<T> AssetManager::Load(const Guid& guid, bool useCache)
     {
-        return std::static_pointer_cast<T>(LoadAsset(guid));
+        return std::static_pointer_cast<T>(LoadAsset(guid, useCache));
     }
 
     template<typename T, typename>

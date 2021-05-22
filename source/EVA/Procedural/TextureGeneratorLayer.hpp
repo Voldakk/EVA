@@ -2,7 +2,7 @@
 
 #include "EVA.hpp"
 #include "NodeEditor.hpp"
-#include "TextueNode.hpp"
+#include "TextueNodes.hpp"
 #include "EVA/Assets/FileDialog.hpp"
 
 namespace EVA
@@ -127,13 +127,17 @@ namespace EVA
         if (ImGui::Button("Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
         ImGui::Spacing();
         if (ImGui::Button("Uniform")) { m_NodeEditor.AddNode<TextureNodes::Uniform>(); }
-        if (ImGui::Button("Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
-        if (ImGui::Button("Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
         if (ImGui::Button("Bricks")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
+        ImGui::Spacing();
+        if (ImGui::Button("Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
+        if (ImGui::Button("Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
+        if (ImGui::Button("Worley noise")) { m_NodeEditor.AddNode<TextureNodes::WorleyNoise>(); }
+        if (ImGui::Button("Worley noise 2")) { m_NodeEditor.AddNode<TextureNodes::WorleyNoise2>(); }
         ImGui::Spacing();
         if (ImGui::Button("Blend")) { m_NodeEditor.AddNode<TextureNodes::Blend>(); }
         if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::Levels>(); }
         if (ImGui::Button("Gradient map")) { m_NodeEditor.AddNode<TextureNodes::GradientMap>(); }
+        if (ImGui::Button("Directional warp")) { m_NodeEditor.AddNode<TextureNodes::DirectionalWarp>(); }
         ImGui::Spacing();
         if (ImGui::Button("Height to normal")) { m_NodeEditor.AddNode<TextureNodes::HeightToNormal>(); }
         ImGui::End();
@@ -161,7 +165,7 @@ namespace EVA
 
         ImGui::Begin("Settings");
         if (ImGui::Button("Reload shader")) 
-        { m_Shader = AssetManager::Load<Shader>(m_Shader->GetPath()); 
+        { m_Shader = AssetManager::Load<Shader>(m_Shader->GetPath(), false); 
         }
         InspectorFields::Default("Shader", m_Shader);
 

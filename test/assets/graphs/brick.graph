@@ -1,14 +1,9 @@
 {
     "links": [
         [
-            66,
-            63,
-            27
-        ],
-        [
-            34,
-            22,
-            27
+            130,
+            128,
+            112
         ],
         [
             49,
@@ -16,9 +11,9 @@
             45
         ],
         [
-            53,
-            52,
-            27
+            177,
+            159,
+            170
         ],
         [
             67,
@@ -26,29 +21,29 @@
             55
         ],
         [
-            59,
-            57,
-            51
+            131,
+            129,
+            119
         ],
         [
-            60,
-            56,
-            47
+            195,
+            193,
+            71
+        ],
+        [
+            123,
+            120,
+            122
+        ],
+        [
+            124,
+            114,
+            119
         ],
         [
             78,
             74,
             62
-        ],
-        [
-            79,
-            19,
-            73
-        ],
-        [
-            80,
-            25,
-            73
         ],
         [
             89,
@@ -81,32 +76,87 @@
             21
         ],
         [
-            95,
+            172,
+            171,
+            153
+        ],
+        [
+            125,
+            113,
+            27
+        ],
+        [
+            135,
+            133,
+            127
+        ],
+        [
+            136,
+            52,
+            134
+        ],
+        [
+            137,
+            63,
+            134
+        ],
+        [
+            138,
+            22,
+            134
+        ],
+        [
+            139,
+            57,
+            47
+        ],
+        [
+            140,
+            56,
+            51
+        ],
+        [
+            145,
+            19,
+            143
+        ],
+        [
+            146,
+            25,
+            143
+        ],
+        [
+            147,
             88,
+            143
+        ],
+        [
+            162,
+            142,
+            157
+        ],
+        [
+            164,
+            155,
+            151
+        ],
+        [
+            168,
+            154,
+            167
+        ],
+        [
+            176,
+            158,
             73
         ],
         [
-            106,
-            100,
-            97
-        ],
-        [
-            108,
-            103,
-            99
-        ],
-        [
-            109,
+            196,
             75,
-            102
-        ],
-        [
-            110,
-            104,
-            71
+            192
         ]
     ],
-    "nextId": 111,
+    "nextId": 197,
     "nodes": [
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::HeightToNormal",
@@ -131,9 +181,9 @@
             "marks": [
                 [
                     0.0,
-                    0.5652173757553101,
-                    0.5652117133140564,
-                    1.0,
+                    0.4905610978603363,
+                    0.4905610978603363,
+                    0.4905660152435303,
                     0.0
                 ],
                 [
@@ -207,8 +257,8 @@
                 0.20000000298023224
             ],
             "Gap": [
-                4.0,
-                4.0
+                5.0,
+                5.0
             ],
             "Height": [
                 0.699999988079071,
@@ -450,9 +500,9 @@
             ]
         },
         {
-            "BlendMode": 0,
+            "BlendMode": 2,
             "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
-            "Opacity": 0.13899999856948853,
+            "Opacity": 0.05299999937415123,
             "deletable": true,
             "id": 72,
             "inputs": [
@@ -491,29 +541,29 @@
             "outputs": null
         },
         {
-            "ISerializeableTypeId": "::EVA::TextureNodes::VoronoiNoise",
-            "Position": [
-                0.0,
-                0.0
-            ],
-            "Scale": 13.739999771118164,
+            "Angle": 90.0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::DirectionalWarp",
+            "Intensity": 0.004999999888241291,
             "deletable": true,
-            "id": 96,
-            "inputs": null,
-            "name": "Voronoi noise",
+            "id": 111,
+            "inputs": [
+                113,
+                114
+            ],
+            "name": "Directional warp",
             "outputs": [
-                97
+                112
             ]
         },
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
             "deletable": true,
-            "id": 98,
+            "id": 118,
             "inputs": [
-                100
+                120
             ],
             "m_InputRange": [
-                0.0,
+                0.4000000059604645,
                 1.0
             ],
             "m_InputRangeMax": [
@@ -536,7 +586,7 @@
                 0.5
             ],
             "m_OutputRange": [
-                0.33799999952316284,
+                0.0,
                 1.0
             ],
             "m_OutputRangeMax": [
@@ -554,23 +604,228 @@
             "m_SelectedChannel": 0,
             "name": "Levels",
             "outputs": [
-                99
+                119
             ]
         },
         {
-            "BlendMode": 1,
-            "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
-            "Opacity": 1.0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
+            "Octaves": 1,
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 63.2400016784668,
             "deletable": true,
-            "id": 101,
+            "id": 121,
+            "inputs": null,
+            "name": "Gradient noise",
+            "outputs": [
+                122
+            ]
+        },
+        {
+            "Angle": 0.0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::DirectionalWarp",
+            "Intensity": 0.004999999888241291,
+            "deletable": true,
+            "id": 126,
             "inputs": [
-                103,
-                104,
-                105
+                128,
+                129
+            ],
+            "name": "Directional warp",
+            "outputs": [
+                127
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Passthrough",
+            "deletable": true,
+            "id": 132,
+            "inputs": [
+                133
+            ],
+            "name": "Passthrough",
+            "outputs": [
+                134
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Passthrough",
+            "deletable": true,
+            "id": 141,
+            "inputs": [
+                142
+            ],
+            "name": "Passthrough",
+            "outputs": [
+                143
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
+            "Octaves": 4,
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 10.0,
+            "deletable": true,
+            "id": 150,
+            "inputs": null,
+            "name": "Gradient noise",
+            "outputs": [
+                151
+            ]
+        },
+        {
+            "Angle": 45.0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::DirectionalWarp",
+            "Intensity": 0.4000000059604645,
+            "deletable": true,
+            "id": 152,
+            "inputs": [
+                154,
+                155
+            ],
+            "name": "Directional warp",
+            "outputs": [
+                153
+            ]
+        },
+        {
+            "BlendMode": 2,
+            "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
+            "Opacity": 0.4729999899864197,
+            "deletable": true,
+            "id": 156,
+            "inputs": [
+                158,
+                159,
+                160
             ],
             "name": "Blend",
             "outputs": [
-                102
+                157
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::WorleyNoise2",
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 3.0,
+            "deletable": true,
+            "id": 166,
+            "inputs": null,
+            "name": "Worley noise 2",
+            "outputs": [
+                167
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
+            "deletable": true,
+            "id": 169,
+            "inputs": [
+                171
+            ],
+            "m_InputRange": [
+                0.9200000166893005,
+                1.0
+            ],
+            "m_InputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_InputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_Midtone": 0.5,
+            "m_Midtones": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+            ],
+            "m_OutputRange": [
+                0.0,
+                1.0
+            ],
+            "m_OutputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_OutputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_SelectedChannel": 0,
+            "name": "Levels",
+            "outputs": [
+                170
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
+            "deletable": true,
+            "id": 191,
+            "inputs": [
+                193
+            ],
+            "m_InputRange": [
+                0.21299999952316284,
+                1.0
+            ],
+            "m_InputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_InputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_Midtone": 0.5,
+            "m_Midtones": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+            ],
+            "m_OutputRange": [
+                0.0,
+                1.0
+            ],
+            "m_OutputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_OutputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_SelectedChannel": 0,
+            "name": "Levels",
+            "outputs": [
+                192
             ]
         }
     ],
@@ -578,127 +833,190 @@
         [
             17,
             [
-                49.0,
-                573.0
+                1320.0,
+                589.0
             ]
         ],
         [
             20,
             [
-                -191.0,
-                160.0
+                1288.0,
+                272.0
             ]
         ],
         [
             23,
             [
-                24.0,
-                944.0
+                1295.0,
+                960.0
             ]
         ],
         [
             26,
             [
-                -1359.0,
-                501.0
+                -2943.0,
+                165.0
             ]
         ],
         [
             28,
             [
-                369.0,
-                1061.0
+                1640.0,
+                1077.0
             ]
         ],
         [
             38,
             [
-                625.0,
-                1029.0
+                1896.0,
+                1045.0
             ]
         ],
         [
             41,
             [
-                369.0,
-                357.0
+                1640.0,
+                373.0
             ]
         ],
         [
             44,
             [
-                -1295.0,
-                -54.0
+                -2024.0,
+                1128.0
             ]
         ],
         [
             46,
             [
-                -1071.0,
-                -59.0
+                -1793.0,
+                1123.0
             ]
         ],
         [
             50,
             [
-                -1071.0,
-                231.0
+                -1793.0,
+                851.0
             ]
         ],
         [
             54,
             [
-                -799.0,
-                -59.0
+                -1512.0,
+                1026.0
             ]
         ],
         [
             61,
             [
-                -712.0,
-                558.0
+                -1288.0,
+                670.0
             ]
         ],
         [
             70,
             [
-                -847.0,
-                1205.0
+                -879.0,
+                1061.0
             ]
         ],
         [
             72,
             [
-                -255.0,
-                656.0
+                -344.0,
+                670.0
             ]
         ],
         [
             81,
             [
-                600.0,
-                714.0
+                1871.0,
+                730.0
             ]
         ],
         [
-            96,
+            111,
             [
-                -1103.0,
-                917.0
+                -2671.0,
+                191.0
             ]
         ],
         [
-            98,
+            118,
             [
-                -856.0,
-                916.0
+                -2879.0,
+                452.0
             ]
         ],
         [
-            101,
+            121,
             [
-                -536.0,
-                914.0
+                -3103.0,
+                453.0
+            ]
+        ],
+        [
+            126,
+            [
+                -2479.0,
+                399.0
+            ]
+        ],
+        [
+            132,
+            [
+                -2264.0,
+                405.0
+            ]
+        ],
+        [
+            141,
+            [
+                1048.0,
+                752.0
+            ]
+        ],
+        [
+            150,
+            [
+                -15.0,
+                1413.0
+            ]
+        ],
+        [
+            152,
+            [
+                209.0,
+                1251.0
+            ]
+        ],
+        [
+            156,
+            [
+                392.0,
+                706.0
+            ]
+        ],
+        [
+            166,
+            [
+                -15.0,
+                1157.0
+            ]
+        ],
+        [
+            169,
+            [
+                424.0,
+                1264.0
+            ]
+        ],
+        [
+            191,
+            [
+                -623.0,
+                1060.0
             ]
         ]
     ]

@@ -37,14 +37,17 @@ namespace EVA
         return FileSystem::DeleteFile(path);
     }
 
-    Ref<Asset> AssetManager::LoadAsset(const Path& path)
+    Ref<Asset> AssetManager::LoadAsset(const Path& path, bool useCache)
     {
         EVA_PROFILE_FUNCTION();
 
         const auto pathString = FileSystem::ToString(path);
 
-        auto existing = s_Assets.find(pathString);
-        if (existing != s_Assets.end()) return existing->second;
+        if (useCache)
+        {
+            auto existing = s_Assets.find(pathString);
+            if (existing != s_Assets.end()) return existing->second;
+        }
 
         FileInfo info;
         if (!GetFileInfo(info, path.extension())) { return nullptr; }
@@ -89,7 +92,7 @@ namespace EVA
         return asset;
     }
 
-    Ref<Asset> AssetManager::LoadAsset(const Guid& guid) 
+    Ref<Asset> AssetManager::LoadAsset(const Guid& guid, bool useCache) 
     { 
         EVA_PROFILE_FUNCTION();
 

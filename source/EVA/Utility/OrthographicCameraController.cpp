@@ -45,6 +45,7 @@ namespace EVA
     void OrthographicCameraController::OnResize(float width, float height)
     {
         EVA_PROFILE_FUNCTION();
+        if (height <= 0.0f) { return; }
         m_AspectRatio = width / height;
         m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
     }

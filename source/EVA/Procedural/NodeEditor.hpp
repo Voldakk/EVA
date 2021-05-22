@@ -189,7 +189,7 @@ namespace EVA::NE
             }
         }
 
-        bool InputConnected(uint32_t index) { return !inputs[index].connectedPins.empty(); }
+        bool InputConnected(uint32_t index) const { return !inputs[index].connectedPins.empty(); }
 
         template<class T, size_t... i>
         void AddInputs(const std::vector<InputPinInfo>& pins);
@@ -198,24 +198,24 @@ namespace EVA::NE
         void AddOutputs(const std::vector<OutputPinInfo>& pins);
 
         template<class T, size_t... i>
-        bool IsInputType(uint32_t index);
+        bool IsInputType(uint32_t index) const;
 
         template<class T, size_t... i>
-        bool IsInputDataType(uint32_t index);
+        bool IsInputDataType(uint32_t index) const;
 
         template<class T, size_t... i>
         void SetOutputType(uint32_t index);
 
-        bool InputsReady();
+        bool InputsReady() const;
 
-        uint32_t GetInputDataType(uint32_t index)
+        uint32_t GetInputDataType(uint32_t index) const
         {
             if (!InputConnected(index)) return 0;
             return inputs[index].connectedPins[0]->type;
         }
 
         template<class T>
-        const T& GetInputData(uint32_t index, const T& defaultValue)
+        const T& GetInputData(uint32_t index, const T& defaultValue) const
         {
             T* ptr = nullptr;
             if (!inputs[index].connectedPins.empty()) ptr = reinterpret_cast<T*>(inputs[index].connectedPins[0]->outputData);
@@ -224,14 +224,14 @@ namespace EVA::NE
         }
 
         template<class T>
-        const T& GetInputData(uint32_t index)
+        const T& GetInputData(uint32_t index) const
         {
             EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
             return *reinterpret_cast<T*>(inputs[index].connectedPins[0]->outputData);
         }
 
         template<class T>
-        const T* GetInputDataPtr(uint32_t index)
+        const T* GetInputDataPtr(uint32_t index) const
         {
             // EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
             if (inputs[index].connectedPins.empty()) return nullptr;
@@ -433,7 +433,7 @@ namespace EVA::NE
         void Load(const std::filesystem::path& path)
         {
             Clear();
-            m_CurrentNodeGraph = AssetManager::Load<NodeGraph>(path);
+            m_CurrentNodeGraph = AssetManager::Load<NodeGraph>(path, false);
             m_NextId           = m_CurrentNodeGraph->GetNextId();
 
             m_Nodes = m_CurrentNodeGraph->GetNodes();
@@ -531,13 +531,13 @@ namespace EVA::NE
     }
 
     template<class T, size_t... i>
-    bool Node::IsInputType(uint32_t index)
+    bool Node::IsInputType(uint32_t index) const
     {
         return inputs[index].type == NodeEditor::GetPinType<T, i...>();
     }
 
     template<class T, size_t... i>
-    bool Node::IsInputDataType(uint32_t index)
+    bool Node::IsInputDataType(uint32_t index) const
     {
         if (!InputConnected(index)) return false;
 
@@ -550,14 +550,14 @@ namespace EVA::NE
         outputs[index].type = NodeEditor::GetPinType<T, i...>();
     }
 
-    bool Node::InputsReady()
+    bool Node::InputsReady() const
     {
         for (const auto& pin : inputs)
         {
             if (pin.inputState == InputState::Pending) { return false; }
             if (pin.required && pin.connectedPins.empty()) { return false; }
 
-            for (auto& con : pin.connectedPins)
+            for (const auto& con : pin.connectedPins)
             {
                 if (!con->node->processed) return false;
                 if (!editor->IsPinsCompatible(pin.type, con->type)) return false;
