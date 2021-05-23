@@ -22,7 +22,7 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Uniform color";
-                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
+                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
             }
 
             void Process() override
@@ -97,7 +97,7 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Bricks";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
             }
 
             void SetUniforms() const override

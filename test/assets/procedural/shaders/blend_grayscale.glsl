@@ -6,6 +6,7 @@ layout(local_size_variable) in;
 layout(binding = 0, r32f) uniform writeonly image2D u_Output;
 layout(binding = 1, r32f) uniform readonly image2D u_InputA;
 layout(binding = 2, r32f) uniform readonly image2D u_InputB;
+layout(binding = 3, r32f) uniform readonly image2D u_OpacityMap;
 
 uniform float u_Opacity = 0.5;
 uniform int u_BlendMode = 0;
@@ -73,22 +74,23 @@ void main()
 
 	// Do work
 	float value = 0;
+	float opacity = u_Opacity * imageLoad(u_OpacityMap, pixelCoords).r;
 	switch(u_BlendMode)
 	{
-		case MODE_COPY: value = mix(a, b, u_Opacity); break;
-		case MODE_ADD: value = mix(a, a + b, u_Opacity); break;
-		case MODE_SUB: value = mix(a, a - b, u_Opacity); break;
-		case MODE_MUL: value = mix(a, a * b, u_Opacity); break;
-		case MODE_DIV: value = mix(a, a / (b + EPS), u_Opacity); break;
-		case MODE_MIN: value = mix(a, min(a, b), u_Opacity); break;
-		case MODE_MAX: value = mix(a, max(a, b), u_Opacity); break;
-		case MODE_SCREEN: value = mix(a, Screen(b, a), u_Opacity); break;
-		case MODE_OVERLAY: value = mix(a, HardLight(a, b), u_Opacity); break;
-		case MODE_HARD_LIGHT: value = mix(a, HardLight(b, a), u_Opacity); break;
-		case MODE_SOFT_LIGHT: value = mix(a, SoftLight(b, a), u_Opacity); break;
-		case MODE_DIFF: value = mix(a, abs(a - b), u_Opacity); break;
-		case MODE_COLOR_DODGE: value = mix(a, ColorDodge(b, a), u_Opacity); break;
-		case MODE_COLOR_BURN: value = mix(a, ColorBurn(b, a), u_Opacity); break;
+		case MODE_COPY: value = mix(a, b, opacity); break;
+		case MODE_ADD: value = mix(a, a + b, opacity); break;
+		case MODE_SUB: value = mix(a, a - b, opacity); break;
+		case MODE_MUL: value = mix(a, a * b, opacity); break;
+		case MODE_DIV: value = mix(a, a / (b + EPS), opacity); break;
+		case MODE_MIN: value = mix(a, min(a, b), opacity); break;
+		case MODE_MAX: value = mix(a, max(a, b), opacity); break;
+		case MODE_SCREEN: value = mix(a, Screen(b, a), opacity); break;
+		case MODE_OVERLAY: value = mix(a, HardLight(a, b), opacity); break;
+		case MODE_HARD_LIGHT: value = mix(a, HardLight(b, a), opacity); break;
+		case MODE_SOFT_LIGHT: value = mix(a, SoftLight(b, a), opacity); break;
+		case MODE_DIFF: value = mix(a, abs(a - b), opacity); break;
+		case MODE_COLOR_DODGE: value = mix(a, ColorDodge(b, a), opacity); break;
+		case MODE_COLOR_BURN: value = mix(a, ColorBurn(b, a), opacity); break;
 	}
 
 	value = clamp(value, 0.0, 1.0);

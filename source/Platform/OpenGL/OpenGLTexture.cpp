@@ -3,7 +3,7 @@
 
 namespace EVA
 {
-    uint32_t OpenGLTexture::CreateGLTextureId(const Texture& texture, void* data, const std::string& id)
+    uint32_t OpenGLTexture::CreateGLTextureId(const Texture& texture, const void* data, const std::string& id)
     {
         EVA_PROFILE_FUNCTION();
 

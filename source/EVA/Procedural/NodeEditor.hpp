@@ -24,7 +24,7 @@ namespace EVA::NE
     struct InputPinInfo
     {
         std::string name;
-        bool required = true;
+        void* defaultData;
     };
 
     struct OutputPinInfo
@@ -64,24 +64,24 @@ namespace EVA::NE
 
     struct Pin
     {
-        NE::PinId id;
+        NE::PinId id = 0;
         NE::PinKind kind;
         uint32_t type;
         std::string name;
-        Node* node;
+        Node* node = nullptr;
 
         std::vector<Pin*> connectedPins;
 
         // Input
-        bool required         = true;
+        void* defaultData            = nullptr;
         InputState inputState = InputState::Changed;
 
         // Output
         void* outputData = nullptr;
 
         Pin() = default;
-        Pin(NE::PinId id, NE::PinKind kind, uint32_t type, Node* node, const std::string& name, bool required = true) :
-          id(id), kind(kind), type(type), node(node), name(name), required(required)
+        Pin(NE::PinId id, NE::PinKind kind, uint32_t type, Node* node, const std::string& name, void* defaultData = nullptr) :
+          id(id), kind(kind), type(type), node(node), name(name), defaultData(defaultData)
         {
         }
 
@@ -106,11 +106,11 @@ namespace EVA::NE
         inline static bool s_SetPinIds = true;
 
       public:
-        NE::NodeId id;
+        NE::NodeId id = 0;
         std::string name;
         std::vector<Pin> inputs;
         std::vector<Pin> outputs;
-        NodeEditor* editor;
+        NodeEditor* editor = nullptr;
 
         bool processed = false;
         bool deletable = true;
@@ -177,11 +177,11 @@ namespace EVA::NE
                     SetupNode();
                     s_SetPinIds = true;
 
-                    for (size_t i = 0; i < inputs.size(); i++)
+                    for (size_t i = 0; i < glm::min(inputs.size(), inputIds.size()); i++)
                     {
                         inputs[i].id = inputIds[i];
                     }
-                    for (size_t i = 0; i < outputs.size(); i++)
+                    for (size_t i = 0; i < glm::min(outputs.size(), outputIds.size()); i++)
                     {
                         outputs[i].id = outputIds[i];
                     }
@@ -192,10 +192,10 @@ namespace EVA::NE
         bool InputConnected(uint32_t index) const { return !inputs[index].connectedPins.empty(); }
 
         template<class T, size_t... i>
-        void AddInputs(const std::vector<InputPinInfo>& pins);
+        void AddInput(const InputPinInfo& pin);
 
         template<class T, size_t... i>
-        void AddOutputs(const std::vector<OutputPinInfo>& pins);
+        void AddOutput(const OutputPinInfo& pin);
 
         template<class T, size_t... i>
         bool IsInputType(uint32_t index) const;
@@ -226,15 +226,21 @@ namespace EVA::NE
         template<class T>
         const T& GetInputData(uint32_t index) const
         {
-            EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
-            return *reinterpret_cast<T*>(inputs[index].connectedPins[0]->outputData);
+            if (inputs[index].connectedPins.empty()) 
+            {
+                EVA_INTERNAL_ASSERT(inputs[index].defaultData != nullptr, "Disconnected pis has no default data");
+                return *reinterpret_cast<T*>(inputs[index].defaultData);
+            }
+            else
+            {
+                return *reinterpret_cast<T*>(inputs[index].connectedPins[0]->outputData);
+            }
         }
 
         template<class T>
         const T* GetInputDataPtr(uint32_t index) const
         {
-            // EVA_INTERNAL_ASSERT(!inputs[index].connectedPins.empty(), "Required pin is not connected");
-            if (inputs[index].connectedPins.empty()) return nullptr;
+            if (inputs[index].connectedPins.empty()) return reinterpret_cast<T*>(inputs[index].defaultData);
             return reinterpret_cast<T*>(inputs[index].connectedPins[0]->outputData);
         }
 
@@ -260,9 +266,9 @@ namespace EVA::NE
 
     struct Link
     {
-        NE::LinkId id;
-        Pin* input;
-        Pin* output;
+        NE::LinkId id = 0;
+        Pin* input = nullptr;
+        Pin* output = nullptr;
 
         Link() = default;
         Link(NE::LinkId id, Pin* in, Pin* out) : id(id), input(in), output(out) {}
@@ -440,6 +446,14 @@ namespace EVA::NE
             for (auto& node : m_Nodes)
             {
                 node->editor = this;
+                for (auto& pin : node->inputs)
+                {
+                    if (pin.id.Get() == 0) { pin.id = NextPinId(); }
+                }
+                for (auto& pin : node->outputs)
+                {
+                    if (pin.id.Get() == 0) { pin.id = NextPinId(); }
+                }
             }
 
             auto links = m_CurrentNodeGraph->GetLinks();
@@ -507,27 +521,21 @@ namespace EVA::NE
     }
 
     template<class T, size_t... i>
-    void Node::AddInputs(const std::vector<InputPinInfo>& pins)
+    void Node::AddInput(const InputPinInfo& pin)
     {
         auto type = NodeEditor::GetPinType<T, i...>();
-        for (const auto& pin : pins)
-        {
-            auto id = s_SetPinIds ? editor->NextPinId() : 0;
-            inputs.push_back(Pin(id, PinKind::Input, type, this, pin.name, pin.required));
-        }
+        auto id   = s_SetPinIds ? editor->NextPinId() : 0;
+        inputs.push_back(Pin(id, PinKind::Input, type, this, pin.name, pin.defaultData));
     }
 
     template<class T, size_t... i>
-    void Node::AddOutputs(const std::vector<OutputPinInfo>& pins)
+    void Node::AddOutput(const OutputPinInfo& pin)
     {
         auto type = NodeEditor::GetPinType<T, i...>();
-        for (const auto& pin : pins)
-        {
-            auto id = s_SetPinIds ? editor->NextPinId() : 0;
-            Pin p(id, PinKind::Output, type, this, pin.name);
-            p.outputData = pin.data;
-            outputs.push_back(p);
-        }
+        auto id   = s_SetPinIds ? editor->NextPinId() : 0;
+        Pin p(id, PinKind::Output, type, this, pin.name);
+        p.outputData = pin.data;
+        outputs.push_back(p);
     }
 
     template<class T, size_t... i>
@@ -555,7 +563,7 @@ namespace EVA::NE
         for (const auto& pin : inputs)
         {
             if (pin.inputState == InputState::Pending) { return false; }
-            if (pin.required && pin.connectedPins.empty()) { return false; }
+            if (pin.defaultData == nullptr && pin.connectedPins.empty()) { return false; }
 
             for (const auto& con : pin.connectedPins)
             {

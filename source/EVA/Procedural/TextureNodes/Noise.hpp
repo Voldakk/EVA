@@ -19,7 +19,7 @@ namespace EVA
             void SetupNode() override
             {
                 ComputeNode::SetupNode();
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
             }
 
             void SetUniforms() const override

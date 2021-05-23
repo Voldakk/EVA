@@ -16,6 +16,20 @@ namespace EVA
           protected:
             TextureNode() = default;
 
+            Ref<Texture>& TextureWhite()
+            {
+                static Ref<Texture> texture;
+                if (!texture) { texture = TextureUtilities::Uniform(1.0f, TextureFormat::R32F, TextureSize); }
+                return texture;
+            }
+
+            Ref<Texture>& TextureBlack()
+            {
+                static Ref<Texture> texture;
+                if (!texture) { texture = TextureUtilities::Uniform(0.0f, TextureFormat::R32F, TextureSize); }
+                return texture;
+            }
+
           public:
             virtual ~TextureNode() = default;
 
@@ -60,8 +74,8 @@ namespace EVA
             void SetupNode() override
             {
                 name = "Passthrough";
-                AddInputs<Ref<Texture>, 1, 4>({{"In"}});
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
+                AddInput<Ref<Texture>, 1, 4>({"In"});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
             }
 
           private:
@@ -96,7 +110,7 @@ namespace EVA
                 name = "Output";
                 for (const auto& o : m_Outputs)
                 {
-                    AddInputs<Ref<Texture>, 1, 4>({{o, false}});
+                    AddInput<Ref<Texture>, 1, 4>({o});
                 }
                 m_Textures.resize(m_Outputs.size());
             }
@@ -139,7 +153,7 @@ namespace EVA
             void SetupNode() override
             {
                 name = "Input";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
             }
 
             void Serialize(DataObject& data) override

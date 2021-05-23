@@ -22,9 +22,10 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Blend";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1, 4>({{"A"}, {"B"}});
-                AddInputs<float>({{"Frac", false}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1, 4>({"A"});
+                AddInput<Ref<Texture>, 1, 4>({"B"});
+                AddInput<Ref<Texture>, 1>({"Opacity", &TextureWhite()});
             }
 
             void Process() override
@@ -48,7 +49,6 @@ namespace EVA
                     SetOutputType<Ref<Texture>, 4>(0);
                 }
 
-                m_Opacity = GetInputData(2, m_Opacity);
                 ComputeNode::Process();
             }
 
@@ -64,7 +64,7 @@ namespace EVA
 
                 if (data.Inspector())
                 {
-                    if (!InputConnected(2)) { data.changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0.0f, 1.0f); }
+                    data.changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0.0f, 1.0f);
 
                     const char* items[] = {"Copy",   "Add",     "Substract",  "Multiply",   "Divide",     "Darken",      "Lighten",
                                            "Screen", "Overlay", "Hard Light", "Soft Light", "Difference", "Color Dodge", "Color Burn"};
@@ -99,8 +99,8 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Levels";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1, 4>({{"In"}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1, 4>({"In"});
             }
 
             void Process() override
@@ -222,8 +222,8 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Gradient map";
-                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
+                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
             }
 
             void SetUniforms() const override
@@ -286,9 +286,9 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Directional warp";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
-                AddInputs<Ref<Texture>, 1>({{"Intensity"}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
+                AddInput<Ref<Texture>, 1>({"Intensity"});
             }
 
             void SetUniforms() const override
@@ -341,10 +341,10 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Directional warp";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
-                AddInputs<Ref<Texture>, 1>({{"Intensity"}});
-                AddInputs<Ref<Texture>, 1>({{"Angle"}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
+                AddInput<Ref<Texture>, 1>({"Intensity"});
+                AddInput<Ref<Texture>, 1>({"Angle"});
             }
 
             void SetUniforms() const override
@@ -401,9 +401,10 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Normal blend";
-                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 4>({{"A"}});
-                AddInputs<Ref<Texture>, 4>({{"B"}});
+                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 4>({"A"});
+                AddInput<Ref<Texture>, 4>({"B"});
+                AddInput<Ref<Texture>, 1>({"Opacity", &TextureWhite()});
             }
 
             void SetUniforms() const override { m_Shader->SetUniformFloat("u_Opacity", m_Opacity); }

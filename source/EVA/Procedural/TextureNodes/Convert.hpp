@@ -21,8 +21,8 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Height to normal";
-                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
+                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
             }
 
             void SetUniforms() const override { m_Shader->SetUniformFloat("u_Strength", m_Strength); }
@@ -55,8 +55,8 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Height to AO";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
             }
 
             void SetUniforms() const override
@@ -137,8 +137,8 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Height to curvature";
-                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
             }
 
             void SetUniforms() const override

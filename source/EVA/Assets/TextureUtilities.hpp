@@ -192,5 +192,37 @@ namespace EVA
 
             return out;
         }
+
+        inline static std::shared_ptr<Texture> Uniform(float value, TextureFormat format, uint32_t size = 16)
+        {
+            EVA_PROFILE_FUNCTION();
+
+            EVA_INTERNAL_ASSERT(GetTextureDataType(format) == TextureDataType::Float, "Invalid format");
+
+            std::vector<float> data(size * size);
+            std::fill(data.begin(), data.end(), value);
+
+            TextureSettings settings;
+            settings.wrapping = TextureWrapping::ClampToEdge;
+            auto texture      = TextureManager::CreateTexture(size, size, data.data(), format, settings);
+
+            return texture;
+        }
+
+        inline static std::shared_ptr<Texture> Uniform(glm::vec4 value, TextureFormat format, uint32_t size = 16)
+        {
+            EVA_PROFILE_FUNCTION();
+
+            EVA_INTERNAL_ASSERT(GetTextureDataType(format) == TextureDataType::Float, "Invalid format");
+
+            std::vector<glm::vec4> data(size * size);
+            std::fill(data.begin(), data.end(), value);
+
+            TextureSettings settings;
+            settings.wrapping = TextureWrapping::ClampToEdge;
+            auto texture      = TextureManager::CreateTexture(size, size, data.data(), format, settings);
+
+            return texture;
+        }
     };
 } // namespace EVA

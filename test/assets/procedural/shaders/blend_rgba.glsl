@@ -6,6 +6,7 @@ layout(local_size_variable) in;
 layout(binding = 0, rgba32f) uniform writeonly image2D u_Output;
 layout(binding = 1, rgba32f) uniform readonly image2D u_InputA;
 layout(binding = 2, rgba32f) uniform readonly image2D u_InputB;
+layout(binding = 3, r32f) uniform readonly image2D u_OpacityMap;
 
 uniform float u_Opacity = 0.5;
 uniform int u_BlendMode = 0;
@@ -91,9 +92,8 @@ void main()
 	vec4 a = imageLoad(u_InputA, pixelCoords);
 	vec4 b = imageLoad(u_InputB, pixelCoords);
 
-	// Do work
 	vec4 value = a;
-	float opacity = b.a * u_Opacity;
+	float opacity = b.a * u_Opacity * imageLoad(u_OpacityMap, pixelCoords).r;
 	switch(u_BlendMode)
 	{
 		case MODE_COPY: value = mix(a, b, opacity); break;

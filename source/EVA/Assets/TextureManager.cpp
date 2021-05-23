@@ -104,6 +104,28 @@ namespace EVA
         return texture;
     }
 
+    Ref<Texture> TextureManager::CreateTexture(uint32_t width, uint32_t height, const void* data, TextureFormat format, const TextureSettings& settings)
+    {
+        EVA_PROFILE_FUNCTION();
+
+        auto texture        = CreateRef<Texture>();
+        texture->m_Width    = width;
+        texture->m_Height   = height;
+        texture->m_Format   = format;
+        texture->m_Settings = settings;
+        texture->m_Target   = TextureTarget::Texture2D;
+        texture->m_Path     = "Internal";
+
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::None: break;
+            case RendererAPI::API::OpenGL: texture->m_RendererId = OpenGLTexture::CreateGLTextureId(*texture, data); break;
+            default: EVA_INTERNAL_ASSERT(false, "Unknown RendererAPI");
+        }
+
+        return texture;
+    }
+
     Ref<Texture> TextureManager::CreateCubeMap(uint32_t width, uint32_t height, TextureFormat format, const TextureSettings& settings)
     {
         EVA_PROFILE_FUNCTION();
