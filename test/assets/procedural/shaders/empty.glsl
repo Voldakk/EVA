@@ -4,7 +4,7 @@
 
 layout(local_size_variable) in;
 layout(binding = 0, rgba32f) uniform writeonly image2D u_Output;
-layout(binding = 1, rgba32f) readonly uniform image2D u_Input;
+layout(binding = 1, rgba32f) uniform readonly image2D u_Input;
 
 void main()
 {

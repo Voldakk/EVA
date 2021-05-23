@@ -271,40 +271,6 @@ namespace EVA
             ImGradient m_Gradient;
         };
 
-        class HeightToNormal : public ComputeNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::HeightToNormal);
-
-          public:
-            HeightToNormal()
-            {
-                SetShader("height_to_normal.glsl");
-                SetTexture(TextureFormat::RGBA32F);
-            }
-
-            void SetupNode() override
-            {
-                ComputeNode::SetupNode();
-                name = "Height to Normal";
-                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"In"}});
-            }
-
-            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Strength", m_Strength); }
-
-            void Serialize(DataObject& data) override
-            {
-                ComputeNode::Serialize(data);
-
-                data.Serialize("Strength", m_Strength);
-
-                processed &= !data.changed;
-            }
-
-          private:
-            float m_Strength = 1;
-        };
-
         class DirectionalWarp : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::DirectionalWarp);
@@ -320,8 +286,8 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Directional warp";
-                AddOutputs<Ref<Texture>, 1>({{"Output", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"Input"}});
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
+                AddInputs<Ref<Texture>, 1>({{"In"}});
                 AddInputs<Ref<Texture>, 1>({{"Intensity"}});
             }
 
@@ -375,8 +341,8 @@ namespace EVA
             {
                 ComputeNode::SetupNode();
                 name = "Directional warp";
-                AddOutputs<Ref<Texture>, 1>({{"Output", &m_Texture}});
-                AddInputs<Ref<Texture>, 1>({{"Input"}});
+                AddOutputs<Ref<Texture>, 1>({{"Out", &m_Texture}});
+                AddInputs<Ref<Texture>, 1>({{"In"}});
                 AddInputs<Ref<Texture>, 1>({{"Intensity"}});
                 AddInputs<Ref<Texture>, 1>({{"Angle"}});
             }
@@ -399,7 +365,7 @@ namespace EVA
             {
                 ComputeNode::Serialize(data);
 
-                if (data.Inspector()) 
+                if (data.Inspector())
                 {
                     data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360);
                     data.changed |= ImGui::SliderFloat("Angle multiplier", &m_AngleMultiplier, 0, 1);
@@ -418,6 +384,45 @@ namespace EVA
             float m_Angle           = 0;
             float m_AngleMultiplier = 1;
             float m_Intensity       = 1;
+        };
+
+        class NormalBlend : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::NormalBlend);
+
+          public:
+            NormalBlend()
+            {
+                SetShader("normal_blend.glsl");
+                SetTexture(TextureFormat::RGBA32F);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Normal blend";
+                AddOutputs<Ref<Texture>, 4>({{"Out", &m_Texture}});
+                AddInputs<Ref<Texture>, 4>({{"A"}});
+                AddInputs<Ref<Texture>, 4>({{"B"}});
+            }
+
+            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Opacity", m_Opacity); }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0, 1); }
+                else
+                {
+                    data.Serialize("Opacity", m_Opacity);
+                }
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Opacity = 1.0f;
         };
     } // namespace TextureNodes
 } // namespace EVA
