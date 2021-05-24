@@ -16,6 +16,8 @@ namespace EVA
         static Ref<Texture> CreateTexture(uint32_t width, uint32_t height, const void* data, TextureFormat format, const TextureSettings& settings = DefaultTextureSettings);
         static Ref<Texture> CreateCubeMap(uint32_t width, uint32_t height, TextureFormat format, const TextureSettings& settings = DefaultTextureSettings);
 
+        static Ref<Texture> CopyTexture(const Ref<Texture>& source, TextureFormat format, const TextureSettings& settings);
+
         static void Delete(Texture& texture);
 
         static Ref<RawTexture> LoadRaw(const std::filesystem::path& path);

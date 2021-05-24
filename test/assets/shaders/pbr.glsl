@@ -25,12 +25,7 @@ void main()
 
     vOut.UV = a_TexCoords;
 
-
-    // Calculate TBN matrix
-	//vec3 T = normalize(mat3(u_Model) * a_Tangent);
-	//vec3 B = normalize(mat3(u_Model) * a_Bitangent);
-	//vec3 N = normalize(mat3(u_Model) * a_Normal);
-
+    // Calculate the TBN matrix
     vec3 T = normalize(mat3(u_Model) * a_Tangent);
 	vec3 N = normalize(mat3(u_Model) * a_Normal);
     T = normalize(T - dot(T, N) * N);
@@ -76,9 +71,13 @@ uniform sampler2D u_AmbientOcclusionMap;
 uniform sampler2D u_EmissiveMap;
 uniform sampler2D u_HeightMap;
 
+uniform bool u_EnableParalax;
+uniform bool u_ParalaxClip;
 uniform float u_HeightScale;
+uniform vec2 u_Tiling;
 
 // IBL
+uniform float u_EnviromentRotation;
 uniform samplerCube u_IrradianceMap;
 uniform samplerCube u_PrefilterMap;
 uniform sampler2D u_BrdfLUT;
@@ -184,23 +183,28 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }   
 // ----------------------------------------------------------------------------
+mat3 RotateY(float a)
+{
+    return mat3(vec3(cos(a), 0, sin(a)), vec3(0, 1, 0), vec3(-sin(a), 0, cos(a)));
+}
+// ----------------------------------------------------------------------------
 vec3 Ambient(vec3 N, vec3 V, vec3 R, vec3 F0, float roughness, float metallic, float ao, vec3 albedo)
 {
+    mat3 envR = RotateY(u_EnviromentRotation);
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     
     vec3 kS = F;
     vec3 kD = 1.0 - kS;
     kD *= 1.0 - metallic;	  
     
-    vec3 irradiance = texture(u_IrradianceMap, N).rgb;
+    vec3 irradiance = texture(u_IrradianceMap, envR * N).rgb;
     vec3 diffuse = irradiance * albedo;
     
     const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(u_PrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec3 prefilteredColor = textureLod(u_PrefilterMap, envR * R,  roughness * MAX_REFLECTION_LOD).rgb;    
     vec2 brdf  = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    //return specular;
     return (kD * diffuse + specular) * ao;
 }
 // ----------------------------------------------------------------------------
@@ -250,12 +254,13 @@ vec3 CalcLight(vec3 point, vec3 N, vec3 V, vec3 F0, float roughness, float metal
 // ----------------------------------------------------------------------------
 void main()
 {	
-    vec3 viewDir = normalize(fIn.tangentViewPos - fIn.tangentFragPos);
-    vec2 UV = fIn.UV;
-    UV = ParallaxMapping(UV,  viewDir);       
-    if(UV.x > 1.0 || UV.y > 1.0 || UV.x < 0.0 || UV.y < 0.0)
-        discard;
-
+    vec2 UV = fIn.UV * u_Tiling;
+    if(u_EnableParalax)
+    {
+        vec3 viewDir = normalize(fIn.tangentViewPos - fIn.tangentFragPos);
+        UV = ParallaxMapping(UV,  viewDir);       
+        if(u_ParalaxClip && (UV.x > u_Tiling.x || UV.y > u_Tiling.y || UV.x < 0.0 || UV.y < 0.0)) { discard; }
+    }
 
     vec3 albedo = pow(texture(u_AlbedoMap, UV).rgb, vec3(2.2));
     float metallic = texture(u_MetallicMap, UV).r;
@@ -275,7 +280,6 @@ void main()
     // and if it's a metal, use the albedo color as F0 (metallic workflow)    
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
-
     vec3 ambient = Ambient(N, V, R, F0, roughness, metallic, ao, albedo);
     vec3 Lo = CalcLight(fIn.fragPos, N, V, F0, roughness, metallic, albedo);
     
@@ -286,8 +290,5 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
-    //fragColor = vec4((N + 1) / 2, 1.0);
-    //fragColor = vec4((fIn.TBN[1] + 1) / 2, 1.0);
-    //fragColor = vec4(albedo, 1.0);
     fragColor = vec4(color, 1.0);
 }

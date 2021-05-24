@@ -36,6 +36,7 @@ in vec3 fragPos;
 
 out vec4 fragColor;
 
+uniform float u_EnviromentRotation;
 uniform samplerCube u_EnvironmentMap;
 
 // Lights
@@ -47,9 +48,14 @@ uniform struct Light
    float attenuation;
 } u_AllLights[MAX_LIGHTS];
 
+mat3 RotateY(float a)
+{
+    return mat3(vec3(cos(a), 0, sin(a)), vec3(0, 1, 0), vec3(-sin(a), 0, cos(a)));
+}
 void main()
 {
-	vec3 color = texture(u_EnvironmentMap, fragTexCoord).xyz; 
+    vec3 v = RotateY(u_EnviromentRotation) * fragTexCoord;
+	vec3 color = texture(u_EnvironmentMap, v).xyz; 
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2)); 
 

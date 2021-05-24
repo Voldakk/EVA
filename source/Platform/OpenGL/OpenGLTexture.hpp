@@ -11,6 +11,8 @@ namespace EVA
         static uint32_t CreateGLTextureId(const Texture& texture, const std::string& id = "");
         static uint32_t OpenGLTexture::CreateGLCubemapId(const Texture& texture, const std::string& id = "");
 
+        static uint32_t CopyTexture(const Texture& source, const Texture& texture, const std::string& id = "");
+
         static void DeleteGLTexture(const Texture& texture);
 
         static void GenerateMipMaps(const Texture& texture);

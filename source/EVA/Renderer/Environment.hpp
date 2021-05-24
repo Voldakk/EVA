@@ -5,32 +5,66 @@
 
 namespace EVA
 {
-    class Environment
+    class Environment : public ISerializeable
     {
       public:
-        Environment(const std::filesystem::path& equirectangularMap)
+        Environment(const std::filesystem::path& map)
         {
             EVA_PROFILE_FUNCTION();
 
-            m_EquirectangularMap = AssetManager::Load<Texture>(equirectangularMap);
-            TextureManager::GenerateMipMaps(m_EquirectangularMap);
-            m_EnvironmentMap     = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
-            m_IrradianceMap      = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
-            m_PreFilterMap       = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
-            m_BrdfLUT            = TextureUtilities::PreComputeBRDF();
-
             m_Mesh   = AssetManager::Load<Mesh>("models/cube_inverted.obj");
             m_Shader = AssetManager::Load<Shader>("shaders/skybox.glsl");
+            m_BrdfLUT            = TextureUtilities::PreComputeBRDF();
+            m_EquirectangularMap = AssetManager::Load<Texture>(map);
+            Compute();
+        }
+
+        void Compute() 
+        {
+            TextureManager::GenerateMipMaps(m_EquirectangularMap);
+            m_EnvironmentMap = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
+            m_IrradianceMap  = TextureUtilities::ConvoluteCubemap(m_EnvironmentMap);
+            m_PreFilterMap   = TextureUtilities::PreFilterEnviromentMap(m_EnvironmentMap);
         }
 
         void DrawSkyBox() const
         {
             EVA_PROFILE_FUNCTION();
 
+            m_Shader->Bind();
             m_Shader->ResetTextureUnit();
+            m_Shader->SetUniformFloat("u_EnviromentRotation", rotation);
             RenderCommand::EnableDepth(false);
             Renderer::Submit(m_Shader, m_Mesh->GetVertexArray());
             RenderCommand::EnableDepth(true);
+        }
+
+        void Serialize(DataObject& data) override
+        {
+            ISerializeable::Serialize(data);
+            bool hdrChanged = false;
+            if (data.Inspector()) 
+            {
+                ImGui::PushID(this);
+                ImGui::Text("Enviroment");
+                hdrChanged |= ImGui::Button("Reload");
+                hdrChanged |= data.Serialize("HDR", m_EquirectangularMap);
+                ImGui::SliderAngle("Rotation", &rotation);
+            }
+            else
+            {
+                data.Serialize("HDR", m_EquirectangularMap);
+                data.Serialize("rotation", rotation);
+            }
+
+            data.Serialize("Mesh", m_Mesh);
+            data.Serialize("Shader", m_Shader);
+
+            if (data.Inspector()) { ImGui::PopID(); }
+
+            hdrChanged |= data.Load();
+
+            if (hdrChanged) { Compute(); }
         }
 
         const Ref<Texture> GetEquirectangularMap() const { return m_EquirectangularMap; }
@@ -44,6 +78,8 @@ namespace EVA
 
         Ref<Shader> GetShader() { return m_Shader; }
         const Ref<Shader> GetShader() const { return m_Shader; }
+
+        float rotation = 0.0f;
 
       private:
         Ref<Texture> m_EquirectangularMap;

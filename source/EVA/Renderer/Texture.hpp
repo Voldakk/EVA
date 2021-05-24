@@ -184,8 +184,6 @@ namespace EVA
         inline TextureSettings& GetSettings() { return m_Settings; }
         inline const TextureSettings& GetSettings() const { return m_Settings; }
 
-
-
       private:
         uint32_t m_RendererId {};
         uint32_t m_Width {};

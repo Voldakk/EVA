@@ -44,7 +44,7 @@ namespace EVA
         m_NodeEditor.GetStyle().SetPinColor<Ref<Texture>, 1, 4>({0.9f, 0.8f, 0.5f});
 
         m_Environment = CreateRef<Environment>("textures/parking_lot_2_1k.hdr");
-        m_Mesh        = AssetManager::Load<Mesh>("models/cube.obj");
+        m_Mesh        = AssetManager::Load<Mesh>("models/cube_bevel.obj");
         m_Shader      = AssetManager::Load<Shader>("shaders/pbr.glsl");
 
         m_Material.heightScale = 0.02f;
@@ -172,12 +172,21 @@ namespace EVA
         ImGui::End();
 
         ImGui::Begin("Settings");
-        if (ImGui::Button("Reload shader")) 
-        { m_Shader = AssetManager::Load<Shader>(m_Shader->GetPath(), false); 
-        }
+        if (ImGui::Button("Reload shader")) { m_Shader = AssetManager::Load<Shader>(m_Shader->GetPath(), false); }
         InspectorFields::Default("Shader", m_Shader);
 
+        if (ImGui::Button("Reload mesh")) { m_Mesh = AssetManager::Load<Mesh>(m_Mesh->GetPath(), false); }
+        InspectorFields::Default("Mesh", m_Mesh);
+
+        ImGui::Checkbox("Enable paralax", &m_Material.enableParalax);
+        ImGui::Checkbox("Paralax cliping", &m_Material.paralaxClip);
         ImGui::SliderFloat("Height scale", &m_Material.heightScale, 0.0f, 0.1f);
+        ImGui::SliderFloat2("Tiling", glm::value_ptr(m_Material.tiling), 0.0f, 10.0f);
+
+        DataObject d(DataMode::Inspector);
+        ImGui::Spacing();
+        m_Environment->Serialize(d);
+
         ImGui::End();
 
         m_Viewport.Draw();

@@ -201,7 +201,7 @@ namespace EVA
         template<typename T>
         typename std::enable_if<std::is_base_of<Asset, T>::value>::type Set(const std::string& key, Ref<T>& value) const
         {
-            if (value != nullptr) m_Json[key] = value->GetUUID();
+            if (value != nullptr) m_Json[key] = value->GetGuid();
         }
 
         template<typename T>

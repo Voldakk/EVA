@@ -5,7 +5,7 @@
 const float PI = 3.14159265359;
 
 layout(local_size_variable) in;
-layout(binding = 0, rgba32f) uniform writeonly image2D u_Output;
+layout(binding = 0, rg32f) uniform writeonly image2D u_Output;
 
 float RadicalInverse_VdC(uint bits) 
 {
@@ -83,7 +83,7 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
     {
         vec2 Xi = Hammersley(i, SAMPLE_COUNT);
         vec3 H  = ImportanceSampleGGX(Xi, N, roughness);
-        vec3 L  = normalize(2.0 * dot(V, H) * H - V);
+        precise vec3 L  = normalize(2.0 * dot(V, H) * H - V);
 
         float NdotL = max(L.z, 0.0);
         float NdotH = max(H.z, 0.0);
@@ -109,7 +109,7 @@ void main()
 	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = vec2(pixelCoords) / vec2(dims);
-
+    uv.x += 0.5 / dims.x;
 	vec2 brdf = IntegrateBRDF(uv.x, uv.y);
 
 	imageStore(u_Output, pixelCoords, vec4(brdf, 0, 1));

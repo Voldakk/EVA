@@ -11,6 +11,7 @@ uniform int u_StepSize;
 
 void main()
 {
+	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
 	int samples = 0;
@@ -21,7 +22,7 @@ void main()
 		int yV = int(sin(acos(float(x) / float(u_Steps))) * u_Steps);
 		for(int y = -yV; y <= yV; y++)
 		{
-			value -= imageLoad(u_Input, pixelCoords + ivec2(x, y) * u_StepSize).r;
+			value -= imageLoad(u_Input, clamp(pixelCoords + ivec2(x, y) * u_StepSize, ivec2(0), dims - 1)).r;
 			samples++;
 		}
 	}

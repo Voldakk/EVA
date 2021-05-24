@@ -38,6 +38,7 @@ namespace EVA
         shader->SetUniformMat4("u_ViewProjection", s_SceneData->viewProjectionMatrix);
         shader->SetUniformFloat3("u_CameraPosition", s_SceneData->cameraPosition);
 
+        shader->SetUniformFloat("u_EnviromentRotation", s_SceneData->environment->rotation);
         shader->BindTexture("u_EnvironmentMap", s_SceneData->environment->GetEnvironmentMap());
         shader->BindTexture("u_IrradianceMap", s_SceneData->environment->GetIrradianceMap());
         shader->BindTexture("u_PrefilterMap", s_SceneData->environment->GetPreFilterMap());

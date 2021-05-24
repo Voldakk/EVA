@@ -14,7 +14,12 @@ namespace EVA
         Ref<Texture> ambientOcclusion;
         Ref<Texture> emissive;
         Ref<Texture> height;
+
+        bool enableParalax = true;
+        bool paralaxClip   = false;
         float heightScale = 0.0f;
+
+        glm::vec2 tiling = glm::vec2(1.0f);
 
         void Bind(const Ref<Shader> shader)
         {
@@ -53,7 +58,10 @@ namespace EVA
             else
                 shader->BindTexture("u_HeightMap", TextureTarget::Texture2D, 0);
 
+            shader->SetUniformBool("u_EnableParalax", enableParalax && height);
+            shader->SetUniformBool("u_ParalaxClip", paralaxClip);
             shader->SetUniformFloat("u_HeightScale", heightScale);
+            shader->SetUniformFloat2("u_Tiling", tiling);
         }
     };
 } // namespace EVA

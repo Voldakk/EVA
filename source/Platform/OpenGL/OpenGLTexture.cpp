@@ -77,6 +77,29 @@ namespace EVA
         return rendererId;
     }
 
+    uint32_t OpenGLTexture::CopyTexture(const Texture& source, const Texture& texture, const std::string& id) 
+    { 
+        EVA_PROFILE_FUNCTION();
+
+        auto format = texture.GetFormat();
+
+        uint32_t rendererId;
+        EVA_GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &rendererId));
+        EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(format), texture.GetWidth(), texture.GetHeight()));
+
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter)));
+        EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
+
+        EVA_GL_CALL(glCopyImageSubData(source.GetRendererId(), GetGLTarget(source.GetTarget()), 0, 0, 0, 0, rendererId,
+                           GetGLTarget(texture.GetTarget()), 0, 0, 0, 0, source.GetWidth(), source.GetHeight(), 1));
+
+        if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
+
+        return rendererId;
+    }
+
     void OpenGLTexture::DeleteGLTexture(const Texture& texture)
     {
         EVA_PROFILE_FUNCTION();

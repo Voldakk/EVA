@@ -18,17 +18,22 @@ uniform float u_Bias;
 uniform float u_HeightScale;
 uniform float u_NormalStrength;
 
-vec3 SampleNormal(ivec2 pixelCoords)
+ivec2 Repeat(ivec2 pixelCoords, ivec2 dims)
+{
+	return pixelCoords % dims;
+}
+
+vec3 SampleNormal(ivec2 pixelCoords, ivec2 dims)
 {
 	const ivec3 eps = ivec3(-1, 0, 1);
-	float z0 = imageLoad(u_Input, pixelCoords + eps.xx).r;
-	float z1 = imageLoad(u_Input, pixelCoords + eps.yx).r;
-	float z2 = imageLoad(u_Input, pixelCoords + eps.zx).r;
-	float z3 = imageLoad(u_Input, pixelCoords + eps.xy).r;
-	float z4 = imageLoad(u_Input, pixelCoords + eps.zy).r;
-	float z5 = imageLoad(u_Input, pixelCoords + eps.xz).r;
-	float z6 = imageLoad(u_Input, pixelCoords + eps.yz).r;
-	float z7 = imageLoad(u_Input, pixelCoords + eps.zz).r;
+	float z0 = imageLoad(u_Input, Repeat(pixelCoords + eps.xx, dims)).r;
+	float z1 = imageLoad(u_Input, Repeat(pixelCoords + eps.yx, dims)).r;
+	float z2 = imageLoad(u_Input, Repeat(pixelCoords + eps.zx, dims)).r;
+	float z3 = imageLoad(u_Input, Repeat(pixelCoords + eps.xy, dims)).r;
+	float z4 = imageLoad(u_Input, Repeat(pixelCoords + eps.zy, dims)).r;
+	float z5 = imageLoad(u_Input, Repeat(pixelCoords + eps.xz, dims)).r;
+	float z6 = imageLoad(u_Input, Repeat(pixelCoords + eps.yz, dims)).r;
+	float z7 = imageLoad(u_Input, Repeat(pixelCoords + eps.zz, dims)).r;
 	vec3 normal;
 	normal.z = 1.0 / u_NormalStrength;
 	normal.x = z0 + 2*z3 + z5 - z2 - 2*z4 - z7;
@@ -38,7 +43,7 @@ vec3 SampleNormal(ivec2 pixelCoords)
 
 vec3 SamplePos(ivec2 pixelCoords, ivec2 dims)
 {
-	float z = imageLoad(u_Input, pixelCoords).r * u_HeightScale;
+	float z = imageLoad(u_Input, Repeat(pixelCoords, dims)).r * u_HeightScale;
 	vec2 xy = vec2(pixelCoords) / vec2(dims);
 	return vec3(xy.x, xy.y, z);
 }
@@ -52,7 +57,7 @@ void main()
 	vec4 outPixel = vec4(0);
 
 	vec3 fragPos = SamplePos(pixelCoords, dims);
-	vec3 normal = SampleNormal(pixelCoords);
+	vec3 normal = SampleNormal(pixelCoords, dims);
 
 	ivec2 p = pixelCoords % noiseWidth;
     vec3 randomVec = u_Noise[p.x + p.y * noiseWidth];

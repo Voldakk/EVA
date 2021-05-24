@@ -12,6 +12,7 @@ const ivec3 eps = ivec3(-1, 0, 1);
 
 void main()
 {
+	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
 	// z0 -- z1 -- z2
@@ -20,16 +21,16 @@ void main()
 	// |     |     |
 	// z5 -- z6 -- z7
 	
-	float z0 = imageLoad(u_Input, pixelCoords + eps.xx).r;
-	float z1 = imageLoad(u_Input, pixelCoords + eps.yx).r;
-	float z2 = imageLoad(u_Input, pixelCoords + eps.zx).r;
-
-	float z3 = imageLoad(u_Input, pixelCoords + eps.xy).r;
-	float z4 = imageLoad(u_Input, pixelCoords + eps.zy).r;
-
-	float z5 = imageLoad(u_Input, pixelCoords + eps.xz).r;
-	float z6 = imageLoad(u_Input, pixelCoords + eps.yz).r;
-	float z7 = imageLoad(u_Input, pixelCoords + eps.zz).r;
+	float z0 = imageLoad(u_Input, clamp(pixelCoords + eps.xx, ivec2(0), dims - 1)).r;
+	float z1 = imageLoad(u_Input, clamp(pixelCoords + eps.yx, ivec2(0), dims - 1)).r;
+	float z2 = imageLoad(u_Input, clamp(pixelCoords + eps.zx, ivec2(0), dims - 1)).r;
+								 
+	float z3 = imageLoad(u_Input, clamp(pixelCoords + eps.xy, ivec2(0), dims - 1)).r;
+	float z4 = imageLoad(u_Input, clamp(pixelCoords + eps.zy, ivec2(0), dims - 1)).r;
+								  
+	float z5 = imageLoad(u_Input, clamp(pixelCoords + eps.xz, ivec2(0), dims - 1)).r;
+	float z6 = imageLoad(u_Input, clamp(pixelCoords + eps.yz, ivec2(0), dims - 1)).r;
+	float z7 = imageLoad(u_Input, clamp(pixelCoords + eps.zz, ivec2(0), dims - 1)).r;
 	 
 	// Sobel Filter
 	vec3 normal;

@@ -288,7 +288,7 @@ namespace EVA
                 name = "Directional warp";
                 AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
                 AddInput<Ref<Texture>, 1>({"In"});
-                AddInput<Ref<Texture>, 1>({"Intensity"});
+                AddInput<Ref<Texture>, 1>({"Intensity", &TextureWhite()});
             }
 
             void SetUniforms() const override
@@ -343,8 +343,8 @@ namespace EVA
                 name = "Directional warp";
                 AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
                 AddInput<Ref<Texture>, 1>({"In"});
-                AddInput<Ref<Texture>, 1>({"Intensity"});
-                AddInput<Ref<Texture>, 1>({"Angle"});
+                AddInput<Ref<Texture>, 1>({"Intensity", &TextureWhite()});
+                AddInput<Ref<Texture>, 1>({"Angle", &TextureWhite()});
             }
 
             void SetUniforms() const override

@@ -48,7 +48,7 @@ namespace EVA
             HeightToAmbientOcclusion()
             {
                 SetShader("height_to_ao.glsl");
-                SetTexture(TextureFormat::RGBA32F);
+                SetTexture(TextureFormat::R32F);
             }
 
             void SetupNode() override

@@ -95,7 +95,14 @@ namespace EVA
                 for (size_t i = 0; i < m_Textures.size(); i++)
                 {
                     const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(i);
-                    m_Textures[i]           = ref == nullptr ? nullptr : *ref;
+                    if (ref == nullptr) { m_Textures[i] = nullptr; }
+                    else
+                    {
+                        auto r = *ref;
+                        TextureSettings settings;
+                        settings.wrapping = TextureWrapping::Repeat;
+                        m_Textures[i]     = TextureManager::CopyTexture(r, r->GetFormat(), settings);
+                    }
                 }
             }
 
@@ -240,7 +247,12 @@ namespace EVA
             {
                 if (m_Texture != nullptr && m_Texture->GetFormat() == format) return;
                 
-                if (m_Texture == nullptr) { m_Texture = TextureManager::CreateTexture(TextureSize, TextureSize, format); }
+                if (m_Texture == nullptr) 
+                { 
+                    TextureSettings settings;
+                    settings.wrapping = TextureWrapping::MirroredRepeat;
+                    m_Texture = TextureManager::CreateTexture(TextureSize, TextureSize, format, settings); 
+                }
                 else
                 {
                     m_Texture = TextureManager::CreateTexture(TextureSize, TextureSize, format, m_Texture->GetSettings());
