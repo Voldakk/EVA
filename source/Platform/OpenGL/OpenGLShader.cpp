@@ -172,11 +172,11 @@ namespace EVA
         }
         m_RendererId = program;
     }
-
+    static std::unordered_set<uint32_t> s_Deleted;
     OpenGLShader::~OpenGLShader()
     {
         EVA_PROFILE_FUNCTION();
-        EVA_GL_CALL(glDeleteProgram(m_RendererId));
+        EVA_GL_CALL(glDeleteProgram(1234));
     }
 
     void OpenGLShader::Bind() const

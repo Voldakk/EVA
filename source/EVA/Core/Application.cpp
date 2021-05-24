@@ -30,7 +30,7 @@ namespace EVA
         EVA_INTERNAL_TRACE("Initialized application");
     }
 
-    Application::~Application() {}
+    Application::~Application() { EVA_PROFILE_FUNCTION(); }
 
     void Application::Run()
     {
@@ -61,7 +61,7 @@ namespace EVA
         }
     }
 
-    void Application::Exit() {}
+    void Application::Exit() { m_Running = false; }
 
     void Application::PushLayer(Layer* layer)
     {

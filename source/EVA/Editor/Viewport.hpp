@@ -22,7 +22,7 @@ namespace EVA
             m_Framebuffer = Framebuffer::Create(spec);
             m_TextureId   = m_Framebuffer->GetColorAttachmentRendererId();
         }
-        ~Viewport() = default;
+        ~Viewport() { EVA_PROFILE_FUNCTION(); };
 
         bool Update()
         {

@@ -62,13 +62,13 @@ namespace EVA
         }
     };
 
-#    define EVA_LOG_INIT Log::Init
+#    define EVA_LOG_INIT ::EVA::Log::Init
 
-#    define EVA_INTERNAL_TRACE(...)    Log::GetEngineLogger()->trace(__VA_ARGS__)
-#    define EVA_INTERNAL_INFO(...)     Log::GetEngineLogger()->info(__VA_ARGS__)
-#    define EVA_INTERNAL_WARN(...)     Log::GetEngineLogger()->warn(__VA_ARGS__)
-#    define EVA_INTERNAL_ERROR(...)    Log::GetEngineLogger()->error(__VA_ARGS__)
-#    define EVA_INTERNAL_CRITICAL(...) Log::GetEngineLogger()->critical(__VA_ARGS__)
+#    define EVA_INTERNAL_TRACE(...)    ::EVA::Log::GetEngineLogger()->trace(__VA_ARGS__)
+#    define EVA_INTERNAL_INFO(...)     ::EVA::Log::GetEngineLogger()->info(__VA_ARGS__)
+#    define EVA_INTERNAL_WARN(...)     ::EVA::Log::GetEngineLogger()->warn(__VA_ARGS__)
+#    define EVA_INTERNAL_ERROR(...)    ::EVA::Log::GetEngineLogger()->error(__VA_ARGS__)
+#    define EVA_INTERNAL_CRITICAL(...) ::EVA::Log::GetEngineLogger()->critical(__VA_ARGS__)
 } // namespace EVA
 
 #    define EVA_TRACE(...)    ::EVA::Log::GetAppLogger()->trace(__VA_ARGS__)

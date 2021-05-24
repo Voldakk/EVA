@@ -6,6 +6,7 @@ namespace EVA
 
     LayerStack::~LayerStack()
     {
+        EVA_PROFILE_FUNCTION();
         for (auto layer : m_Layers)
         {
             delete layer;

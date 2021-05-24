@@ -116,6 +116,7 @@ namespace EVA::NE
         bool deletable = true;
 
         Node() = default;
+        virtual ~Node() { EVA_PROFILE_FUNCTION(); }
         Node(NE::NodeId id, const std::string& name) : id(id), name(name) {}
 
         virtual void SetupNode() {};

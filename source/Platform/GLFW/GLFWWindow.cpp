@@ -19,7 +19,11 @@ namespace EVA
 
     GLFWWindow::GLFWWindow(const WindowProperties& properties) { Init(properties); }
 
-    GLFWWindow::~GLFWWindow() { Shutdown(); }
+    GLFWWindow::~GLFWWindow()
+    {
+        EVA_PROFILE_FUNCTION();
+        Shutdown();
+    }
 
     void GLFWWindow::Init(const WindowProperties& properties)
     {

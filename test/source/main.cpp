@@ -34,6 +34,7 @@ int main()
 
     EVA_PROFILE_BEGIN_SESSION("profiler-shutdown.json");
 	delete app;
+    EVA::AssetManager::ClearAll();
     EVA_PROFILE_END_SESSION();
 
 	return 0;

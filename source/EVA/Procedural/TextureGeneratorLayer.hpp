@@ -11,7 +11,7 @@ namespace EVA
     {
       public:
         TextureGeneratorLayer();
-        ~TextureGeneratorLayer() = default;
+        virtual ~TextureGeneratorLayer() { EVA_PROFILE_FUNCTION(); };
 
         void OnUpdate() override;
         void OnEvent(EVA::Event& e) override;

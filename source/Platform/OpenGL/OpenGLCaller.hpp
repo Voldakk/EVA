@@ -17,11 +17,11 @@ namespace EVA
 #    else
 
 #        define EVA_GL_CALL(glFunc)                                                                                                        \
-            ::EVA::GLClearError();                                                                                                         \
+            /*::EVA::GLClearError();  */                                                                                                   \
             glFunc;                                                                                                                        \
-            EVA_INTERNAL_ASSERT(::EVA::GLErrorLogCall(#glFunc, __FILE__, __LINE__), "OpenGL error");                                       \
-            glFinish();                                                                                                                    \
-            EVA_INTERNAL_ASSERT(::EVA::GLErrorLogCall(#glFunc, __FILE__, __LINE__), "OpenGL error")
+            //EVA_INTERNAL_ASSERT(::EVA::GLErrorLogCall(#glFunc, __FILE__, __LINE__), "OpenGL error");                                     \
+            //glFinish();                                                                                                                  \
+            //EVA_INTERNAL_ASSERT(::EVA::GLErrorLogCall(#glFunc, __FILE__, __LINE__), "OpenGL error")
 
 #    endif // LOG_GL_CALLS
 #else

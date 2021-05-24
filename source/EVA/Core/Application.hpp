@@ -23,7 +23,7 @@ namespace EVA
 
       public:
         Application(const WindowProperties& properties = WindowProperties());
-        ~Application();
+        virtual ~Application();
 
         void Run();
         void Exit();
