@@ -1,0 +1,562 @@
+{
+    "links": [
+        [
+            19,
+            17,
+            12
+        ],
+        [
+            43,
+            3,
+            40
+        ],
+        [
+            96,
+            93,
+            81
+        ],
+        [
+            32,
+            29,
+            31
+        ],
+        [
+            24,
+            18,
+            21
+        ],
+        [
+            48,
+            47,
+            16
+        ],
+        [
+            38,
+            13,
+            28
+        ],
+        [
+            42,
+            41,
+            16
+        ],
+        [
+            44,
+            8,
+            16
+        ],
+        [
+            49,
+            6,
+            46
+        ],
+        [
+            53,
+            52,
+            16
+        ],
+        [
+            57,
+            56,
+            51
+        ],
+        [
+            58,
+            5,
+            55
+        ],
+        [
+            63,
+            4,
+            62
+        ],
+        [
+            64,
+            7,
+            60
+        ],
+        [
+            86,
+            85,
+            12
+        ],
+        [
+            90,
+            89,
+            84
+        ],
+        [
+            97,
+            2,
+            92
+        ],
+        [
+            98,
+            94,
+            88
+        ],
+        [
+            99,
+            95,
+            28
+        ]
+    ],
+    "nextId": 100,
+    "nodes": [
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Output",
+            "Outputs": [
+                "Albedo",
+                "Normal",
+                "Metallic",
+                "Roughness",
+                "AO",
+                "Emissive",
+                "Height"
+            ],
+            "deletable": true,
+            "id": 1,
+            "inputs": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+            ],
+            "name": "Output",
+            "outputs": null
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::FloodFill",
+            "Threshold": 0.5,
+            "deletable": true,
+            "id": 11,
+            "inputs": [
+                13
+            ],
+            "name": "Flood fill",
+            "outputs": [
+                12
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::FloodFillMap",
+            "deletable": true,
+            "id": 15,
+            "inputs": [
+                17,
+                18
+            ],
+            "name": "Flood fill map",
+            "outputs": [
+                16
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::WorleyNoise",
+            "Position": [
+                -2.9200000762939453,
+                35.90999984741211
+            ],
+            "Scale": 1.100000023841858,
+            "deletable": true,
+            "id": 20,
+            "inputs": null,
+            "name": "Worley noise",
+            "outputs": [
+                21
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
+            "deletable": true,
+            "id": 27,
+            "inputs": [
+                29
+            ],
+            "m_InputRange": [
+                0.1899999976158142,
+                0.20000000298023224
+            ],
+            "m_InputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_InputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_Midtone": 0.5,
+            "m_Midtones": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+            ],
+            "m_OutputRange": [
+                0.0,
+                1.0
+            ],
+            "m_OutputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_OutputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_SelectedChannel": 0,
+            "name": "Levels",
+            "outputs": [
+                28
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::VoronoiNoise",
+            "Position": [
+                0.0,
+                0.0
+            ],
+            "Scale": 5.0,
+            "deletable": true,
+            "id": 30,
+            "inputs": null,
+            "name": "Voronoi noise",
+            "outputs": [
+                31
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::HeightToNormal",
+            "Strength": 1.0,
+            "deletable": true,
+            "id": 39,
+            "inputs": [
+                41
+            ],
+            "name": "Height to normal",
+            "outputs": [
+                40
+            ]
+        },
+        {
+            "Bias": 0.02500000037252903,
+            "HeightScale": 0.10000000149011612,
+            "ISerializeableTypeId": "::EVA::TextureNodes::HeightToAmbientOcclusion",
+            "Normal Strength": 1.0,
+            "Radius": 0.5,
+            "deletable": true,
+            "id": 45,
+            "inputs": [
+                47
+            ],
+            "name": "Height to AO",
+            "outputs": [
+                46
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::HeightToCurvature",
+            "StepSize": 2,
+            "Steps": 4,
+            "deletable": true,
+            "id": 50,
+            "inputs": [
+                52
+            ],
+            "name": "Height to curvature",
+            "outputs": [
+                51
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
+            "deletable": true,
+            "id": 54,
+            "inputs": [
+                56
+            ],
+            "m_InputRange": [
+                0.23499999940395355,
+                0.7369999885559082
+            ],
+            "m_InputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_InputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_Midtone": 0.5,
+            "m_Midtones": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+            ],
+            "m_OutputRange": [
+                1.0,
+                0.0
+            ],
+            "m_OutputRangeMax": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "m_OutputRangeMin": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "m_SelectedChannel": 0,
+            "name": "Levels",
+            "outputs": [
+                55
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "deletable": true,
+            "id": 59,
+            "inputs": null,
+            "mode": 1,
+            "name": "Uniform color",
+            "outputs": [
+                60
+            ],
+            "value": 0.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "deletable": true,
+            "id": 61,
+            "inputs": null,
+            "mode": 0,
+            "name": "Uniform color",
+            "outputs": [
+                62
+            ],
+            "value": 0.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                0.6048780679702759,
+                0.2832599878311157,
+                0.0,
+                1.0
+            ],
+            "deletable": true,
+            "id": 80,
+            "inputs": null,
+            "mode": 1,
+            "name": "Uniform color",
+            "outputs": [
+                81
+            ],
+            "value": 0.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::FloodFillToRandomGrayscale",
+            "MaxValue": 1.0,
+            "MinValue": 0.0,
+            "Seed": 3.5199999809265137,
+            "deletable": true,
+            "id": 83,
+            "inputs": [
+                85
+            ],
+            "name": "Flood fill to random",
+            "outputs": [
+                84
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::GradientMap",
+            "deletable": true,
+            "id": 87,
+            "inputs": [
+                89
+            ],
+            "marks": [
+                [
+                    0.0,
+                    0.30243903398513794,
+                    0.3024359941482544,
+                    0.3024359941482544,
+                    1.0
+                ],
+                [
+                    1.0,
+                    0.6146341562271118,
+                    0.6146280169487,
+                    0.6146280169487,
+                    1.0
+                ]
+            ],
+            "name": "Gradient map",
+            "outputs": [
+                88
+            ]
+        },
+        {
+            "BlendMode": 0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::Blend",
+            "Opacity": 1.0,
+            "deletable": true,
+            "id": 91,
+            "inputs": [
+                93,
+                94,
+                95
+            ],
+            "name": "Blend",
+            "outputs": [
+                92
+            ]
+        }
+    ],
+    "positions": [
+        [
+            1,
+            [
+                264.0,
+                -130.0
+            ]
+        ],
+        [
+            11,
+            [
+                -824.0,
+                -955.0
+            ]
+        ],
+        [
+            15,
+            [
+                -632.0,
+                -480.0
+            ]
+        ],
+        [
+            20,
+            [
+                -911.0,
+                -458.0
+            ]
+        ],
+        [
+            27,
+            [
+                -1064.0,
+                -795.0
+            ]
+        ],
+        [
+            30,
+            [
+                -1391.0,
+                -870.0
+            ]
+        ],
+        [
+            39,
+            [
+                -351.0,
+                -511.0
+            ]
+        ],
+        [
+            45,
+            [
+                -392.0,
+                -107.0
+            ]
+        ],
+        [
+            50,
+            [
+                -399.0,
+                160.0
+            ]
+        ],
+        [
+            54,
+            [
+                -152.0,
+                160.0
+            ]
+        ],
+        [
+            59,
+            [
+                705.0,
+                -202.0
+            ]
+        ],
+        [
+            61,
+            [
+                513.0,
+                -266.0
+            ]
+        ],
+        [
+            80,
+            [
+                -95.0,
+                -1226.0
+            ]
+        ],
+        [
+            83,
+            [
+                -344.0,
+                -987.0
+            ]
+        ],
+        [
+            87,
+            [
+                -104.0,
+                -987.0
+            ]
+        ],
+        [
+            91,
+            [
+                273.0,
+                -831.0
+            ]
+        ]
+    ]
+}

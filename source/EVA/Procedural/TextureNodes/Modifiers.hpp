@@ -28,28 +28,27 @@ namespace EVA
                 AddInput<Ref<Texture>, 1>({"Opacity", &TextureWhite()});
             }
 
-            void Process() override
+            bool ProcessTextureNode() override
             {
                 if (GetInputDataType(0) != GetInputDataType(1))
                 {
-                    processed = false;
-                    return;
+                    return false;
                 }
 
                 if (IsInputDataType<Ref<Texture>, 1>(0))
                 {
                     SetShader("blend_grayscale.glsl");
-                    SetTexture(TextureFormat::R32F);
+                    SetTexture(TextureR);
                     SetOutputType<Ref<Texture>, 1>(0);
                 }
                 else
                 {
                     SetShader("blend_rgba.glsl");
-                    SetTexture(TextureFormat::RGBA32F);
+                    SetTexture(TextureRGBA);
                     SetOutputType<Ref<Texture>, 4>(0);
                 }
 
-                ComputeNode::Process();
+                return ComputeNode::ProcessTextureNode();
             }
 
             void SetUniforms() const override
@@ -103,22 +102,22 @@ namespace EVA
                 AddInput<Ref<Texture>, 1, 4>({"In"});
             }
 
-            void Process() override
+            bool ProcessTextureNode() override
             {
                 if (IsInputDataType<Ref<Texture>, 1>(0))
                 {
                     SetShader("levles_grayscale.glsl");
-                    SetTexture(TextureFormat::R32F);
+                    SetTexture(TextureR);
                     SetOutputType<Ref<Texture>, 1>(0);
                 }
                 else
                 {
                     SetShader("levles_rgba.glsl");
-                    SetTexture(TextureFormat::RGBA32F);
+                    SetTexture(TextureRGBA);
                     SetOutputType<Ref<Texture>, 4>(0);
                 }
 
-                ComputeNode::Process();
+                return ComputeNode::ProcessTextureNode();
             }
 
             void SetUniforms() const override
@@ -215,7 +214,7 @@ namespace EVA
             GradientMap()
             {
                 SetShader("gradientmap.glsl");
-                SetTexture(TextureFormat::RGBA32F);
+                SetTexture(TextureRGBA);
             }
 
             void SetupNode() override
@@ -279,7 +278,7 @@ namespace EVA
             DirectionalWarp()
             {
                 SetShader("directional_warp.glsl");
-                SetTexture(TextureFormat::R32F);
+                SetTexture(TextureR);
             }
 
             void SetupNode() override
@@ -334,7 +333,7 @@ namespace EVA
             NonUniformDirectionalWarp()
             {
                 SetShader("non_uniform_directional_warp.glsl");
-                SetTexture(TextureFormat::R32F);
+                SetTexture(TextureR);
             }
 
             void SetupNode() override
@@ -394,7 +393,7 @@ namespace EVA
             NormalBlend()
             {
                 SetShader("normal_blend.glsl");
-                SetTexture(TextureFormat::RGBA32F);
+                SetTexture(TextureRGBA);
             }
 
             void SetupNode() override

@@ -14,7 +14,7 @@ namespace EVA
             HeightToNormal()
             {
                 SetShader("height_to_normal.glsl");
-                SetTexture(TextureFormat::RGBA32F);
+                SetTexture(TextureRGBA);
             }
 
             void SetupNode() override
@@ -48,7 +48,7 @@ namespace EVA
             HeightToAmbientOcclusion()
             {
                 SetShader("height_to_ao.glsl");
-                SetTexture(TextureFormat::R32F);
+                SetTexture(TextureR);
             }
 
             void SetupNode() override
@@ -130,7 +130,7 @@ namespace EVA
             HeightToCurvature()
             {
                 SetShader("height_to_curvature.glsl");
-                SetTexture(TextureFormat::R32F);
+                SetTexture(TextureR);
             }
 
             void SetupNode() override

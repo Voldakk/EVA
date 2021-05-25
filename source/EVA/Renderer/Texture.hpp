@@ -205,6 +205,47 @@ namespace EVA
         ~RawTexture();
     };
 
+    template<typename T>
+    class GridData
+    {
+      public:
+        GridData() = default;
+        GridData(uint32_t width, uint32_t height) : m_Width(width), m_Height(height), m_Data(width * height) {}
+        GridData(uint32_t width, uint32_t height, const T& value) : m_Width(width), m_Height(height), m_Data(width * height, value) {}
+
+        void Resize(uint32_t width, uint32_t height)
+        {
+            m_Width  = width;
+            m_Height = height;
+            m_Data.resize(width * height);
+        }
+        void Resize(uint32_t width, uint32_t height, const T& value)
+        {
+            m_Width  = width;
+            m_Height = height;
+            m_Data.resize(width * height, value);
+        }
+
+        T* operator[](size_t row) { return &m_Data[row * m_Width]; }
+        const T* operator[](size_t row) const { return &m_Data[row * m_Width]; }
+
+        T* Row(size_t row) { return &m_Data[row * m_Width]; }
+        const T* Row(size_t row) const { return &m_Data[row * m_Width]; }
+
+        void* Data() { return static_cast<void*>(m_Data.data()); }
+        const void* Data() const { return static_cast<void*>(m_Data.data()); }
+
+        uint32_t Width() const { return m_Width; }
+        uint32_t Height() const { return m_Height; }
+        uint32_t Count() const { return m_Width * m_Height; }
+        uint32_t Size() const { return m_Width * m_Height * sizeof(T); }
+
+      private:
+        std::vector<T> m_Data;
+        uint32_t m_Width;
+        uint32_t m_Height;
+    };
+
     inline TextureFormat GetTextureFormat(TextureFormat format)
     {
         switch (format)

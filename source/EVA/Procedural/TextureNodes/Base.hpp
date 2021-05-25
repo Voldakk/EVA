@@ -9,7 +9,11 @@ namespace EVA
     namespace TextureNodes
     {
         constexpr std::string_view ShaderPath = "procedural/shaders/";
-        constexpr uint32_t TextureSize = 2048;
+        constexpr uint32_t TextureSize        = 2048;
+        constexpr TextureFormat TextureR = TextureFormat::R32F;
+        constexpr TextureFormat TextureRG = TextureFormat::RG32F;
+        constexpr TextureFormat TextureRGB = TextureFormat::RGB32F;
+        constexpr TextureFormat TextureRGBA = TextureFormat::RGBA32F;
 
         class TextureNode : public NE::Node
         {
@@ -19,14 +23,14 @@ namespace EVA
             Ref<Texture>& TextureWhite()
             {
                 static Ref<Texture> texture;
-                if (!texture) { texture = TextureUtilities::Uniform(1.0f, TextureFormat::R32F, TextureSize); }
+                if (!texture) { texture = TextureUtilities::Uniform(1.0f, TextureR, TextureSize); }
                 return texture;
             }
 
             Ref<Texture>& TextureBlack()
             {
                 static Ref<Texture> texture;
-                if (!texture) { texture = TextureUtilities::Uniform(0.0f, TextureFormat::R32F, TextureSize); }
+                if (!texture) { texture = TextureUtilities::Uniform(0.0f, TextureR, TextureSize); }
                 return texture;
             }
 
@@ -35,17 +39,34 @@ namespace EVA
 
             virtual Ref<Texture> GetTexture() const = 0;
 
+            void Process() final override
+            {
+                auto startTimepoint = std::chrono::steady_clock::now();
+
+                processed = ProcessTextureNode();
+
+                auto endTimepoint = std::chrono::steady_clock::now();
+                m_ProcessTime     = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch() -
+                                std::chrono::time_point_cast<std::chrono::microseconds>(startTimepoint).time_since_epoch();
+            }
+
+            virtual bool ProcessTextureNode() { return true; }
+
             void DrawFields() override
             {
                 auto texture       = GetTexture();
                 uint32_t textureId = 0;
                 if (texture != nullptr) textureId = texture->GetRendererId();
                 ImGui::Image(*reinterpret_cast<void**>(&textureId), ImVec2 {150, 150}, ImVec2 {0.0f, 1.0f}, ImVec2 {1.0f, 0.0f});
+                ImGui::Text("Time: %5.2f ms", m_ProcessTime.count() / 1000.0f);
             }
 
             virtual std::chrono::microseconds GetProcessTimeMs() const { return std::chrono::microseconds(0); };
 
             void Serialize(DataObject& data) override { NE::Node::Serialize(data); }
+
+          private:
+            std::chrono::microseconds m_ProcessTime {};
         };
 
         class Passthrough : public TextureNode
@@ -56,7 +77,7 @@ namespace EVA
             Passthrough()          = default;
             virtual ~Passthrough() = default;
 
-            void Process() override
+            bool ProcessTextureNode() override
             {
                 const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(0);
                 m_Texture               = *ref;
@@ -67,6 +88,7 @@ namespace EVA
                     if (channels == 1) SetOutputType<Ref<Texture>, 1>(0);
                     if (channels == 4) SetOutputType<Ref<Texture>, 4>(0);
                 }
+                return true;
             }
 
             Ref<Texture> GetTexture() const override { return m_Texture; }
@@ -90,7 +112,7 @@ namespace EVA
             Output(const std::vector<std::string>& outputs = {"Output"}) : m_Outputs(outputs) {}
             virtual ~Output() = default;
 
-            void Process() override
+            bool ProcessTextureNode() override
             {
                 for (size_t i = 0; i < m_Textures.size(); i++)
                 {
@@ -104,6 +126,7 @@ namespace EVA
                         m_Textures[i]     = TextureManager::CopyTexture(r, r->GetFormat(), settings);
                     }
                 }
+                return true;
             }
 
             Ref<Texture> GetTexture() const override { return nullptr; }
@@ -142,7 +165,7 @@ namespace EVA
             Input()          = default;
             virtual ~Input() = default;
 
-            void Process() override
+            bool ProcessTextureNode() override
             {
                 m_Texture = AssetManager::Load<Texture>(m_Path);
                 processed = m_Texture != nullptr;
@@ -153,6 +176,8 @@ namespace EVA
                     if (channels == 1) SetOutputType<Ref<Texture>, 1>(0);
                     if (channels == 4) SetOutputType<Ref<Texture>, 4>(0);
                 }
+
+                return true;
             }
 
             Ref<Texture> GetTexture() const override { return m_Texture; }
@@ -185,10 +210,8 @@ namespace EVA
           public:
             virtual ~ComputeNode() = default;
 
-            void Process() override
+            bool ProcessTextureNode() override
             {
-                auto startTimepoint = std::chrono::steady_clock::now();
-
                 m_Shader->Bind();
                 m_Shader->ResetTextureUnit();
                 m_Shader->BindImageTexture(0, m_Texture, TextureAccess::WriteOnly);
@@ -208,22 +231,12 @@ namespace EVA
                 uint32_t numWorkGroupsY = m_Texture->GetHeight() / m_WorkGroupSize;
                 m_Shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1, m_WorkGroupSize, m_WorkGroupSize, 1);
 
-                auto endTimepoint = std::chrono::steady_clock::now();
-                m_ProcessTime     = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch() -
-                                std::chrono::time_point_cast<std::chrono::microseconds>(startTimepoint).time_since_epoch();
-            }
-
-            void DrawFields() override
-            {
-                TextureNode::DrawFields();
-                ImGui::Text("Time: %5.2f ms", m_ProcessTime.count() / 1000.0f);
+                return true;
             }
 
             void Serialize(DataObject& data) override
             {
                 TextureNode::Serialize(data);
-
-                ImGui::Text("Time: %5.2f ms", m_ProcessTime.count() / 1000.0f);
                 if (ImGui::Button("Reload shaders"))
                 {
                     m_Shader = AssetManager::Load<Shader>(std::string(ShaderPath) + m_ShaderName, false);
@@ -251,6 +264,8 @@ namespace EVA
                 { 
                     TextureSettings settings;
                     settings.wrapping = TextureWrapping::MirroredRepeat;
+                    settings.minFilter = TextureMinFilter::Nearest;
+                    settings.magFilter = TextureMagFilter::Nearest;
                     m_Texture = TextureManager::CreateTexture(TextureSize, TextureSize, format, settings); 
                 }
                 else
@@ -265,15 +280,11 @@ namespace EVA
                 m_Texture = TextureManager::CreateTexture(TextureSize, TextureSize, format, settings);
             }
 
-            std::chrono::microseconds GetProcessTimeMs() const override { return m_ProcessTime; };
-
           protected:
             Ref<Texture> m_Texture;
             Ref<Shader> m_Shader;
             std::string m_ShaderName;
             uint32_t m_WorkGroupSize = 16;
-
-            std::chrono::microseconds m_ProcessTime {};
         };
     } // namespace TextureNodes
 } // namespace EVA

@@ -13,7 +13,7 @@ namespace EVA
             {
                 TextureSettings settings;
                 settings.wrapping = TextureWrapping::MirroredRepeat;
-                SetTexture(TextureFormat::R32F, settings);
+                SetTexture(TextureR, settings);
             }
 
             void SetupNode() override

@@ -25,22 +25,22 @@ namespace EVA
                 AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
             }
 
-            void Process() override
+            bool ProcessTextureNode() override
             {
                 if (m_Mode == 0)
                 {
                     SetShader("uniform_grayscale.glsl");
-                    SetTexture(TextureFormat::R32F);
+                    SetTexture(TextureR);
                     SetOutputType<Ref<Texture>, 1>(0);
                 }
                 else
                 {
                     SetShader("uniform_rgba.glsl");
-                    SetTexture(TextureFormat::RGBA32F);
+                    SetTexture(TextureRGBA);
                     SetOutputType<Ref<Texture>, 4>(0);
                 }
 
-                ComputeNode::Process();
+                return ComputeNode::ProcessTextureNode();
             }
 
             void SetUniforms() const override
@@ -90,7 +90,7 @@ namespace EVA
             Bricks()
             {
                 SetShader("brick.glsl");
-                SetTexture(TextureFormat::R32F);
+                SetTexture(TextureR);
             }
 
             void SetupNode() override

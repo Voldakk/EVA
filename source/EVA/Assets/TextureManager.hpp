@@ -18,6 +18,11 @@ namespace EVA
 
         static Ref<Texture> CopyTexture(const Ref<Texture>& source, TextureFormat format, const TextureSettings& settings);
 
+        template<typename T>
+        static Ref<GridData<T>> GetDataFromGpu(const Ref<Texture>& texture);
+
+        static void GetDataFromGpu(const Ref<Texture>& texture, void* buffer, uint32_t bufferSize);
+
         static void Delete(Texture& texture);
 
         static Ref<RawTexture> LoadRaw(const std::filesystem::path& path);
@@ -25,4 +30,12 @@ namespace EVA
 
         static void GenerateMipMaps(Ref<Texture>& texture);
     };
+
+    template<typename T>
+    inline Ref<GridData<T>> TextureManager::GetDataFromGpu(const Ref<Texture>& texture)
+    {
+        auto data = CreateRef<GridData<T>>(texture->GetWidth(), texture->GetHeight());
+        GetDataFromGpu(texture, data->Data(), data->Size());
+        return data;
+    }
 } // namespace EVA

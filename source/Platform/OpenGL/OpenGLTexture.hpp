@@ -13,6 +13,8 @@ namespace EVA
 
         static uint32_t CopyTexture(const Texture& source, const Texture& texture, const std::string& id = "");
 
+        static void GetDataFromGpu(const Texture& texture, void* buffer, uint32_t bufferSize, int level = 0);
+
         static void DeleteGLTexture(const Texture& texture);
 
         static void GenerateMipMaps(const Texture& texture);

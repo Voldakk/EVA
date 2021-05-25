@@ -148,6 +148,10 @@ namespace EVA
         if (ImGui::Button("Height to normal")) { m_NodeEditor.AddNode<TextureNodes::HeightToNormal>(); }
         if (ImGui::Button("Height to curvature")) { m_NodeEditor.AddNode<TextureNodes::HeightToCurvature>(); }
         if (ImGui::Button("Height to AO")) { m_NodeEditor.AddNode<TextureNodes::HeightToAmbientOcclusion>(); }
+        ImGui::Spacing();
+        if (ImGui::Button("Flood fill")) { m_NodeEditor.AddNode<TextureNodes::FloodFill>(); }
+        if (ImGui::Button("Flood fill map")) { m_NodeEditor.AddNode<TextureNodes::FloodFillMap>(); }
+        if (ImGui::Button("Flood fill to random")) { m_NodeEditor.AddNode<TextureNodes::FloodFillToRandomGrayscale>(); }
         ImGui::End();
 
         ImGui::Begin("Selected");
@@ -162,7 +166,8 @@ namespace EVA
         ImGui::Begin("Texture");
         if (!selected.empty())
         {
-            auto texture       = reinterpret_cast<TextureNodes::TextureNode*>(selected[0])->GetTexture();
+            auto tNode   = reinterpret_cast<TextureNodes::TextureNode*>(selected[0]);
+            auto texture = tNode ? tNode->GetTexture() : nullptr;
             uint32_t textureId = 0;
             if (texture != nullptr) textureId = texture->GetRendererId();
             auto size = ImGui::GetContentRegionAvail();

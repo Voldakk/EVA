@@ -100,6 +100,12 @@ namespace EVA
         return rendererId;
     }
 
+    void OpenGLTexture::GetDataFromGpu(const Texture& texture, void* buffer, uint32_t bufferSize, int level) 
+    { 
+        glGetTextureImage(texture.GetRendererId(), level, GetGLFormat(GetTextureFormat(texture.GetFormat())),
+                          GetGLDataType(GetTextureDataType(texture.GetFormat())), bufferSize, buffer);
+    }
+
     void OpenGLTexture::DeleteGLTexture(const Texture& texture)
     {
         EVA_PROFILE_FUNCTION();

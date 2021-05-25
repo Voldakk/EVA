@@ -148,6 +148,38 @@ namespace EVA
         return texture;
     }
 
+    Ref<Texture> TextureManager::CopyTexture(const Ref<Texture>& source, TextureFormat format, const TextureSettings& settings)
+    {
+        EVA_PROFILE_FUNCTION();
+
+        auto texture        = CreateRef<Texture>();
+        texture->m_Width    = source->m_Width;
+        texture->m_Height   = source->m_Height;
+        texture->m_Format   = format;
+        texture->m_Settings = settings;
+        texture->m_Target   = source->m_Target;
+        texture->m_Path     = "Copy";
+
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::None: break;
+            case RendererAPI::API::OpenGL: texture->m_RendererId = OpenGLTexture::CopyTexture(*source, *texture); break;
+            default: EVA_INTERNAL_ASSERT(false, "Unknown RendererAPI");
+        }
+
+        return texture;
+    }
+
+    void TextureManager::GetDataFromGpu(const Ref<Texture>& texture, void* buffer, uint32_t bufferSize) 
+    {
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::None: break;
+            case RendererAPI::API::OpenGL: OpenGLTexture::GetDataFromGpu(*texture, buffer, bufferSize, 0); break;
+            default: EVA_INTERNAL_ASSERT(false, "Unknown RendererAPI");
+        }
+    }
+
     void TextureManager::Delete(Texture& texture)
     {
         EVA_PROFILE_FUNCTION();
@@ -201,28 +233,6 @@ namespace EVA
             EVA_INTERNAL_TRACE("- Failed to load texture: {}", pathString);
             return nullptr;
         }
-    }
-
-    Ref<Texture> TextureManager::CopyTexture(const Ref<Texture>& source, TextureFormat format, const TextureSettings& settings)
-    {
-        EVA_PROFILE_FUNCTION();
-
-        auto texture        = CreateRef<Texture>();
-        texture->m_Width    = source->m_Width;
-        texture->m_Height   = source->m_Height;
-        texture->m_Format   = format;
-        texture->m_Settings = settings;
-        texture->m_Target   = source->m_Target;
-        texture->m_Path     = "Copy";
-
-        switch (Renderer::GetAPI())
-        {
-            case RendererAPI::API::None: break;
-            case RendererAPI::API::OpenGL: texture->m_RendererId = OpenGLTexture::CopyTexture(*source, *texture); break;
-            default: EVA_INTERNAL_ASSERT(false, "Unknown RendererAPI");
-        }
-
-        return texture;
     }
 
     void TextureManager::DeleteRaw(RawTexture& texture)
