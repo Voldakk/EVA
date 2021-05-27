@@ -32,22 +32,7 @@ namespace EVA
                         EVA_PROFILE_SCOPE("GetDataFromGpu");
                         data = TextureManager::GetDataFromGpu<float>(*ref);
                     }
-                    std::pair<GridData<uint32_t>, uint32_t> labelData;
-                    {
-                        EVA_PROFILE_SCOPE("Label");
-                        labelData = Label(*data, m_Threshold);
-                    }
-                    auto [labels, maxLabel] = labelData;
-                    GridData<glm::vec4> textureData;
-                    {
-                        EVA_PROFILE_SCOPE("GenerateTexture");
-                        textureData = GenerateTexture(labels, maxLabel);
-                    }
-                    {
-                        EVA_PROFILE_SCOPE("CreateTexture");
-                        m_Texture = TextureManager::CreateTexture(textureData.Width(), textureData.Height(), textureData.Data(),
-                                                                  TextureRGBA, m_TextureSettings);
-                    }
+                    m_Texture = GenerateTexture(*data, m_Threshold);
                     return true;
                 }
                 return false;
@@ -77,9 +62,12 @@ namespace EVA
             Ref<Texture> m_Texture = nullptr;
             float m_Threshold      = 0.5f;
 
-            std::pair<GridData<uint32_t>, uint32_t> Label(const GridData<float>& data, float threshold)
+            Ref<Texture> GenerateTexture(const GridData<float>& data, float threshold)
             {
-                GridData<uint32_t> lables(data.Width(), data.Height(), 0);
+                uint32_t width = data.Width();
+                uint32_t height = data.Height();
+
+                GridData<uint32_t> labels(width, height, 0);
                 uint32_t nextLabel = 1;
                 std::vector<uint32_t> neighbors;
 
@@ -93,25 +81,25 @@ namespace EVA
 
                 {
                     EVA_PROFILE_SCOPE("Label");
-                    for (int32_t y = 0; y < data.Height(); y++)
+                    for (int32_t y = 0; y < height; y++)
                     {
-                        for (int32_t x = 0; x < data.Width(); x++)
+                        for (int32_t x = 0; x < width; x++)
                         {
                             if (data[y][x] > threshold)
                             {
                                 neighbors.clear();
-                                if (get(x - 1, y) > threshold) { neighbors.push_back(lables[y][x - 1]); }
-                                if (get(x, y - 1) > threshold) { neighbors.push_back(lables[y - 1][x]); }
+                                if (get(x - 1, y) > threshold) { neighbors.push_back(labels[y][x - 1]); }
+                                if (get(x, y - 1) > threshold) { neighbors.push_back(labels[y - 1][x]); }
 
                                 if (neighbors.empty())
                                 {
                                     linked[nextLabel] = {nextLabel};
-                                    lables[y][x]      = nextLabel;
+                                    labels[y][x]      = nextLabel;
                                     nextLabel++;
                                 }
                                 else
                                 {
-                                    lables[y][x] = neighbors[0];
+                                    labels[y][x] = neighbors[0];
                                     {
                                         for (const auto l : neighbors)
                                         {
@@ -126,78 +114,93 @@ namespace EVA
                         }
                     }
                 }
+                std::unordered_set<uint32_t> minLabels;
+                std::unordered_map<uint32_t, uint32_t> minLabelsMap;
+
+                std::unordered_map<uint32_t, uint32_t> minLinked;
                 {
                     EVA_PROFILE_SCOPE("Merge");
-                    std::unordered_map<uint32_t, uint32_t> minLinked;
+
                     for (const auto& [k, v] : linked)
                     {
-                        minLinked[k] = *std::min_element(v.begin(), v.end());
+                        auto min = *std::min_element(v.begin(), v.end());
+                        minLinked[k] = min;
+                        minLabels.insert(min);
                     }
+                    minLabels.erase(0);
+
+                    uint32_t index = 1;
+                    for (const auto& l : minLabels) 
+                    {
+                        minLabelsMap[l] = index++;
+                    }
+
                     for (int32_t y = 0; y < data.Height(); y++)
                     {
                         for (int32_t x = 0; x < data.Width(); x++)
                         {
-                            if (lables[y][x] != 0) { lables[y][x] = minLinked[lables[y][x]]; }
+                            if (labels[y][x] != 0) { labels[y][x] = minLabelsMap[minLinked[labels[y][x]]]; }
                         }
                     }
                 }
 
-                uint32_t maxLabel = 0;
-                {
-                    EVA_PROFILE_SCOPE("Find max");
-                    for (const auto& [k, v] : linked)
-                    {
-                        uint32_t min = *std::min_element(v.begin(), v.end());
-                        maxLabel     = glm::max(maxLabel, min);
-                    }
-                }
+                uint32_t maxLabel = minLabels.size();
 
-                return {lables, maxLabel};
-            }
-            GridData<glm::vec4> GenerateTexture(const GridData<uint32_t>& labels, uint32_t maxLabel)
-            {
                 struct Extents
                 {
                     uint32_t minX, maxX, minY, maxY;
                 };
-                std::unordered_map<uint32_t, Extents> extents;
-                for (uint32_t i = 1; i <= maxLabel; i++)
-                {
-                    extents[i] = {labels.Width(), 0, labels.Height(), 0};
-                }
 
-                for (uint32_t y = 0; y < labels.Height(); y++)
+                std::vector<Extents> extents(maxLabel, {labels.Width(), 0, labels.Height(), 0});
                 {
-                    for (uint32_t x = 0; x < labels.Width(); x++)
+                    EVA_PROFILE_SCOPE("Find extents");
+
+                    for (uint32_t y = 0; y < labels.Height(); y++)
                     {
-                        auto& e = extents[labels[y][x]];
-
-                        e.minX = glm::min(e.minX, x);
-                        e.maxX = glm::max(e.maxX, x);
-
-                        e.minY = glm::min(e.minY, y);
-                        e.maxY = glm::max(e.maxY, y);
-                    }
-                }
-
-                float step = 1.0f / maxLabel;
-                GridData<glm::vec4> tex(labels.Width(), labels.Height(), glm::vec4(0, 0, 0, 1));
-                for (int32_t y = 0; y < labels.Height(); y++)
-                {
-                    for (int32_t x = 0; x < labels.Width(); x++)
-                    {
-                        auto l = labels[y][x];
-                        if (l != 0)
+                        for (uint32_t x = 0; x < labels.Width(); x++)
                         {
-                            const auto& e = extents[l];
-                            float u       = (float)(x - e.minX) / (e.maxX - e.minX);
-                            float v       = (float)(y - e.minY) / (e.maxY - e.minY);
-                            float i       = l * step;
-                            tex[y][x]     = glm::vec4(u, v, i, 1.0f);
+                            int32_t l = labels[y][x];
+                            if (l == 0) continue;
+                            auto& e = extents[l - 1];
+
+                            e.minX = glm::min(e.minX, x);
+                            e.maxX = glm::max(e.maxX, x);
+
+                            e.minY = glm::min(e.minY, y);
+                            e.maxY = glm::max(e.maxY, y);
                         }
                     }
                 }
-                return tex;
+
+                Ref<Texture> texture;
+                {
+                    EVA_PROFILE_SCOPE("GenerateTexture");
+
+                    texture = TextureManager::CreateTexture(labels.Width(), labels.Height(), TextureRGBA, m_TextureSettings);
+
+                    auto shader = AssetManager::Load<Shader>(std::string(ShaderPath) + "flood_fill/gen_texture.glsl");
+                    shader->Bind();
+
+                    auto labelSsbo = ShaderStorageBuffer::Create(labels.Data(), labels.Size());
+                    shader->SetUniformInt("u_LabelCount", labels.Count());
+                    shader->BindStorageBuffer(1, labelSsbo);
+
+                    auto extentsSsbo = ShaderStorageBuffer::Create(extents.data(), extents.size() * sizeof(Extents));
+                    shader->SetUniformInt("u_ExtentsCount", extents.size());
+                    shader->BindStorageBuffer(2, extentsSsbo);
+
+                    float step = 1.0f / maxLabel;
+                    shader->SetUniformFloat("u_Step", step);
+
+                    shader->BindImageTexture(0, texture, TextureAccess::WriteOnly);
+
+                    uint32_t workGroupSize  = 16;
+                    uint32_t numWorkGroupsX = (texture->GetWidth() + workGroupSize - 1) / workGroupSize;
+                    uint32_t numWorkGroupsY = (texture->GetHeight() + workGroupSize - 1) / workGroupSize;
+
+                    shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1, workGroupSize, workGroupSize, 1);
+                }
+                return texture;
             }
         };
 
@@ -208,7 +211,7 @@ namespace EVA
           public:
             FloodFillMap()
             {
-                SetShader("flood_fill_map.glsl");
+                SetShader("flood_fill/map.glsl");
                 SetTexture(TextureR);
             }
 
@@ -242,7 +245,7 @@ namespace EVA
           public:
             FloodFillToRandomGrayscale()
             {
-                SetShader("flood_fill_to_random_grayscale.glsl");
+                SetShader("flood_fill/random_grayscale.glsl");
                 SetTexture(TextureR);
             }
 

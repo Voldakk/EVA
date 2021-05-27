@@ -233,7 +233,7 @@ namespace EVA
         const T* Row(size_t row) const { return &m_Data[row * m_Width]; }
 
         void* Data() { return static_cast<void*>(m_Data.data()); }
-        const void* Data() const { return static_cast<void*>(m_Data.data()); }
+        const void* Data() const { return static_cast<const void*>(m_Data.data()); }
 
         uint32_t Width() const { return m_Width; }
         uint32_t Height() const { return m_Height; }

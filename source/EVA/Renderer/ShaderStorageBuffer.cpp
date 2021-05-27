@@ -5,7 +5,7 @@
 
 namespace EVA
 {
-    Ref<ShaderStorageBuffer> ShaderStorageBuffer::Create(void* data, uint32_t size)
+    Ref<ShaderStorageBuffer> ShaderStorageBuffer::Create(const void* data, uint32_t size)
     {
         switch (Renderer::GetAPI())
         {

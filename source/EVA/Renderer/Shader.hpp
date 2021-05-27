@@ -2,6 +2,7 @@
 
 #include "EVA/Assets/Asset.hpp"
 #include "EVA/Renderer/Texture.hpp"
+#include "EVA/Renderer/ShaderStorageBuffer.hpp"
 
 namespace EVA
 {
@@ -31,6 +32,7 @@ namespace EVA
         virtual void BindTexture(const std::string& name, const Ref<Texture>& texture)                                  = 0;
         virtual void BindTexture(const std::string& name, const TextureTarget target, const uint32_t rendererId)        = 0;
         virtual void BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const TextureAccess access) = 0;
+        virtual void BindStorageBuffer(const uint32_t index, const Ref<ShaderStorageBuffer>& buffer)                    = 0;
 
         virtual void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ) = 0;
         virtual void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ, uint32_t groupSizeX,

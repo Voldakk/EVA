@@ -6,7 +6,7 @@
 
 namespace EVA
 {
-    Ref<Shader> Shader::Create(const std::filesystem::path& path)
+    Ref<Shader> Shader::Create(const Path& path)
     {
         switch (Renderer::GetAPI())
         {

@@ -2,7 +2,6 @@
 
 #include "OpenGL.hpp"
 #include "OpenGLTexture.hpp"
-
 #include <fstream>
 
 namespace EVA
@@ -297,6 +296,12 @@ namespace EVA
         EVA_PROFILE_FUNCTION();
         EVA_GL_CALL(glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, OpenGLTexture::GetGLAccess(access),
                                        OpenGLTexture::GetGLFormat(texture->GetFormat())));
+    }
+
+    void OpenGLShader::BindStorageBuffer(const uint32_t index, const Ref<ShaderStorageBuffer>& buffer)
+    {
+        EVA_PROFILE_FUNCTION();
+        EVA_GL_CALL(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, buffer->GetRendererId()));
     }
 
     void OpenGLShader::DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ)

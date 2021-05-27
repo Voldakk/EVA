@@ -3,7 +3,7 @@
 
 namespace EVA
 {
-    OpenGLShaderStorageBuffer::OpenGLShaderStorageBuffer(void* data, uint32_t size) : m_Size(size)
+    OpenGLShaderStorageBuffer::OpenGLShaderStorageBuffer(const void* data, uint32_t size) : m_Size(size)
     {
         EVA_PROFILE_FUNCTION();
         EVA_GL_CALL(glGenBuffers(1, &m_RendererId));
@@ -17,7 +17,7 @@ namespace EVA
         EVA_GL_CALL(glDeleteBuffers(1, &m_RendererId));
     }
 
-    void OpenGLShaderStorageBuffer::BufferData(void* data, uint32_t size, uint32_t offset)
+    void OpenGLShaderStorageBuffer::BufferData(const void* data, uint32_t size, uint32_t offset)
     {
         EVA_PROFILE_FUNCTION();
 
