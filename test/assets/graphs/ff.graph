@@ -1,0 +1,94 @@
+{
+    "links": null,
+    "nextId": 14,
+    "nodes": [
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Output",
+            "Outputs": [
+                "Albedo",
+                "Normal",
+                "Metallic",
+                "Roughness",
+                "AO",
+                "Emissive",
+                "Height"
+            ],
+            "deletable": true,
+            "id": 1,
+            "inputs": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+            ],
+            "name": "Output",
+            "outputs": null
+        },
+        {
+            "Bevel": [
+                9.999999747378752e-05,
+                9.999999747378752e-05
+            ],
+            "Gap": [
+                25.0,
+                25.0
+            ],
+            "Height": [
+                1.0,
+                1.0
+            ],
+            "ISerializeableTypeId": "::EVA::TextureNodes::Bricks",
+            "Num bricks": [
+                8,
+                8
+            ],
+            "Offset": 0.0,
+            "deletable": true,
+            "id": 9,
+            "inputs": null,
+            "name": "Bricks",
+            "outputs": [
+                10
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::FloodFill",
+            "Threshold": 0.5,
+            "deletable": true,
+            "id": 11,
+            "inputs": [
+                13
+            ],
+            "name": "Flood fill",
+            "outputs": [
+                12
+            ]
+        }
+    ],
+    "positions": [
+        [
+            1,
+            [
+                200.0,
+                0.0
+            ]
+        ],
+        [
+            9,
+            [
+                -63.0,
+                277.0
+            ]
+        ],
+        [
+            11,
+            [
+                177.0,
+                272.0
+            ]
+        ]
+    ]
+}

@@ -64,94 +64,89 @@ namespace EVA
 
             Ref<Texture> GenerateTexture(const GridData<float>& data, float threshold)
             {
-                uint32_t width = data.Width();
-                uint32_t height = data.Height();
+                glm::ivec2 dims = glm::ivec2(data.Width(), data.Height());
 
-                GridData<uint32_t> labels(width, height, 0);
-                uint32_t nextLabel = 1;
-                std::vector<uint32_t> neighbors;
+                glm::ivec2 groupSize = dims; // glm::ivec2(32);
 
-                std::unordered_map<uint32_t, std::unordered_set<uint32_t>> linked;
+                glm::ivec2 groups = (dims + groupSize - 1) / groupSize;
 
-                auto get = [&](int32_t x, int32_t y) 
-                {
-                    if (x < 0 || y < 0) return -1.0f;
-                    return data[y][x];
-                };
+                uint32_t size = groupSize.x * groupSize.y;
+
+                GridData<uint32_t> labels(dims.x, dims.y, 0);
+                uint32_t nextIndex = 1;
 
                 {
                     EVA_PROFILE_SCOPE("Label");
-                    for (int32_t y = 0; y < height; y++)
+                    for (int groupY = 0; groupY < groups.y; groupY++)
                     {
-                        for (int32_t x = 0; x < width; x++)
+                        for (int groupX = 0; groupX < groups.x; groupX++)
                         {
-                            if (data[y][x] > threshold)
-                            {
-                                neighbors.clear();
-                                if (get(x - 1, y) > threshold) { neighbors.push_back(labels[y][x - 1]); }
-                                if (get(x, y - 1) > threshold) { neighbors.push_back(labels[y - 1][x]); }
+                            uint32_t nextLabel = 1;
+                            uint32_t maxLabel  = size / 2;
+                            std::vector<uint32_t> links(maxLabel + 1, maxLabel); 
+                            GridData<uint32_t> localLabels(groupSize.x, groupSize.y, 0);
 
-                                if (neighbors.empty())
+                            for (int localY = 0; localY < groupSize.y; localY++)
+                            {
+                                for (int localX = 0; localX < groupSize.x; localX++)
                                 {
-                                    linked[nextLabel] = {nextLabel};
-                                    labels[y][x]      = nextLabel;
-                                    nextLabel++;
-                                }
-                                else
-                                {
-                                    labels[y][x] = neighbors[0];
+                                    int x = localX + groupX * groupSize.x;
+                                    int y = localY + groupY * groupSize.x;
+
+                                    if (data[y][x] > threshold)
                                     {
-                                        for (const auto l : neighbors)
+                                        float valueX = (localX - 1) < 0 ? 0.0 : data[y][x-1];
+                                        uint32_t labelX = maxLabel;
+                                        if (valueX > threshold) { labelX = localLabels[localY][localX - 1]; }
+
+                                        float valueY    = (localY - 1) < 0 ? 0.0 : data[y-1][x];
+                                        uint32_t labelY = maxLabel;
+                                        if (valueY > threshold) { labelY = localLabels[localY - 1][localX]; }
+
+                                        if (labelX == maxLabel && labelY == maxLabel)
+                                        { 
+                                            localLabels[localY][localX] = nextLabel++;
+                                        }
+                                        else
                                         {
-                                            for (const auto ll : neighbors)
-                                            {
-                                                if (l != ll) { linked[l].insert(linked[ll].begin(), linked[ll].end()); }
-                                            }
+                                            uint32_t low  = glm::min(labelX, labelY);
+                                            uint32_t high = glm::max(labelX, labelY);
+
+                                            localLabels[localY][localX] = low;
+
+                                            links[high] = glm::min(low, links[high]);
                                         }
                                     }
+                                }
+                            }
+
+                            for (size_t i = 1; i < nextLabel; i++) 
+                            {
+                                auto& l = links[i];
+                                l       = l == i ? nextIndex++ : links[l];
+                            }
+                            links[0] = 0;
+
+                            for (int localY = 0; localY < groupSize.y; localY++)
+                            {
+                                for (int localX = 0; localX < groupSize.x; localX++) 
+                                {
+                                    int x = localX + groupX * groupSize.x;
+                                    int y = localY + groupY * groupSize.x;
+
+                                    labels[y][x] = links[localLabels[localY][localX]];
                                 }
                             }
                         }
                     }
                 }
-                std::unordered_set<uint32_t> minLabels;
-                std::unordered_map<uint32_t, uint32_t> minLabelsMap;
-
-                std::unordered_map<uint32_t, uint32_t> minLinked;
-                {
-                    EVA_PROFILE_SCOPE("Merge");
-
-                    for (const auto& [k, v] : linked)
-                    {
-                        auto min = *std::min_element(v.begin(), v.end());
-                        minLinked[k] = min;
-                        minLabels.insert(min);
-                    }
-                    minLabels.erase(0);
-
-                    uint32_t index = 1;
-                    for (const auto& l : minLabels) 
-                    {
-                        minLabelsMap[l] = index++;
-                    }
-
-                    for (int32_t y = 0; y < data.Height(); y++)
-                    {
-                        for (int32_t x = 0; x < data.Width(); x++)
-                        {
-                            if (labels[y][x] != 0) { labels[y][x] = minLabelsMap[minLinked[labels[y][x]]]; }
-                        }
-                    }
-                }
-
-                uint32_t maxLabel = minLabels.size();
 
                 struct Extents
                 {
                     uint32_t minX, maxX, minY, maxY;
                 };
 
-                std::vector<Extents> extents(maxLabel, {labels.Width(), 0, labels.Height(), 0});
+                std::vector<Extents> extents(nextIndex, {labels.Width(), 0, labels.Height(), 0});
                 {
                     EVA_PROFILE_SCOPE("Find extents");
 
@@ -189,7 +184,7 @@ namespace EVA
                     shader->SetUniformInt("u_ExtentsCount", extents.size());
                     shader->BindStorageBuffer(2, extentsSsbo);
 
-                    float step = 1.0f / maxLabel;
+                    float step = 1.0f / nextIndex;
                     shader->SetUniformFloat("u_Step", step);
 
                     shader->BindImageTexture(0, texture, TextureAccess::WriteOnly);
