@@ -20,13 +20,12 @@ namespace EVA
         static void GenerateMipMaps(const Texture& texture);
 
         static unsigned int GetGLTarget(const TextureTarget value);
-
         static unsigned int GetGLFormat(const TextureFormat format);
         static unsigned int GetGLDataType(const TextureDataType dataType);
+        static unsigned int GetGLPixelDataFormat(const PixelDataFormat value);
 
         static int GetGLMinFilter(const TextureMinFilter value);
         static int GetGLMagFilter(const TextureMagFilter value);
         static int GetGLWrapping(const TextureWrapping value);
-        static unsigned int GetGLAccess(const TextureAccess value);
     };
 } // namespace EVA

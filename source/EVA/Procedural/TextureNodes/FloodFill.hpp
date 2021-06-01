@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base.hpp"
-
+#include "Platform/OpenGL/OpenGLContext.hpp"
 namespace EVA
 {
     namespace TextureNodes
@@ -13,10 +13,21 @@ namespace EVA
           public:
             FloodFill()
             {
-                m_TextureSettings.wrapping  = TextureWrapping::ClampToEdge;
-                m_TextureSettings.minFilter = TextureMinFilter::Nearest;
-                m_TextureSettings.magFilter = TextureMagFilter::Nearest;
-                // m_Texture                   = TextureManager::CreateTexture(TextureSize, TextureSize, TextureRGBA, m_TextureSettings);
+                TextureSettings textureSettings;
+                textureSettings.wrapping    = TextureWrapping::ClampToEdge;
+                textureSettings.minFilter   = TextureMinFilter::Nearest;
+                textureSettings.magFilter   = TextureMagFilter::Nearest;
+                m_Texture                   = TextureManager::CreateTexture(TextureSize, TextureSize, TextureRGBA, textureSettings);
+                m_LabelsTexture             = TextureManager::CreateTexture(TextureSize, TextureSize, TextureFormat::R32UI);
+
+                uint32_t nextIndex = 1;
+                m_NextIndexSsbo = ShaderStorageBuffer::Create(&nextIndex, sizeof(nextIndex), Usage::DeviceModifiedRepeatedlyAppUsedRepeatedly);
+            
+                m_LabelShader      = AssetManager::Load<Shader>(std::string(ShaderPath) + "flood_fill/label.glsl");
+                m_FindLinksShader  = AssetManager::Load<Shader>(std::string(ShaderPath) + "flood_fill/find_links.glsl");
+                m_ApplyLinksShader = AssetManager::Load<Shader>(std::string(ShaderPath) + "flood_fill/apply_links.glsl");
+                m_ExtentsShader = AssetManager::Load<Shader>(std::string(ShaderPath) + "flood_fill/extents.glsl");
+                m_GenTextureShader = AssetManager::Load<Shader>(std::string(ShaderPath) + "flood_fill/gen_texture.glsl");
             }
             virtual ~FloodFill() = default;
 
@@ -27,12 +38,7 @@ namespace EVA
 
                 if (ref != nullptr && *ref)
                 {
-                    Ref<GridData<float>> data;
-                    {
-                        EVA_PROFILE_SCOPE("GetDataFromGpu");
-                        data = TextureManager::GetDataFromGpu<float>(*ref);
-                    }
-                    m_Texture = GenerateTexture(*data, m_Threshold);
+                    GenerateTexture(*ref);
                     return true;
                 }
                 return false;
@@ -58,85 +64,93 @@ namespace EVA
             Ref<Texture> GetTexture() const override { return m_Texture; }
 
           private:
-            TextureSettings m_TextureSettings;
-            Ref<Texture> m_Texture = nullptr;
-            float m_Threshold      = 0.5f;
+            float m_Threshold = 0.5f;
 
-            Ref<Texture> GenerateTexture(const GridData<float>& data, float threshold)
+            Ref<Texture> m_Texture;
+            Ref<Texture> m_LabelsTexture;
+            Ref<ShaderStorageBuffer> m_NextIndexSsbo;
+
+            Ref<Shader> m_LabelShader, m_FindLinksShader, m_ApplyLinksShader, m_ExtentsShader, m_GenTextureShader;
+
+            void GenerateTexture(const Ref<Texture>& dataTexture)
             {
-                glm::ivec2 dims = glm::ivec2(data.Width(), data.Height());
+                constexpr glm::ivec2 pixelsPerChunk = glm::ivec2(32);
+                constexpr glm::ivec2 workGroupSize   = glm::ivec2(16);
 
-                glm::ivec2 groupSize = dims; // glm::ivec2(32);
+                glm::ivec2 dims    = glm::ivec2(dataTexture->GetWidth(), dataTexture->GetHeight());
+                glm::ivec2 threads = (dims + pixelsPerChunk - 1) / pixelsPerChunk;
 
-                glm::ivec2 groups = (dims + groupSize - 1) / groupSize;
+                glm::ivec2 numWorkGroupsSingle = (dims + workGroupSize - 1) / workGroupSize;
+                glm::ivec2 numWorkGroupsChunk  = (threads + workGroupSize - 1) / workGroupSize;
 
-                uint32_t size = groupSize.x * groupSize.y;
-
-                GridData<uint32_t> labels(dims.x, dims.y, 0);
                 uint32_t nextIndex = 1;
-
+                
                 {
                     EVA_PROFILE_SCOPE("Label");
-                    for (int groupY = 0; groupY < groups.y; groupY++)
+
+
+                    m_LabelShader->Bind();
+
+                    m_LabelShader->BindImageTexture(0, dataTexture, Access::ReadOnly);
+                    m_LabelShader->BindImageTexture(1, m_LabelsTexture, Access::WriteOnly);
+
+                    m_NextIndexSsbo->BufferData(&nextIndex, sizeof(nextIndex));
+                    m_LabelShader->BindStorageBuffer(2, m_NextIndexSsbo);
+
+                    m_LabelShader->DispatchCompute(numWorkGroupsChunk.x, numWorkGroupsChunk.y, 1, workGroupSize.x, workGroupSize.y, 1);
+                    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+                    nextIndex = *static_cast<uint32_t*>(m_NextIndexSsbo->Map(Access::ReadOnly));
+                    m_NextIndexSsbo->Unmap();
+                }
+                
+                {
+                    EVA_PROFILE_SCOPE("Link");
+                    uint32_t prev = 0;
+                    while (prev != nextIndex)
                     {
-                        for (int groupX = 0; groupX < groups.x; groupX++)
+                        prev = nextIndex;
+                        std::vector<uint32_t> links(nextIndex);
+                        for (size_t i = 0; i < links.size(); i++)
                         {
-                            uint32_t nextLabel = 1;
-                            uint32_t maxLabel  = size / 2;
-                            std::vector<uint32_t> links(maxLabel + 1, maxLabel); 
-                            GridData<uint32_t> localLabels(groupSize.x, groupSize.y, 0);
+                            links[i] = i;
+                        }
+                        auto linksSsbo = ShaderStorageBuffer::Create(links.data(), links.size() * sizeof(uint32_t));
+                        {
+                            EVA_PROFILE_SCOPE("Find links");
 
-                            for (int localY = 0; localY < groupSize.y; localY++)
-                            {
-                                for (int localX = 0; localX < groupSize.x; localX++)
-                                {
-                                    int x = localX + groupX * groupSize.x;
-                                    int y = localY + groupY * groupSize.x;
+                            m_FindLinksShader->Bind();
 
-                                    if (data[y][x] > threshold)
-                                    {
-                                        float valueX = (localX - 1) < 0 ? 0.0 : data[y][x-1];
-                                        uint32_t labelX = maxLabel;
-                                        if (valueX > threshold) { labelX = localLabels[localY][localX - 1]; }
+                            m_FindLinksShader->BindImageTexture(0, m_LabelsTexture, Access::ReadOnly);
+                            m_FindLinksShader->BindStorageBuffer(1, linksSsbo);
 
-                                        float valueY    = (localY - 1) < 0 ? 0.0 : data[y-1][x];
-                                        uint32_t labelY = maxLabel;
-                                        if (valueY > threshold) { labelY = localLabels[localY - 1][localX]; }
+                            m_FindLinksShader->DispatchCompute(numWorkGroupsChunk.x, numWorkGroupsChunk.y, 1, workGroupSize.x, workGroupSize.y, 1);
+                            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+                        }
 
-                                        if (labelX == maxLabel && labelY == maxLabel)
-                                        { 
-                                            localLabels[localY][localX] = nextLabel++;
-                                        }
-                                        else
-                                        {
-                                            uint32_t low  = glm::min(labelX, labelY);
-                                            uint32_t high = glm::max(labelX, labelY);
+                        uint32_t* linksData = static_cast<uint32_t*>(linksSsbo->Map(Access::ReadWrite));
 
-                                            localLabels[localY][localX] = low;
+                        nextIndex = 1;
+                        for (size_t i = 1; i < links.size(); i++)
+                        {
+                            auto& l = linksData[i];
+                            l       = l == i ? nextIndex++ : linksData[l];
+                        }
+                        linksData[0] = 0;
 
-                                            links[high] = glm::min(low, links[high]);
-                                        }
-                                    }
-                                }
-                            }
+                        linksSsbo->Unmap();
 
-                            for (size_t i = 1; i < nextLabel; i++) 
-                            {
-                                auto& l = links[i];
-                                l       = l == i ? nextIndex++ : links[l];
-                            }
-                            links[0] = 0;
+                        {
+                            EVA_PROFILE_SCOPE("Apply links");
 
-                            for (int localY = 0; localY < groupSize.y; localY++)
-                            {
-                                for (int localX = 0; localX < groupSize.x; localX++) 
-                                {
-                                    int x = localX + groupX * groupSize.x;
-                                    int y = localY + groupY * groupSize.x;
+                            m_ApplyLinksShader->Bind();
 
-                                    labels[y][x] = links[localLabels[localY][localX]];
-                                }
-                            }
+                            m_ApplyLinksShader->BindImageTexture(0, m_LabelsTexture, Access::ReadWrite);
+                            m_ApplyLinksShader->BindStorageBuffer(1, linksSsbo);
+
+                            m_ApplyLinksShader->DispatchCompute(numWorkGroupsSingle.x, numWorkGroupsSingle.y, 1, workGroupSize.x,
+                                                                workGroupSize.y, 1);
+                            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
                         }
                     }
                 }
@@ -146,56 +160,34 @@ namespace EVA
                     uint32_t minX, maxX, minY, maxY;
                 };
 
-                std::vector<Extents> extents(nextIndex, {labels.Width(), 0, labels.Height(), 0});
+                std::vector<Extents> extents(nextIndex, {static_cast<uint32_t>(dims.x), 0, static_cast<uint32_t>(dims.y), 0});
+                auto extentsSsbo = ShaderStorageBuffer::Create(extents.data(), extents.size() * sizeof(Extents));
                 {
                     EVA_PROFILE_SCOPE("Find extents");
 
-                    for (uint32_t y = 0; y < labels.Height(); y++)
-                    {
-                        for (uint32_t x = 0; x < labels.Width(); x++)
-                        {
-                            int32_t l = labels[y][x];
-                            if (l == 0) continue;
-                            auto& e = extents[l - 1];
+                    m_ExtentsShader->Bind();
 
-                            e.minX = glm::min(e.minX, x);
-                            e.maxX = glm::max(e.maxX, x);
+                    m_ExtentsShader->BindImageTexture(0, m_LabelsTexture, Access::ReadOnly);
+                    m_ExtentsShader->BindStorageBuffer(1, extentsSsbo);
 
-                            e.minY = glm::min(e.minY, y);
-                            e.maxY = glm::max(e.maxY, y);
-                        }
-                    }
+                    m_ExtentsShader->DispatchCompute(numWorkGroupsSingle.x, numWorkGroupsSingle.y, 1, workGroupSize.x, workGroupSize.y, 1);
+                    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
                 }
 
-                Ref<Texture> texture;
                 {
-                    EVA_PROFILE_SCOPE("GenerateTexture");
+                    EVA_PROFILE_SCOPE("Generate texture");
 
-                    texture = TextureManager::CreateTexture(labels.Width(), labels.Height(), TextureRGBA, m_TextureSettings);
+                    m_GenTextureShader->Bind();
 
-                    auto shader = AssetManager::Load<Shader>(std::string(ShaderPath) + "flood_fill/gen_texture.glsl");
-                    shader->Bind();
-
-                    auto labelSsbo = ShaderStorageBuffer::Create(labels.Data(), labels.Size());
-                    shader->SetUniformInt("u_LabelCount", labels.Count());
-                    shader->BindStorageBuffer(1, labelSsbo);
-
-                    auto extentsSsbo = ShaderStorageBuffer::Create(extents.data(), extents.size() * sizeof(Extents));
-                    shader->SetUniformInt("u_ExtentsCount", extents.size());
-                    shader->BindStorageBuffer(2, extentsSsbo);
+                    m_GenTextureShader->BindImageTexture(0, m_Texture, Access::WriteOnly);
+                    m_GenTextureShader->BindImageTexture(1, m_LabelsTexture, Access::ReadOnly);
+                    m_GenTextureShader->BindStorageBuffer(2, extentsSsbo);
 
                     float step = 1.0f / nextIndex;
-                    shader->SetUniformFloat("u_Step", step);
+                    m_GenTextureShader->SetUniformFloat("u_Step", step);
 
-                    shader->BindImageTexture(0, texture, TextureAccess::WriteOnly);
-
-                    uint32_t workGroupSize  = 16;
-                    uint32_t numWorkGroupsX = (texture->GetWidth() + workGroupSize - 1) / workGroupSize;
-                    uint32_t numWorkGroupsY = (texture->GetHeight() + workGroupSize - 1) / workGroupSize;
-
-                    shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1, workGroupSize, workGroupSize, 1);
+                    m_GenTextureShader->DispatchCompute(numWorkGroupsSingle.x, numWorkGroupsSingle.y, 1, workGroupSize.x, workGroupSize.y, 1);
                 }
-                return texture;
             }
         };
 

@@ -34,6 +34,8 @@ namespace EVA
     template<typename T>
     inline Ref<GridData<T>> TextureManager::GetDataFromGpu(const Ref<Texture>& texture)
     {
+        EVA_PROFILE_FUNCTION();
+
         auto data = CreateRef<GridData<T>>(texture->GetWidth(), texture->GetHeight());
         GetDataFromGpu(texture, data->Data(), data->Size());
         return data;

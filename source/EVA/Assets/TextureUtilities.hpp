@@ -187,7 +187,7 @@ namespace EVA
             auto out          = TextureManager::CreateTexture(size, size, TextureFormat::RG32F, settings);
 
             shader->Bind();
-            shader->BindImageTexture(0, out, TextureAccess::WriteOnly);
+            shader->BindImageTexture(0, out, Access::WriteOnly);
             uint32_t numWorkGroupsX = out->GetWidth() / workGroupSize;
             uint32_t numWorkGroupsY = out->GetHeight() / workGroupSize;
             shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1, workGroupSize, workGroupSize, 1);

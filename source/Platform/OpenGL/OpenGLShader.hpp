@@ -31,7 +31,7 @@ namespace EVA
 
         void BindTexture(const std::string& name, const Ref<Texture>& texture) override;
         void BindTexture(const std::string& name, const TextureTarget target, const uint32_t rendererId) override;
-        void BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const TextureAccess access) override;
+        void BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const Access access) override;
         void BindStorageBuffer(const uint32_t index, const Ref<ShaderStorageBuffer>& buffer) override;
 
         void DispatchCompute(uint32_t numGroupsX, uint32_t numGroupsY, uint32_t numGroupsZ) override;

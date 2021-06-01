@@ -3,8 +3,8 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, r32f) uniform writeonly image2D u_Output;
-layout(binding = 1, rgba32f) uniform readonly image2D u_FloodFillData;
+layout(binding = 0, r32f) uniform restrict writeonly image2D u_Output;
+layout(binding = 1, rgba32f) uniform restrict readonly image2D u_FloodFillData;
 
 uniform sampler2D u_MapSampler;
 

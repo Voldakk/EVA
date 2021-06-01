@@ -214,7 +214,7 @@ namespace EVA
             {
                 m_Shader->Bind();
                 m_Shader->ResetTextureUnit();
-                m_Shader->BindImageTexture(0, m_Texture, TextureAccess::WriteOnly);
+                m_Shader->BindImageTexture(0, m_Texture, Access::WriteOnly);
 
                 for (size_t i = 0; i < inputs.size(); i++)
                 {
@@ -222,7 +222,7 @@ namespace EVA
                         continue;
 
                     const Ref<Texture>& ref = GetInputData<Ref<Texture>>(i);
-                    m_Shader->BindImageTexture(i + 1, ref, TextureAccess::ReadOnly);
+                    m_Shader->BindImageTexture(i + 1, ref, Access::ReadOnly);
                 }
 
                 SetUniforms();

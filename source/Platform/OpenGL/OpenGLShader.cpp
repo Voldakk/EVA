@@ -2,6 +2,7 @@
 
 #include "OpenGL.hpp"
 #include "OpenGLTexture.hpp"
+#include "OpenGLContext.hpp"
 #include <fstream>
 
 namespace EVA
@@ -291,10 +292,10 @@ namespace EVA
         EVA_GL_CALL(glBindTexture(OpenGLTexture::GetGLTarget(target), rendererId));
     }
 
-    void OpenGLShader::BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const TextureAccess access)
+    void OpenGLShader::BindImageTexture(const uint32_t location, const Ref<Texture>& texture, const Access access)
     {
         EVA_PROFILE_FUNCTION();
-        EVA_GL_CALL(glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, OpenGLTexture::GetGLAccess(access),
+        EVA_GL_CALL(glBindImageTexture(location, texture->GetRendererId(), 0, GL_FALSE, 0, OpenGL::GetGLAccess(access),
                                        OpenGLTexture::GetGLFormat(texture->GetFormat())));
     }
 

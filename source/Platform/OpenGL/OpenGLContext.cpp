@@ -50,11 +50,13 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
             EVA_INTERNAL_WARN("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source),
                               GLMessageTypeToString(type), m);
         }
+        break;
         case GL_DEBUG_SEVERITY_LOW:
         {
             EVA_INTERNAL_INFO("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source),
                                GLMessageTypeToString(type), m);
         }
+        break;
         case GL_DEBUG_SEVERITY_NOTIFICATION:
         default:
         {
@@ -107,6 +109,20 @@ namespace EVA
         EVA_GL_CALL(glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &size[2]));
 
         EVA_INTERNAL_INFO("MaxComputeWorkGroupSize: {}, {}, {}", size[0], size[1], size[2]);
+
+        return size;
+    }
+
+    GLint OpenGLContext::MaxComputeVariableWorkGroupSize()
+    {
+        EVA_PROFILE_FUNCTION();
+
+        static GLint size {0};
+        if (size > 0) { return size; };
+
+        EVA_GL_CALL(glGetIntegerv(GL_MAX_COMPUTE_VARIABLE_GROUP_INVOCATIONS_ARB, &size));
+
+        EVA_INTERNAL_INFO("MaxComputeVariableWorkGroupSize: {}", size);
 
         return size;
     }

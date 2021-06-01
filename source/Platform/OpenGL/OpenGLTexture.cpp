@@ -7,19 +7,21 @@ namespace EVA
     {
         EVA_PROFILE_FUNCTION();
 
-        auto format = texture.GetFormat();
+        auto internalformat = texture.GetFormat();
+        auto format         = GetPixelDataFormat(internalformat);
+        auto type           = GetTextureDataType(internalformat);
 
         uint32_t rendererId;
         EVA_GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &rendererId));
-        EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(format), texture.GetWidth(), texture.GetHeight()));
+        EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(internalformat), texture.GetWidth(), texture.GetHeight()));
 
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping)));
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping)));
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter)));
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
 
-        EVA_GL_CALL(glTextureSubImage2D(rendererId, 0, 0, 0, texture.GetWidth(), texture.GetHeight(), GetGLFormat(GetTextureFormat(format)),
-                                        GetGLDataType(GetTextureDataType(format)), data));
+        EVA_GL_CALL(glTextureSubImage2D(rendererId, 0, 0, 0, texture.GetWidth(), texture.GetHeight(), GetGLPixelDataFormat(format),
+                                        GetGLDataType(type), data));
 
         if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
 
@@ -30,8 +32,6 @@ namespace EVA
     {
         EVA_PROFILE_FUNCTION();
 
-        auto format = texture.GetFormat();
-
         uint32_t rendererId;
         EVA_GL_CALL(glGenTextures(1, &rendererId));
         EVA_GL_CALL(glBindTexture(GL_TEXTURE_2D, rendererId));
@@ -41,10 +41,16 @@ namespace EVA
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter)));
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
 
-        EVA_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
-                                 GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr));
+        auto internalformat = texture.GetFormat();
+        auto format         = GetPixelDataFormat(internalformat);
+        auto type           = GetTextureDataType(internalformat);
+
+        //EVA_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, internalformat, texture.GetWidth(), texture.GetHeight(), 0, dataFormat, type, nullptr));
+        EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(internalformat), texture.GetWidth(), texture.GetHeight()));
 
         if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
+
+        EVA_GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
 
         return rendererId;
     }
@@ -52,8 +58,6 @@ namespace EVA
     uint32_t OpenGLTexture::CreateGLCubemapId(const Texture& texture, const std::string& id)
     {
         EVA_PROFILE_FUNCTION();
-
-        auto format = texture.GetFormat();
 
         uint32_t rendererId;
         EVA_GL_CALL(glGenTextures(1, &rendererId));
@@ -65,10 +69,14 @@ namespace EVA
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MIN_FILTER, GetGLMinFilter(texture.GetSettings().minFilter)));
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
 
+        auto internalformat = texture.GetFormat();
+        auto format         = GetPixelDataFormat(internalformat);
+        auto type           = GetTextureDataType(internalformat);
+
         for (unsigned int i = 0; i < 6; ++i)
         {
-            EVA_GL_CALL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(format), texture.GetWidth(), texture.GetHeight(), 0,
-                                     GetGLFormat(GetTextureFormat(format)), GetGLDataType(GetTextureDataType(format)), nullptr));
+            EVA_GL_CALL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(internalformat), texture.GetWidth(),
+                                     texture.GetHeight(), 0, GetGLPixelDataFormat(format), GetGLDataType(type), nullptr));
         }
 
 
@@ -81,11 +89,13 @@ namespace EVA
     { 
         EVA_PROFILE_FUNCTION();
 
-        auto format = texture.GetFormat();
+        auto internalformat = texture.GetFormat();
+        auto format         = GetPixelDataFormat(internalformat);
+        auto type           = GetTextureDataType(internalformat);
 
         uint32_t rendererId;
         EVA_GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &rendererId));
-        EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(format), texture.GetWidth(), texture.GetHeight()));
+        EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(internalformat), texture.GetWidth(), texture.GetHeight()));
 
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_S, GetGLWrapping(texture.GetSettings().wrapping)));
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_WRAP_T, GetGLWrapping(texture.GetSettings().wrapping)));
@@ -102,8 +112,13 @@ namespace EVA
 
     void OpenGLTexture::GetDataFromGpu(const Texture& texture, void* buffer, uint32_t bufferSize, int level) 
     { 
-        glGetTextureImage(texture.GetRendererId(), level, GetGLFormat(GetTextureFormat(texture.GetFormat())),
-                          GetGLDataType(GetTextureDataType(texture.GetFormat())), bufferSize, buffer);
+        EVA_PROFILE_FUNCTION();
+
+        auto internalformat = texture.GetFormat();
+        auto format         = GetPixelDataFormat(internalformat);
+        auto type           = GetTextureDataType(internalformat);
+
+        glGetTextureImage(texture.GetRendererId(), level, GetGLPixelDataFormat(format), GetGLDataType(type), bufferSize, buffer);
     }
 
     void OpenGLTexture::DeleteGLTexture(const Texture& texture)
@@ -168,6 +183,34 @@ namespace EVA
             case EVA::TextureDataType::UnsignedInt2101010Rev: return GL_UNSIGNED_INT_2_10_10_10_REV;
         }
         EVA_INTERNAL_ASSERT(false, "Unknown TextureDataType");
+        return 0;
+    }
+
+        GLenum OpenGLTexture::GetGLPixelDataFormat(const PixelDataFormat value)
+    {
+        switch (value)
+        {
+            case EVA::PixelDataFormat::STENCIL_INDEX: return GL_STENCIL_INDEX;
+            case EVA::PixelDataFormat::DEPTH_COMPONENT: return GL_DEPTH_COMPONENT;
+            case EVA::PixelDataFormat::DEPTH_STENCIL: return GL_DEPTH_STENCIL;
+            case EVA::PixelDataFormat::RED: return GL_RED;
+            case EVA::PixelDataFormat::GREEN: return GL_GREEN;
+            case EVA::PixelDataFormat::BLUE: return GL_BLUE;
+            case EVA::PixelDataFormat::RG: return GL_RG;
+            case EVA::PixelDataFormat::RGB: return GL_RGB;
+            case EVA::PixelDataFormat::RGBA: return GL_RGBA;
+            case EVA::PixelDataFormat::BGR: return GL_BGR;
+            case EVA::PixelDataFormat::BGRA: return GL_BGRA;
+            case EVA::PixelDataFormat::RED_INTEGER: return GL_RED_INTEGER;
+            case EVA::PixelDataFormat::GREEN_INTEGER: return GL_GREEN_INTEGER;
+            case EVA::PixelDataFormat::BLUE_INTEGER: return GL_BLUE_INTEGER;
+            case EVA::PixelDataFormat::RG_INTEGER: return GL_RG_INTEGER;
+            case EVA::PixelDataFormat::RGB_INTEGER: return GL_RGB_INTEGER;
+            case EVA::PixelDataFormat::RGBA_INTEGER: return GL_RGBA_INTEGER;
+            case EVA::PixelDataFormat::BGR_INTEGER: return GL_BGR_INTEGER;
+            case EVA::PixelDataFormat::BGRA_INTEGER: return GL_BGRA_INTEGER;
+        }
+        EVA_INTERNAL_ASSERT(false, "Unknown PixelDataFormat");
         return 0;
     }
 
@@ -283,17 +326,4 @@ namespace EVA
         EVA_INTERNAL_ASSERT(false, "Unknown TextureWrapping");
         return 0;
     }
-
-    GLenum OpenGLTexture::GetGLAccess(const TextureAccess value)
-    {
-        switch (value)
-        {
-            case EVA::TextureAccess::ReadOnly: return GL_READ_ONLY;
-            case EVA::TextureAccess::WriteOnly: return GL_WRITE_ONLY;
-            case EVA::TextureAccess::ReadWrite: return GL_READ_WRITE;
-        }
-        EVA_INTERNAL_ASSERT(false, "Unknown TextureWrapping");
-        return 0;
-    }
-
 } // namespace EVA

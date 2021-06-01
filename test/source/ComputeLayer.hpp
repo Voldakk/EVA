@@ -327,7 +327,7 @@ namespace EVA
 
                 m_ComputeShader->SetUniformInt("objectBufferCount", numObjects);
 
-                m_ComputeShader->BindImageTexture(0, m_ComputeTexture, TextureAccess::WriteOnly);
+                m_ComputeShader->BindImageTexture(0, m_ComputeTexture, Access::WriteOnly);
                 m_ComputeShader->DispatchCompute(numWorkGroups, 1, 1, workGroupSize, 1, 1);
             }
         }

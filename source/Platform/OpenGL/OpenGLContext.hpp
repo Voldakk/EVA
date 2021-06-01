@@ -16,5 +16,6 @@ namespace EVA
         virtual void SwapBuffers() override;
 
         static glm::ivec3 MaxComputeWorkGroupSize();
+        static int MaxComputeVariableWorkGroupSize();
     };
 } // namespace EVA

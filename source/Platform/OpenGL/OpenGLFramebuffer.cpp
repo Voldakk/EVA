@@ -36,7 +36,7 @@ namespace EVA
         EVA_GL_CALL(glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachment));
         EVA_GL_CALL(glBindTexture(GL_TEXTURE_2D, m_ColorAttachment));
         EVA_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, OpenGLTexture::GetGLFormat(m_Specification.format), m_Specification.width,
-                                 m_Specification.height, 0, OpenGLTexture::GetGLFormat(GetTextureFormat(m_Specification.format)),
+                                 m_Specification.height, 0, OpenGLTexture::GetGLPixelDataFormat(GetPixelDataFormat(m_Specification.format)),
                                  OpenGLTexture::GetGLDataType(GetTextureDataType(m_Specification.format)), nullptr));
         EVA_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
         EVA_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
