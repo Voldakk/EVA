@@ -11,6 +11,8 @@ layout(std430, binding = 1) restrict buffer linksBuffer
      uint links[]; 
 };
 
+uniform bool u_Wrap;
+
 void main()
 {
 	const ivec2 dims = imageSize(u_Labels);
@@ -19,7 +21,9 @@ void main()
 
 	ivec2 minPos = index * pixelsPerThread;
 	ivec2 maxPos = minPos + pixelsPerThread - 1;
-	ivec2 negPos = (minPos - 1) % dims;
+	ivec2 negPos = (minPos - 1);
+
+	if(u_Wrap) { negPos %= dims; }
 
 	for (int x = minPos.x; x <= maxPos.x; x++)
     {

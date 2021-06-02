@@ -149,9 +149,11 @@ namespace EVA
         if (ImGui::Button("Height to curvature")) { m_NodeEditor.AddNode<TextureNodes::HeightToCurvature>(); }
         if (ImGui::Button("Height to AO")) { m_NodeEditor.AddNode<TextureNodes::HeightToAmbientOcclusion>(); }
         ImGui::Spacing();
-        if (ImGui::Button("Flood fill")) { m_NodeEditor.AddNode<TextureNodes::FloodFill>(); }
-        if (ImGui::Button("Flood fill map")) { m_NodeEditor.AddNode<TextureNodes::FloodFillMap>(); }
-        if (ImGui::Button("Flood fill to random")) { m_NodeEditor.AddNode<TextureNodes::FloodFillToRandomGrayscale>(); }
+        if (ImGui::Button("CCL")) { m_NodeEditor.AddNode<TextureNodes::CCL>(); }
+        if (ImGui::Button("CCL map")) { m_NodeEditor.AddNode<TextureNodes::CCLMap>(); }
+        if (ImGui::Button("CCL to random")) { m_NodeEditor.AddNode<TextureNodes::CCLToRandom>(); }
+        if (ImGui::Button("CCL to index")) { m_NodeEditor.AddNode<TextureNodes::CCLToIndex>(); }
+        if (ImGui::Button("CCL to position")) { m_NodeEditor.AddNode<TextureNodes::CCLToPosition>(); }
         ImGui::End();
 
         ImGui::Begin("Selected");

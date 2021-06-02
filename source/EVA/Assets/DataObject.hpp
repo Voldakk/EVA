@@ -183,16 +183,17 @@ namespace EVA
 
             DataObject d = DataObject(m_Mode, m_Json[key]);
 
-            std::string ds   = "";
-            std::string type = d.Get<std::string>("ISerializeableTypeId", ds);
+            std::string defaultString = "";
+            std::string type          = d.Get<std::string>("ISerializeableTypeId", defaultString);
             Ref<ISerializeable> ref;
-            if (type == ds) { ref = CreateRef<T>(); }
+            if (type == defaultString) { ref = CreateRef<T>(); }
             else
             {
                 ref = ClassMapEVAISerializeable::Create(type);
             }
 
-            ref->Serialize(d);
+            if (ref) { ref->Serialize(d); }
+            
             return std::static_pointer_cast<T>(ref);
         }
 

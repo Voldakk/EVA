@@ -1,0 +1,256 @@
+{
+    "links": [
+        [
+            30,
+            29,
+            10
+        ],
+        [
+            39,
+            35,
+            28
+        ],
+        [
+            40,
+            37,
+            25
+        ],
+        [
+            48,
+            46,
+            28
+        ],
+        [
+            56,
+            54,
+            28
+        ],
+        [
+            52,
+            50,
+            28
+        ],
+        [
+            44,
+            42,
+            28
+        ]
+    ],
+    "nextId": 57,
+    "nodes": [
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Output",
+            "Outputs": [
+                "Albedo",
+                "Normal",
+                "Metallic",
+                "Roughness",
+                "AO",
+                "Emissive",
+                "Height"
+            ],
+            "deletable": true,
+            "id": 1,
+            "inputs": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+            ],
+            "name": "Output",
+            "outputs": null
+        },
+        {
+            "Bevel": [
+                9.999999747378752e-05,
+                9.999999747378752e-05
+            ],
+            "Gap": [
+                23.56999969482422,
+                23.520000457763672
+            ],
+            "Height": [
+                1.0,
+                1.0
+            ],
+            "ISerializeableTypeId": "::EVA::TextureNodes::Bricks",
+            "Num bricks": [
+                5,
+                5
+            ],
+            "Offset": 0.5,
+            "deletable": true,
+            "id": 9,
+            "inputs": null,
+            "name": "Bricks",
+            "outputs": [
+                10
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::WorleyNoise",
+            "Position": [
+                2.2100000381469727,
+                1.1399999856948853
+            ],
+            "Scale": 0.8100000023841858,
+            "deletable": true,
+            "id": 24,
+            "inputs": null,
+            "name": "Worley noise",
+            "outputs": [
+                25
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCL",
+            "Threshold": 0.5,
+            "deletable": true,
+            "id": 27,
+            "inputs": [
+                29
+            ],
+            "name": "CCL",
+            "outputs": [
+                28
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCLMap",
+            "deletable": true,
+            "id": 34,
+            "inputs": [
+                35,
+                37
+            ],
+            "name": "CCL map",
+            "outputs": [
+                36
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCLToPosition",
+            "deletable": true,
+            "id": 41,
+            "inputs": [
+                42
+            ],
+            "name": "CCL to position",
+            "outputs": [
+                43
+            ]
+        },
+        {
+            "Grayscale": false,
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCLToRandom",
+            "MaxValue": 1.0,
+            "MinValue": 0.0,
+            "Seed": 0.0,
+            "deletable": true,
+            "id": 45,
+            "inputs": [
+                46
+            ],
+            "name": "CCL to random",
+            "outputs": [
+                47
+            ]
+        },
+        {
+            "Grayscale": true,
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCLToRandom",
+            "MaxValue": 1.0,
+            "MinValue": 0.0,
+            "Seed": 0.0,
+            "deletable": true,
+            "id": 49,
+            "inputs": [
+                50
+            ],
+            "name": "CCL to random",
+            "outputs": [
+                51
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCLToIndex",
+            "deletable": true,
+            "id": 53,
+            "inputs": [
+                54
+            ],
+            "name": "CCL to index",
+            "outputs": [
+                55
+            ]
+        }
+    ],
+    "positions": [
+        [
+            1,
+            [
+                408.0,
+                320.0
+            ]
+        ],
+        [
+            9,
+            [
+                -575.0,
+                149.0
+            ]
+        ],
+        [
+            24,
+            [
+                -303.0,
+                693.0
+            ]
+        ],
+        [
+            27,
+            [
+                -335.0,
+                148.0
+            ]
+        ],
+        [
+            34,
+            [
+                -47.0,
+                687.0
+            ]
+        ],
+        [
+            41,
+            [
+                136.0,
+                420.0
+            ]
+        ],
+        [
+            45,
+            [
+                138.0,
+                148.0
+            ]
+        ],
+        [
+            49,
+            [
+                -63.0,
+                148.0
+            ]
+        ],
+        [
+            53,
+            [
+                -56.0,
+                420.0
+            ]
+        ]
+    ]
+}

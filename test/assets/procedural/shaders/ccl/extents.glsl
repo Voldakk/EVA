@@ -9,8 +9,8 @@ layout(binding = 0, r32ui) uniform restrict readonly uimage2D u_Labels;
 struct Extents
 {
 	uint minX;
-	uint maxX;
 	uint minY;
+	uint maxX;
 	uint maxY;
 };
 

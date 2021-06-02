@@ -4,7 +4,7 @@
 
 layout(local_size_variable) in;
 layout(binding = 0, r32f) uniform restrict writeonly image2D u_Output;
-layout(binding = 1, rgba32f) uniform restrict readonly image2D u_FloodFillData;
+layout(binding = 1, r32ui) uniform restrict readonly uimage2D u_LabelMap;
 
 uniform float u_MinValue;
 uniform float u_MaxValue;
@@ -30,9 +30,9 @@ void main()
 	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	vec3 data = imageLoad(u_FloodFillData, pixelCoords).rgb;
+	uint label = imageLoad(u_LabelMap, pixelCoords).r;
 	float value = 0;
-	if(data.z > 0) { value = mix(u_MinValue, u_MaxValue, noise(vec2(data.z, u_Seed))); }
+	if(label > 0) { value = mix(u_MinValue, u_MaxValue, noise(vec2(float(label), u_Seed))); }
 
 	imageStore(u_Output, pixelCoords, vec4(value, 0.0, 0.0, 1.0));
 }

@@ -444,6 +444,9 @@ namespace EVA::NE
             m_NextId           = m_CurrentNodeGraph->GetNextId();
 
             m_Nodes = m_CurrentNodeGraph->GetNodes();
+
+            m_Nodes.erase(std::remove_if(m_Nodes.begin(), m_Nodes.end(), [](auto n) { return n == nullptr; }), m_Nodes.end());
+
             for (auto& node : m_Nodes)
             {
                 node->editor = this;
@@ -462,10 +465,13 @@ namespace EVA::NE
             {
                 auto pIn  = GetPin(in);
                 auto pOut = GetPin(out);
-                pIn->AddConnected(pOut);
-                pOut->AddConnected(pIn);
-                m_Links[id] = Link(id, pIn, pOut);
-                pIn->SetChanged();
+                if (pIn && pOut)
+                {
+                    pIn->AddConnected(pOut);
+                    pOut->AddConnected(pIn);
+                    m_Links[id] = Link(id, pIn, pOut);
+                    pIn->SetChanged();
+                }
             }
 
             NE::SetCurrentEditor(m_Context);

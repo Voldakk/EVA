@@ -1,11 +1,6 @@
 {
     "links": [
         [
-            19,
-            17,
-            12
-        ],
-        [
             43,
             3,
             40
@@ -21,39 +16,9 @@
             31
         ],
         [
-            24,
-            18,
-            21
-        ],
-        [
-            48,
-            47,
-            16
-        ],
-        [
-            38,
-            13,
-            28
-        ],
-        [
-            42,
-            41,
-            16
-        ],
-        [
-            44,
-            8,
-            16
-        ],
-        [
             49,
             6,
             46
-        ],
-        [
-            53,
-            52,
-            16
         ],
         [
             57,
@@ -76,16 +41,6 @@
             60
         ],
         [
-            86,
-            85,
-            12
-        ],
-        [
-            90,
-            89,
-            84
-        ],
-        [
             97,
             2,
             92
@@ -99,9 +54,54 @@
             99,
             95,
             28
+        ],
+        [
+            110,
+            102,
+            28
+        ],
+        [
+            111,
+            109,
+            21
+        ],
+        [
+            112,
+            107,
+            101
+        ],
+        [
+            113,
+            47,
+            108
+        ],
+        [
+            114,
+            41,
+            108
+        ],
+        [
+            115,
+            52,
+            108
+        ],
+        [
+            116,
+            104,
+            101
+        ],
+        [
+            117,
+            89,
+            105
+        ],
+        [
+            118,
+            8,
+            108
         ]
     ],
-    "nextId": 100,
+    "nextId": 119,
     "nodes": [
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::Output",
@@ -127,32 +127,6 @@
             ],
             "name": "Output",
             "outputs": null
-        },
-        {
-            "ISerializeableTypeId": "::EVA::TextureNodes::FloodFill",
-            "Threshold": 0.5,
-            "deletable": true,
-            "id": 11,
-            "inputs": [
-                13
-            ],
-            "name": "Flood fill",
-            "outputs": [
-                12
-            ]
-        },
-        {
-            "ISerializeableTypeId": "::EVA::TextureNodes::FloodFillMap",
-            "deletable": true,
-            "id": 15,
-            "inputs": [
-                17,
-                18
-            ],
-            "name": "Flood fill map",
-            "outputs": [
-                16
-            ]
         },
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::WorleyNoise",
@@ -386,21 +360,6 @@
             "value": 0.0
         },
         {
-            "ISerializeableTypeId": "::EVA::TextureNodes::FloodFillToRandomGrayscale",
-            "MaxValue": 1.0,
-            "MinValue": 0.0,
-            "Seed": 3.5199999809265137,
-            "deletable": true,
-            "id": 83,
-            "inputs": [
-                85
-            ],
-            "name": "Flood fill to random",
-            "outputs": [
-                84
-            ]
-        },
-        {
             "ISerializeableTypeId": "::EVA::TextureNodes::GradientMap",
             "deletable": true,
             "id": 87,
@@ -443,6 +402,48 @@
             "outputs": [
                 92
             ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCL",
+            "Threshold": 0.5,
+            "deletable": true,
+            "id": 100,
+            "inputs": [
+                102
+            ],
+            "name": "CCL",
+            "outputs": [
+                101
+            ]
+        },
+        {
+            "Grayscale": true,
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCLToRandom",
+            "MaxValue": 1.0,
+            "MinValue": 0.0,
+            "Seed": 0.0,
+            "deletable": true,
+            "id": 103,
+            "inputs": [
+                104
+            ],
+            "name": "CCL to random",
+            "outputs": [
+                105
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::CCLMap",
+            "deletable": true,
+            "id": 106,
+            "inputs": [
+                107,
+                109
+            ],
+            "name": "CCL map",
+            "outputs": [
+                108
+            ]
         }
     ],
     "positions": [
@@ -454,66 +455,52 @@
             ]
         ],
         [
-            11,
-            [
-                -824.0,
-                -955.0
-            ]
-        ],
-        [
-            15,
-            [
-                -632.0,
-                -480.0
-            ]
-        ],
-        [
             20,
             [
-                -911.0,
-                -458.0
+                -959.0,
+                -298.0
             ]
         ],
         [
             27,
             [
-                -1064.0,
-                -795.0
+                -1231.0,
+                -847.0
             ]
         ],
         [
             30,
             [
-                -1391.0,
-                -870.0
+                -1487.0,
+                -842.0
             ]
         ],
         [
             39,
             [
-                -351.0,
-                -511.0
+                -438.0,
+                -493.0
             ]
         ],
         [
             45,
             [
-                -392.0,
-                -107.0
+                -447.0,
+                -201.0
             ]
         ],
         [
             50,
             [
-                -399.0,
-                160.0
+                -447.0,
+                85.0
             ]
         ],
         [
             54,
             [
-                -152.0,
-                160.0
+                -200.0,
+                96.0
             ]
         ],
         [
@@ -533,29 +520,43 @@
         [
             80,
             [
-                -95.0,
-                -1226.0
-            ]
-        ],
-        [
-            83,
-            [
-                -344.0,
-                -987.0
+                -287.0,
+                -1214.0
             ]
         ],
         [
             87,
             [
-                -104.0,
-                -987.0
+                -296.0,
+                -975.0
             ]
         ],
         [
             91,
             [
-                273.0,
-                -831.0
+                65.0,
+                -689.0
+            ]
+        ],
+        [
+            100,
+            [
+                -952.0,
+                -603.0
+            ]
+        ],
+        [
+            103,
+            [
+                -527.0,
+                -971.0
+            ]
+        ],
+        [
+            106,
+            [
+                -728.0,
+                -320.0
             ]
         ]
     ]

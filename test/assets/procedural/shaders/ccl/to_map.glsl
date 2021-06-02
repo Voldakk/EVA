@@ -4,7 +4,7 @@
 
 layout(local_size_variable) in;
 layout(binding = 0, r32f) uniform restrict writeonly image2D u_Output;
-layout(binding = 1, rgba32f) uniform restrict readonly image2D u_FloodFillData;
+layout(binding = 1, rgba32f) uniform restrict readonly image2D u_ExtentsMap;
 
 uniform sampler2D u_MapSampler;
 
@@ -13,9 +13,18 @@ void main()
 	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	vec3 data = imageLoad(u_FloodFillData, pixelCoords).rgb;
 	float value = 0;
-	if(data.z > 0) { value = texture(u_MapSampler, data.xy).r; }
+
+	vec4 extents = imageLoad(u_ExtentsMap, pixelCoords).rgba;
+	if(extents.z > 0) 
+	{ 
+		vec2 minE = extents.xy; 
+        vec2 maxE = extents.zw;
+
+		vec2 uv = vec2(pixelCoords) / vec2(dims);
+		uv = (uv - minE) / (maxE - minE);
+		value = texture(u_MapSampler, uv).r; 
+	}
 
 	imageStore(u_Output, pixelCoords, vec4(value, 0.0, 0.0, 1.0));
 }
