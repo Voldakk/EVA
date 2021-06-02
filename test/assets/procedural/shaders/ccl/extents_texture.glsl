@@ -15,7 +15,7 @@ void main()
 {
 	ivec2 dims = imageSize(u_Labels);
 	const ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
-	vec4 values = vec4(0, 0, 0, 1);
+	vec4 values = vec4(0);
 
 	uint l = imageLoad(u_Labels, pos).r;
 

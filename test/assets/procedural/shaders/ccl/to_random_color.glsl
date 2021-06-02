@@ -4,7 +4,7 @@
 
 layout(local_size_variable) in;
 layout(binding = 0, rgba32f) uniform restrict writeonly image2D u_Output;
-layout(binding = 1, r32ui) uniform restrict readonly uimage2D u_LabelMap;
+layout(binding = 1, rgba32f) uniform restrict readonly image2D u_ExtentsMap;
 
 uniform float u_MinValue;
 uniform float u_MaxValue;
@@ -19,13 +19,13 @@ void main()
 	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	uint label = imageLoad(u_LabelMap, pixelCoords).r;
+	vec4 extents = imageLoad(u_ExtentsMap, pixelCoords);
 	vec3 value = vec3(0);
-	if(label > 0) 
+	if(extents.w > 0) 
 	{ 
-		value.r = mix(u_MinValue, u_MaxValue, rand(vec3(label, u_Seed, 0.123)));
-		value.g = mix(u_MinValue, u_MaxValue, rand(vec3(label, u_Seed, 5.193)));
-		value.b = mix(u_MinValue, u_MaxValue, rand(vec3(label, u_Seed, 7.315)));
+		value.r = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, extents.y)));
+		value.g = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, value.r)));
+		value.b = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, value.g)));
 	}
 
 	imageStore(u_Output, pixelCoords, vec4(value, 1.0));

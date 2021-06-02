@@ -446,6 +446,9 @@ namespace EVA
             case TextureFormat::R8_SNORM:
             case TextureFormat::R16:
             case TextureFormat::R16_SNORM:
+            case TextureFormat::R16F:
+            case TextureFormat::R32F: return PixelDataFormat::RED;
+
             case TextureFormat::R8I:
             case TextureFormat::R8UI:
             case TextureFormat::R16I:
@@ -453,14 +456,14 @@ namespace EVA
             case TextureFormat::R32I:
             case TextureFormat::R32UI: return PixelDataFormat::RED_INTEGER;
 
-            case TextureFormat::R16F:
-            case TextureFormat::R32F: return PixelDataFormat::RED;
 
             case TextureFormat::RG:
             case TextureFormat::RG8:
             case TextureFormat::RG8_SNORM:
             case TextureFormat::RG16:
             case TextureFormat::RG16_SNORM:
+            case TextureFormat::RG16F:
+            case TextureFormat::RG32F: return PixelDataFormat::RG;
 
             case TextureFormat::RG8I:
             case TextureFormat::RG8UI:
@@ -469,8 +472,6 @@ namespace EVA
             case TextureFormat::RG32I:
             case TextureFormat::RG32UI: return PixelDataFormat::RG_INTEGER;
 
-            case TextureFormat::RG16F:
-            case TextureFormat::RG32F: return PixelDataFormat::RG;
 
             case TextureFormat::RGB:
             case TextureFormat::R3_G3_B2:
@@ -484,6 +485,9 @@ namespace EVA
             case TextureFormat::RGBA2:
             case TextureFormat::RGBA4:
             case TextureFormat::SRGB8:
+            case TextureFormat::RGB16F:
+            case TextureFormat::RGB32F:
+            case TextureFormat::R11F_G11F_B10F: return PixelDataFormat::RGB;
 
             case TextureFormat::RGB9_E5:
             case TextureFormat::RGB8I:
@@ -493,9 +497,6 @@ namespace EVA
             case TextureFormat::RGB32I:
             case TextureFormat::RGB32UI: return PixelDataFormat::RGB_INTEGER;
 
-            case TextureFormat::RGB16F:
-            case TextureFormat::RGB32F:
-            case TextureFormat::R11F_G11F_B10F: return PixelDataFormat::RGB;
 
             case TextureFormat::RGBA:
             case TextureFormat::RGB5_A1:
@@ -506,6 +507,8 @@ namespace EVA
             case TextureFormat::RGBA12:
             case TextureFormat::RGBA16:
             case TextureFormat::SRGB8_ALPHA8:
+            case TextureFormat::RGBA16F:
+            case TextureFormat::RGBA32F: return PixelDataFormat::RGBA;
 
             case TextureFormat::RGBA8I:
             case TextureFormat::RGBA8UI:
@@ -513,9 +516,6 @@ namespace EVA
             case TextureFormat::RGBA16UI:
             case TextureFormat::RGBA32I:
             case TextureFormat::RGBA32UI: return PixelDataFormat::RGBA_INTEGER;
-
-            case TextureFormat::RGBA16F:
-            case TextureFormat::RGBA32F: return PixelDataFormat::RGBA;
 
             default: throw;
         }

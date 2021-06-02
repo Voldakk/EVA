@@ -4,25 +4,14 @@
 
 layout(local_size_variable) in;
 layout(binding = 0, r32f) uniform restrict writeonly image2D u_Output;
-layout(binding = 1, r32ui) uniform restrict readonly uimage2D u_LabelMap;
+layout(binding = 1, rgba32f) uniform restrict readonly image2D u_ExtentsMap;
 
 uniform float u_MinValue;
 uniform float u_MaxValue;
 uniform float u_Seed;
 
-float rand(vec2 n) { 
-	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
-}
-float noise(vec2 p){
-    p *= 1413.2371;
-	vec2 ip = floor(p);
-	vec2 u = fract(p);
-	u = u*u*(3.0-2.0*u);
-	
-	float res = mix(
-		mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),
-		mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);
-	return res*res;
+float rand(vec3 n) { 
+	return fract(sin(dot(n, vec3(12.9898, 4.1414, 3.1415))) * 43758.5453);
 }
 
 void main()
@@ -30,9 +19,9 @@ void main()
 	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	uint label = imageLoad(u_LabelMap, pixelCoords).r;
+	vec4 extents = imageLoad(u_ExtentsMap, pixelCoords);
 	float value = 0;
-	if(label > 0) { value = mix(u_MinValue, u_MaxValue, noise(vec2(float(label), u_Seed))); }
+	if(extents.w > 0) { value = mix(u_MinValue, u_MaxValue, rand(vec3(extents.xy, u_Seed))); }
 
 	imageStore(u_Output, pixelCoords, vec4(value, 0.0, 0.0, 1.0));
 }

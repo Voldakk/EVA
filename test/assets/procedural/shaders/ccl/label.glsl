@@ -3,8 +3,10 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, r32f) uniform restrict readonly image2D u_Input;
+//layout(binding = 0, r32f) uniform restrict readonly image2D u_Input;
 layout(binding = 1, r32ui) uniform restrict writeonly uimage2D u_Output;
+
+uniform sampler2D u_Input;
 
 layout(std430, binding = 2) restrict buffer indexBuffer
 {
@@ -12,6 +14,11 @@ layout(std430, binding = 2) restrict buffer indexBuffer
 };
 
 uniform float u_Threshold;
+
+vec2 uv(int x, int y, ivec2 dims)
+{
+    return vec2(x, y) / vec2(dims);
+}
 
 void main()
 {
@@ -34,15 +41,15 @@ void main()
             int x = localX + index.x * int(pixelsPerThread);
             int y = localY + index.y * int(pixelsPerThread);
 
-            float value = imageLoad(u_Input, ivec2(x, y)).r;
+            float value = texture(u_Input, uv(x, y, dims)).r;
 
             if (value > u_Threshold)
             {
-                float valueX = (localX - 1) < 0 ? 0.0 : imageLoad(u_Input, ivec2(x-1, y)).r;
+                float valueX = (localX - 1) < 0 ? 0.0 : texture(u_Input, uv(x-1, y, dims)).r;
                 uint labelX  = maxLabel;
                 if (valueX > u_Threshold) { labelX = localLabels[(localX - 1) + localY * pixelsPerThread]; }
 
-                float valueY = (localY - 1) < 0 ? 0.0 : imageLoad(u_Input, ivec2(x, y-1)).r;
+                float valueY = (localY - 1) < 0 ? 0.0 : texture(u_Input, uv(x, y-1, dims)).r;
                 uint labelY  = maxLabel;
                 if (valueY > u_Threshold) { labelY = localLabels[localX + (localY - 1) * pixelsPerThread]; }
 

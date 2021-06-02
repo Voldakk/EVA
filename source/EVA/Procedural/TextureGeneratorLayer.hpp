@@ -152,6 +152,7 @@ namespace EVA
         if (ImGui::Button("CCL")) { m_NodeEditor.AddNode<TextureNodes::CCL>(); }
         if (ImGui::Button("CCL map")) { m_NodeEditor.AddNode<TextureNodes::CCLMap>(); }
         if (ImGui::Button("CCL to random")) { m_NodeEditor.AddNode<TextureNodes::CCLToRandom>(); }
+        if (ImGui::Button("CCL to gradient")) { m_NodeEditor.AddNode<TextureNodes::CCLToGradient>(); }
         if (ImGui::Button("CCL to index")) { m_NodeEditor.AddNode<TextureNodes::CCLToIndex>(); }
         if (ImGui::Button("CCL to position")) { m_NodeEditor.AddNode<TextureNodes::CCLToPosition>(); }
         ImGui::End();

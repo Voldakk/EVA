@@ -23,7 +23,10 @@ namespace EVA
         EVA_GL_CALL(glTextureSubImage2D(rendererId, 0, 0, 0, texture.GetWidth(), texture.GetHeight(), GetGLPixelDataFormat(format),
                                         GetGLDataType(type), data));
 
-        if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
+        if (id != "") 
+        { 
+            EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); 
+        }
 
         return rendererId;
     }

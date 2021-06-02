@@ -95,8 +95,8 @@ namespace EVA
 
 
                     m_LabelShader->Bind();
-
-                    m_LabelShader->BindImageTexture(0, dataTexture, Access::ReadOnly);
+                    m_LabelShader->ResetTextureUnit();
+                    m_LabelShader->BindTexture("u_Input", dataTexture);
                     m_LabelShader->BindImageTexture(1, m_Data.labelsTexture, Access::WriteOnly);
 
                     m_NextIndexSsbo->BufferData(&nextIndex, sizeof(nextIndex));
@@ -179,6 +179,146 @@ namespace EVA
                     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
                 }
 
+                
+                std::vector<uint32_t> links(nextIndex);
+                Ref<ShaderStorageBuffer> linksSsbo;
+                
+                {
+                    EVA_PROFILE_SCOPE("Find links");
+
+                    for (size_t i = 0; i < links.size(); i++)
+                    {
+                        links[i] = i;
+                    }
+                    linksSsbo = ShaderStorageBuffer::Create(links.data(), links.size() * sizeof(uint32_t));
+
+                    m_FindLinksShader->Bind();
+
+                    m_FindLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadOnly);
+                    m_FindLinksShader->BindStorageBuffer(1, linksSsbo);
+                    m_FindLinksShader->SetUniformBool("u_Wrap", true);
+                    m_FindLinksShader->DispatchCompute(numWorkGroupsChunk.x, numWorkGroupsChunk.y, 1, workGroupSize.x, workGroupSize.y, 1);
+                    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+                }
+
+                std::unordered_map<uint32_t, std::set<uint32_t>> linkedExtents;
+                {
+                    EVA_PROFILE_SCOPE("Compact labels");
+                    uint32_t* linksData = static_cast<uint32_t*>(linksSsbo->Map(Access::ReadWrite));
+
+                    nextIndex = 1;
+                    for (size_t i = 1; i < links.size(); i++)
+                    {
+                        auto& l = linksData[i];
+                        if (l == i) 
+                        { 
+                            l = nextIndex++;
+                        }
+                        else
+                        {
+                            linkedExtents[i].insert(i);
+                            linkedExtents[l].insert(l);
+                            
+                            for (const auto& n : linkedExtents[i])
+                            {
+                                linkedExtents[n].insert(l);
+                            }
+                            for (const auto& n : linkedExtents[l])
+                            {
+                                linkedExtents[n].insert(i);
+                            }
+                            linkedExtents[i].insert(linkedExtents[l].begin(), linkedExtents[l].end());
+                            linkedExtents[l].insert(linkedExtents[i].begin(), linkedExtents[i].end());
+
+                            l = linksData[l];
+                        }
+                    }
+                    linksData[0] = 0;
+
+                    linksSsbo->Unmap();
+                }
+                {
+                    EVA_PROFILE_SCOPE("Combine extents");
+
+                    std::vector<std::set<uint32_t>> uniqueLinkedExtents;
+                    for (const auto& [k, v] : linkedExtents)
+                    {
+                        uniqueLinkedExtents.push_back(v);
+                    }
+                    std::sort(uniqueLinkedExtents.begin(), uniqueLinkedExtents.end());
+                    auto last = std::unique(uniqueLinkedExtents.begin(), uniqueLinkedExtents.end());
+                    uniqueLinkedExtents.resize(last - uniqueLinkedExtents.begin());
+                    Extents* extentsData = static_cast<Extents*>(extentsSsbo->Map(Access::ReadWrite));
+                    for (const auto& set : uniqueLinkedExtents) 
+                    {
+                        bool ex = false, ey = false;
+
+                        glm::uvec2 min = glm::uvec2(dims);
+                        glm::uvec2 max = glm::uvec2(0);
+
+                        glm::uvec2 m = glm::uvec2(dims);
+                        glm::uvec2 d   = glm::uvec2(0);
+
+                        for (const auto& l : set) 
+                        {
+                            auto* e = &extentsData[l - 1];
+                            min.x   = glm::min(min.x, e->minX);
+                            max.x   = glm::max(max.x, e->maxX);
+                            min.y   = glm::min(min.y, e->minY);
+                            max.y   = glm::max(max.y, e->maxY);
+
+                            if (e->minX == 0)
+                            {
+                                d.x = glm::max(d.x, e->maxX);
+                                ex = true;
+                            }
+                            if (e->maxX == dims.x - 1)
+                            {
+                                m.x = glm::min(m.x, e->minX);
+                                ex = true;
+                            }
+
+                            if (e->minY == 0)
+                            {
+                                d.y = glm::max(d.y, e->maxY);
+                                ey = true;
+                            }
+                            if (e->maxY == dims.y - 1)
+                            {
+                                m.y = glm::min(m.y, e->minY);
+                                ey = true;
+                            }
+                        }
+
+                        for (const auto& l : set) 
+                        {
+                            auto* e = &extentsData[l - 1];
+                            if (ex)
+                            {
+                                e->minX = m.x;
+                                e->maxX = dims.x + d.x;
+                            }
+                            else
+                            {
+                                e->minX = min.x;
+                                e->maxX = max.x;
+                            }
+
+                            if (ey)
+                            {
+                                e->minY = m.y;
+                                e->maxY = dims.y + d.y;
+                            }
+                            else
+                            {
+                                e->minY = min.y;
+                                e->maxY = max.y;
+                            }
+                        }
+                    }
+                    extentsSsbo->Unmap();
+                }
+
                 {
                     EVA_PROFILE_SCOPE("Generate extents map");
 
@@ -192,48 +332,17 @@ namespace EVA
                 }
 
                 {
-                    std::vector<uint32_t> links(nextIndex);
-                    for (size_t i = 0; i < links.size(); i++)
-                    {
-                        links[i] = i;
-                    }
-                    auto linksSsbo = ShaderStorageBuffer::Create(links.data(), links.size() * sizeof(uint32_t));
-                    {
-                        EVA_PROFILE_SCOPE("Find links");
+                    EVA_PROFILE_SCOPE("Apply links");
 
-                        m_FindLinksShader->Bind();
+                    m_ApplyLinksShader->Bind();
 
-                        m_FindLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadOnly);
-                        m_FindLinksShader->BindStorageBuffer(1, linksSsbo);
-                        m_FindLinksShader->SetUniformBool("u_Wrap", true);
-                        m_FindLinksShader->DispatchCompute(numWorkGroupsChunk.x, numWorkGroupsChunk.y, 1, workGroupSize.x, workGroupSize.y, 1);
-                        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-                    }
+                    m_ApplyLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadWrite);
+                    m_ApplyLinksShader->BindStorageBuffer(1, linksSsbo);
 
-                    uint32_t* linksData = static_cast<uint32_t*>(linksSsbo->Map(Access::ReadWrite));
-
-                    nextIndex = 1;
-                    for (size_t i = 1; i < links.size(); i++)
-                    {
-                        auto& l = linksData[i];
-                        l       = l == i ? nextIndex++ : linksData[l];
-                    }
-                    linksData[0] = 0;
-
-                    linksSsbo->Unmap();
-
-                    {
-                        EVA_PROFILE_SCOPE("Apply links");
-
-                        m_ApplyLinksShader->Bind();
-
-                        m_ApplyLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadWrite);
-                        m_ApplyLinksShader->BindStorageBuffer(1, linksSsbo);
-
-                        m_ApplyLinksShader->DispatchCompute(numWorkGroupsSingle.x, numWorkGroupsSingle.y, 1, workGroupSize.x, workGroupSize.y, 1);
-                        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-                    }
+                    m_ApplyLinksShader->DispatchCompute(numWorkGroupsSingle.x, numWorkGroupsSingle.y, 1, workGroupSize.x, workGroupSize.y, 1);
+                    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
                 }
+
                 m_Data.count = nextIndex - 1;
             }
         };
@@ -291,7 +400,7 @@ namespace EVA
 
             void SetUniforms() const override
             {
-                m_Shader->BindImageTexture(1, GetCCLData()->labelsTexture, Access::ReadOnly);
+                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly);
                 m_Shader->SetUniformFloat("u_MinValue", m_MinValue);
                 m_Shader->SetUniformFloat("u_MaxValue", m_MaxValue);
                 m_Shader->SetUniformFloat("u_Seed", m_Seed);
@@ -314,6 +423,58 @@ namespace EVA
             float m_MinValue = 0.0f;
             float m_MaxValue = 1.0f;
             float m_Seed     = 0.0f;
+        };
+
+        class CCLToGradient : public CCLNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToGradient);
+
+          public:
+            CCLToGradient()
+            {
+                SetShader("ccl/to_gradient.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                CCLNode::SetupNode();
+                name = "CCL to gradient";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+            }
+
+            void SetUniforms() const override 
+            { 
+                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly); 
+                m_Shader->SetUniformFloat("u_Angle", m_Angle);
+                m_Shader->SetUniformFloat("u_AngleVariation", m_AngleVariation);
+                m_Shader->SetUniformFloat("u_Seed", m_Seed);
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                CCLNode::Serialize(data);
+
+                if (data.Inspector()) 
+                { 
+                    data.changed |= ImGui::SliderAngle("Angle", &m_Angle);
+                    data.changed |= ImGui::SliderFloat("AngleVariation", &m_AngleVariation, 0, 1); 
+                }
+                else
+                {
+                    data.Serialize("Angle", m_Angle);
+                    data.Serialize("AngleVariation", m_AngleVariation);
+                }
+                
+                data.Serialize("Seed", m_Seed);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Angle = 0;
+            float m_AngleVariation = 0;
+            float m_Seed = 0;
         };
 
         class CCLMap : public CCLNode

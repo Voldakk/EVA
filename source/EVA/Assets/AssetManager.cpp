@@ -49,6 +49,12 @@ namespace EVA
             if (existing != s_Assets.end()) return existing->second;
         }
 
+        if (!FileSystem::FileExists(path)) 
+        { 
+            EVA_INTERNAL_ERROR("File not found {}", FileSystem::ToString(path));
+            return nullptr; 
+        }
+
         FileInfo info;
         if (!GetFileInfo(info, path.extension())) { return nullptr; }
 
@@ -78,6 +84,8 @@ namespace EVA
         DataObject meta(DataMode::Load, jsonMeta);
 
         auto asset = info.load(path, file, meta);
+        if (asset == nullptr) { return asset; }
+
         asset->m_Path = path;
         s_Assets[pathString] = asset;
 

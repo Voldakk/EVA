@@ -307,9 +307,9 @@ namespace EVA
             {
                 ComputeNode::Serialize(data);
 
-                 if (data.Inspector())
-                {
-                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360);
+                if (data.Inspector()) 
+                { 
+                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360); 
                 }
                 else
                 {

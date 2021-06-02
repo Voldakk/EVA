@@ -263,7 +263,7 @@ namespace EVA
                 if (m_Texture == nullptr) 
                 { 
                     TextureSettings settings;
-                    settings.wrapping = TextureWrapping::MirroredRepeat;
+                    settings.wrapping = TextureWrapping::Repeat;
                     settings.minFilter = TextureMinFilter::Nearest;
                     settings.magFilter = TextureMagFilter::Nearest;
                     m_Texture = TextureManager::CreateTexture(TextureSize, TextureSize, format, settings); 
