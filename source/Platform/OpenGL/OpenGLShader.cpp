@@ -176,7 +176,7 @@ namespace EVA
     OpenGLShader::~OpenGLShader()
     {
         EVA_PROFILE_FUNCTION();
-        EVA_GL_CALL(glDeleteProgram(1234));
+        EVA_GL_CALL(glDeleteProgram(m_RendererId));
     }
 
     void OpenGLShader::Bind() const

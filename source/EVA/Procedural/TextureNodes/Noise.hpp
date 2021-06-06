@@ -50,7 +50,7 @@ namespace EVA
           public:
             GradientNoise() : Noise()
             {
-                SetShader("gradient_noise.glsl");
+                SetShader("noise/gradient.glsl");
             }
 
             void SetupNode() override
@@ -83,7 +83,7 @@ namespace EVA
           public:
             VoronoiNoise() : Noise()
             {
-                SetShader("voronoi.glsl");
+                SetShader("noise/voronoi.glsl");
             }
 
             void SetupNode() override
@@ -100,7 +100,7 @@ namespace EVA
           public:
             WorleyNoise() : Noise()
             {
-                SetShader("worley_noise.glsl");
+                SetShader("noise/worley.glsl");
             }
 
             void SetupNode() override
@@ -117,7 +117,7 @@ namespace EVA
           public:
             WorleyNoise2() : Noise()
             {
-                SetShader("worley_noise2.glsl");
+                SetShader("noise/worley2.glsl");
             }
 
             void SetupNode() override

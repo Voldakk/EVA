@@ -4,7 +4,6 @@
 
 layout(local_size_variable) in;
 layout(binding = 0, rgba32f) uniform writeonly image2D u_Output;
-layout(binding = 1, rgba32f) readonly uniform image2D u_Input;
 
 uniform ivec2 u_NumBricks = ivec2(4, 8);
 uniform float u_Offset = 0.5;
@@ -12,19 +11,9 @@ uniform vec2 u_Gap = vec2(0.1, 0.1);
 uniform vec2 u_Bevel = vec2(0.1, 0.1);
 uniform vec2 u_Height = vec2(0.7, 1.0);
 
-float rand(vec2 n) { 
+float rand(vec2 n) 
+{ 
 	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
-}
-float noise(vec2 p){
-    p *= 1413.2371;
-	vec2 ip = floor(p);
-	vec2 u = fract(p);
-	u = u*u*(3.0-2.0*u);
-	
-	float res = mix(
-		mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),
-		mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);
-	return res*res;
 }
 
 float brick(vec2 uv)
@@ -47,7 +36,7 @@ float brick(vec2 uv)
     
     float dd = min(d.x, d.y);
     
-    float h = mix(u_Height.x, u_Height.y, noise(index));
+    float h = mix(u_Height.x, u_Height.y, rand(index));
     
     return dd * h;
 }

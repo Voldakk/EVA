@@ -11,12 +11,7 @@ namespace EVA
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Uniform);
 
           public:
-            Uniform()
-            {
-                // SetShader("uniform_rgba.glsl");
-                // SetShader("uniform_grayscale.glsl");
-                // SetTexture(TextureFormat::RGBA32F);
-            }
+            Uniform() {}
 
             void SetupNode() override
             {
@@ -29,13 +24,13 @@ namespace EVA
             {
                 if (m_Mode == 0)
                 {
-                    SetShader("uniform_grayscale.glsl");
+                    SetShader("generators/uniform_grayscale.glsl");
                     SetTexture(TextureR);
                     SetOutputType<Ref<Texture>, 1>(0);
                 }
                 else
                 {
-                    SetShader("uniform_rgba.glsl");
+                    SetShader("generators/uniform_rgba.glsl");
                     SetTexture(TextureRGBA);
                     SetOutputType<Ref<Texture>, 4>(0);
                 }
@@ -89,7 +84,7 @@ namespace EVA
           public:
             Bricks()
             {
-                SetShader("brick.glsl");
+                SetShader("generators/brick.glsl");
                 SetTexture(TextureR);
             }
 
@@ -132,6 +127,87 @@ namespace EVA
             glm::vec2 m_Gap        = {5.0f, 5.0f};
             glm::vec2 m_Bevel      = {1.0f, 1.0f};
             glm::vec2 m_Height     = {0.7f, 1.0f};
+        };
+
+        class TileGenerator : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::TileGenerator);
+
+          public:
+            TileGenerator()
+            {
+                SetShader("generators/tile.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Tile Generator";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+            }
+
+            void SetUniforms() const override
+            {
+                m_Shader->SetUniformInt2("u_Count", m_Count);
+                m_Shader->SetUniformFloat2("u_Height", m_Height);
+
+                m_Shader->SetUniformFloat("u_Scale", m_Scale);
+                m_Shader->SetUniformFloat("u_ScaleVariation", m_ScaleVariation);
+                
+                m_Shader->SetUniformFloat("u_Offset", m_Offset);
+                m_Shader->SetUniformFloat("u_OffsetVariation", m_OffsetVariation);
+
+                m_Shader->SetUniformFloat("u_RandomMask", m_RandomMask);
+
+                m_Shader->SetUniformFloat("u_Seed", m_Seed);
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                data.Serialize("Count", m_Count);
+                data.Serialize("Height", m_Height);
+
+                if (data.Inspector()) 
+                { 
+                    data.changed |= ImGui::SliderFloat("Scale", &m_Scale, 0.0f, 1.0f);
+                    data.changed |= ImGui::SliderFloat("Scale Variation", &m_ScaleVariation, 0.0f, 1.0f);
+                    data.changed |= ImGui::SliderFloat("Offset", &m_Offset, 0.0f, 1.0f);
+                    data.changed |= ImGui::SliderFloat("Offset Variation", &m_OffsetVariation, 0.0f, 1.0f); 
+
+                    data.changed |= ImGui::SliderFloat("Random Mask", &m_RandomMask, 0.0f, 1.0f); 
+                }
+                else
+                {
+                    data.Serialize("m_Scale", m_Scale);
+                    data.Serialize("m_ScaleVariation", m_ScaleVariation);
+
+                    data.Serialize("m_Offset", m_Offset);
+                    data.Serialize("m_OffsetVariation", m_OffsetVariation);
+
+                    data.Serialize("m_RandomMask", m_RandomMask);
+                }
+
+                data.Serialize("Seed", m_Seed);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            glm::ivec2 m_Count = {4, 8};
+            glm::vec2 m_Height = {1.0f, 1.0f};
+
+            float m_Scale           = 0.0f;
+            float m_ScaleVariation  = 0.0f;
+
+            float m_Offset          = 0.0f;
+            float m_OffsetVariation = 0.0f;
+
+            float m_RandomMask = 0.0f;
+
+            float m_Seed = 0.0f;
         };
 
     } // namespace TextureNodes
