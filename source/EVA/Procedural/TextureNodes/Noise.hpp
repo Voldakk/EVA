@@ -11,9 +11,7 @@ namespace EVA
           protected:
             Noise()
             {
-                TextureSettings settings;
-                settings.wrapping = TextureWrapping::MirroredRepeat;
-                SetTexture(TextureR, settings);
+                SetTexture(TextureR);
             }
 
             void SetupNode() override
@@ -108,23 +106,22 @@ namespace EVA
                 Noise::SetupNode();
                 name = "Worley noise";
             }
-        };
 
-        class WorleyNoise2 : public Noise
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::WorleyNoise2);
-
-          public:
-            WorleyNoise2() : Noise()
+            void SetUniforms() const override
             {
-                SetShader("noise/worley2.glsl");
+                Noise::SetUniforms();
+                m_Shader->SetUniformFloat("u_Exponent", m_Exponent);
             }
 
-            void SetupNode() override
+            void Serialize(DataObject& data) override
             {
-                Noise::SetupNode();
-                name = "Worley noise 2";
+                Noise::Serialize(data);
+                data.Serialize("Exponent", m_Exponent);
+                processed &= !data.changed;
             }
+
+          private:
+            float m_Exponent = 1.5f;
         };
     } // namespace TextureNodes
 } // namespace EVA

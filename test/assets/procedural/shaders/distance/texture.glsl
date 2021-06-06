@@ -21,7 +21,13 @@ void main()
 	if(u_Blend)
 	{
 		vec2 pos = vec2(pixelCoords) / vec2(dims);
-		float dist = distance(vec2(seedCoord) / dims, pos);
+
+		vec2 seedPos = vec2(seedCoord) / dims;
+           
+        float dx = min(distance(pos.x, seedPos.x), distance(pos.x, seedPos.x + (pos.x > seedPos.x ? 1 : -1)));
+        float dy = min(distance(pos.y, seedPos.y), distance(pos.y, seedPos.y + (pos.y > seedPos.y ? 1 : -1)));
+		float dist = length(vec2(dx, dy));
+
 		float t = dist / (u_MaxDistance + 0.0001);
 		t = clamp(t, 0.0, 1.0);
 		outPixel = mix(outPixel, vec4(0.0), t);

@@ -53,12 +53,12 @@ void main()
 
 
     uv *= u_Count;
-    ivec2 index = ivec2(floor(uv));
+    ivec2 index = ivec2(mod(ivec2(floor(uv)), u_Count));
 
     float offset = u_Offset * (1 - u_OffsetVariation * rand(index.yy));
     uv += vec2(floor(uv.y) * offset, 0.0);
 
-    index = ivec2(floor(uv));
+    index = ivec2(mod(ivec2(floor(uv)), u_Count));
     uv = fract(uv);
 
     float value = 0;

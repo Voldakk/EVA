@@ -21,7 +21,7 @@ float brick(vec2 uv)
     uv *= u_NumBricks;
     uv += vec2(floor(uv.y) * u_Offset, 0.0);
     
-    vec2 index = floor(uv);
+    vec2 index = vec2(mod(ivec2(floor(uv)), u_NumBricks));
     uv = fract(uv);
     
     vec2 gap = u_Gap * u_NumBricks;

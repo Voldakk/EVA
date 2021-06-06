@@ -16,6 +16,7 @@ uniform int u_Octaves = 4;
 
 vec2 grad( ivec2 z )  // replace this anything that returns a random vector
 {
+    z = ivec2(mod(vec2(z), u_Scale));
     // 2D to 1D  (feel free to replace by some other)
     int n = z.x+z.y*11111;
 
@@ -23,20 +24,12 @@ vec2 grad( ivec2 z )  // replace this anything that returns a random vector
     n = (n<<13)^n;
     n = (n*(n*n*15731+789221)+1376312589)>>16;
 
-#if 0
-
-    // simple random vectors
-    return vec2(cos(float(n)),sin(float(n)));
-    
-#else
-
     // Perlin style vectors
     n &= 7;
     vec2 gr = vec2(n&1,n>>1)*2.0-1.0;
     return ( n>=6 ) ? vec2(0.0,gr.x) : 
            ( n>=4 ) ? vec2(gr.x,0.0) :
-                              gr;
-#endif                              
+                              gr;                         
 }
 
 float noise( in vec2 p )
@@ -57,25 +50,21 @@ void main()
 	const ivec2 dims = imageSize(u_Output);
 	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	vec4 outPixel = vec4(1.0f);
-
 	vec2 uv = vec2(pixelCoords) / vec2(dims);
     uv *= u_Scale;
     uv += u_Position;
 
-    float f = 0.0;
-    float intensity = 1.0;
-    mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
+    float value = 0.0;
+    float intensity = 0.5;
+    float frequency = 1.0;
     for(int i = 0; i < u_Octaves; i++)
     {
+        value += intensity * noise(uv * frequency);
         intensity *= 0.5;
-        f += intensity * noise(uv); 
-        uv = m * uv;
+        frequency *= 2;
     }
 
-    f = 0.5 + 0.5 * f;
-    f *= smoothstep(0.0, 0.005, abs(uv.x-0.6));	
+    value = 0.5 + 0.5 * value;
 
-    outPixel.rgb = vec3(f);
-	imageStore(u_Output, pixelCoords, outPixel);
+	imageStore(u_Output, pixelCoords, vec4(value, 0, 0, 0));
 }

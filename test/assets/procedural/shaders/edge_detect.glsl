@@ -17,7 +17,7 @@ float run(ivec2 centerCoords, ivec2 dims)
         for (int x = -1; x <= 1; ++x) 
         {
             ivec2 sampleCoord = centerCoords + ivec2(x,y);
-            if(sampleCoord.x < 0 || sampleCoord.y < 0 || sampleCoord.x >= dims.x || sampleCoord.y >= dims.y) {continue;}
+            sampleCoord %= dims;
             float other = imageLoad(u_Input, sampleCoord).r;
 			if(distance(other, center) > u_Threshold) 
 			{

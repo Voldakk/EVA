@@ -137,7 +137,6 @@ namespace EVA
         if (ImGui::Button("Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
         if (ImGui::Button("Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
         if (ImGui::Button("Worley noise")) { m_NodeEditor.AddNode<TextureNodes::WorleyNoise>(); }
-        if (ImGui::Button("Worley noise 2")) { m_NodeEditor.AddNode<TextureNodes::WorleyNoise2>(); }
         ImGui::Spacing();
         if (ImGui::Button("Blend")) { m_NodeEditor.AddNode<TextureNodes::Blend>(); }
         if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::Levels>(); }
