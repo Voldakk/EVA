@@ -46,7 +46,7 @@
             58
         ]
     ],
-    "nextId": 82,
+    "nextId": 90,
     "nodes": [
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::Output",
@@ -101,12 +101,13 @@
             ]
         },
         {
+            "Exponent": 1.5,
             "ISerializeableTypeId": "::EVA::TextureNodes::WorleyNoise",
             "Position": [
-                2.2100000381469727,
-                1.1399999856948853
+                0.5,
+                0.5
             ],
-            "Scale": 0.8100000023841858,
+            "Scale": 1.0,
             "deletable": true,
             "id": 24,
             "inputs": null,

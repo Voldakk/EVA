@@ -146,6 +146,8 @@ namespace EVA
         if (ImGui::Button("Normal blend")) { m_NodeEditor.AddNode<TextureNodes::NormalBlend>(); }
         if (ImGui::Button("Distance")) { m_NodeEditor.AddNode<TextureNodes::Distance>(); }
         if (ImGui::Button("Edge detect")) { m_NodeEditor.AddNode<TextureNodes::EdgeDetect>(); }
+        if (ImGui::Button("Gaussian blur 5x5")) { m_NodeEditor.AddNode<TextureNodes::GaussianBlur5>(); }
+        if (ImGui::Button("Curve")) { m_NodeEditor.AddNode<TextureNodes::Curve>(); }
 
         ImGui::Spacing();
         if (ImGui::Button("Height to normal")) { m_NodeEditor.AddNode<TextureNodes::HeightToNormal>(); }
