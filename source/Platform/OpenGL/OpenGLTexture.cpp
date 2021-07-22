@@ -156,8 +156,7 @@ namespace EVA
             case EVA::TextureTarget::Texture2DMultisample: return GL_TEXTURE_2D_MULTISAMPLE;
             case EVA::TextureTarget::Texture2DMultisampleArray: return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown TextureTarget");
-        return 0;
+        throw;
     }
 
     GLenum OpenGLTexture::GetGLDataType(const TextureDataType dataType)
@@ -185,8 +184,7 @@ namespace EVA
             case EVA::TextureDataType::UnsignedInt1010102: return GL_UNSIGNED_INT_10_10_10_2;
             case EVA::TextureDataType::UnsignedInt2101010Rev: return GL_UNSIGNED_INT_2_10_10_10_REV;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown TextureDataType");
-        return 0;
+        throw;
     }
 
         GLenum OpenGLTexture::GetGLPixelDataFormat(const PixelDataFormat value)
@@ -213,8 +211,7 @@ namespace EVA
             case EVA::PixelDataFormat::BGR_INTEGER: return GL_BGR_INTEGER;
             case EVA::PixelDataFormat::BGRA_INTEGER: return GL_BGRA_INTEGER;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown PixelDataFormat");
-        return 0;
+        throw;
     }
 
     GLenum OpenGLTexture::GetGLFormat(const TextureFormat format)
@@ -286,10 +283,8 @@ namespace EVA
             case EVA::TextureFormat::RG: return GL_RG;
             case EVA::TextureFormat::RGB: return GL_RGB;
             case EVA::TextureFormat::RGBA: return GL_RGBA;
-            default: break;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown TextureFormat");
-        return 0;
+        throw;
     }
 
     GLint OpenGLTexture::GetGLMinFilter(const TextureMinFilter value)
@@ -303,8 +298,7 @@ namespace EVA
             case EVA::TextureMinFilter::NearestMipmapLinear: return GL_NEAREST_MIPMAP_LINEAR;
             case EVA::TextureMinFilter::LinearMipmapLinear: return GL_LINEAR_MIPMAP_LINEAR;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown TextureMinFilter");
-        return 0;
+        throw;
     }
 
     GLint OpenGLTexture::GetGLMagFilter(const TextureMagFilter value)
@@ -314,8 +308,7 @@ namespace EVA
             case EVA::TextureMagFilter::Nearest: return GL_NEAREST;
             case EVA::TextureMagFilter::Linear: return GL_LINEAR;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown TextureMagFilter");
-        return 0;
+        throw;
     }
 
     GLint OpenGLTexture::GetGLWrapping(const TextureWrapping value)
@@ -326,7 +319,6 @@ namespace EVA
             case EVA::TextureWrapping::Repeat: return GL_REPEAT;
             case EVA::TextureWrapping::MirroredRepeat: return GL_MIRRORED_REPEAT;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown TextureWrapping");
-        return 0;
+        throw;
     }
 } // namespace EVA

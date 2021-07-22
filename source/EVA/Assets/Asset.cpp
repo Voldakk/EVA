@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Asset.hpp"
 #include "DataObject.hpp"
 

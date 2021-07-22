@@ -128,13 +128,15 @@ namespace EVA
     template<typename T, typename>
     inline bool AssetManager::Save(Ref<T>& asset)
     {
-        return Save(std::static_pointer_cast<Asset>(asset));
+        Ref<Asset> aPtr = std::static_pointer_cast<Asset>(asset);
+        return Save(aPtr);
     }
 
     template<typename T, typename>
     inline bool AssetManager::Save(Ref<T>& asset, const Path& path)
     {
-        return Save(std::static_pointer_cast<Asset>(asset), path);
+        Ref<Asset> aPtr = std::static_pointer_cast<Asset>(asset);
+        return Save(aPtr, path);
     }
 
     template<typename T, typename>

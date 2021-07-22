@@ -365,7 +365,7 @@ namespace EVA
             ImGui::Begin("Metrics");
             ImGui::Text("FPS: %.2f", 1.0f / avgFrameTime);
             ImGui::Text("Frame time: %.2f ms", avgFrameTime * 1000);
-            ImGui::Text("Objects: %d / %d", m_SsboData.size(), m_MaxObjects);
+            ImGui::Text("Objects: %lu / %lu", m_SsboData.size(), m_MaxObjects);
             ImGui::End();
 
             ImGui::Begin("Settings");

@@ -47,7 +47,7 @@ namespace EVA
         m_Mesh        = AssetManager::Load<Mesh>("models/cube_bevel.obj");
         m_Shader      = AssetManager::Load<Shader>("shaders/pbr.glsl");
 
-        m_Material.heightScale = 0.02f;
+        m_Material.heightScale = 0.015f;
 
         New();
     }
@@ -185,6 +185,8 @@ namespace EVA
         ImGui::End();
 
         ImGui::Begin("Settings");
+        if (ImGui::Button("Navigate to content")) { m_NodeEditor.NavigateToContent(); }
+
         if (ImGui::Button("Reload shader")) { m_Shader = AssetManager::Load<Shader>(m_Shader->GetPath(), false); }
         InspectorFields::Default("Shader", m_Shader);
 

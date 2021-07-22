@@ -481,7 +481,7 @@ namespace EVA::NE
                 NE::SetNodePosition(id, {pos.x, pos.y});
             }
 
-            NE::NavigateToContent();
+            NavigateToContent();
         }
 
         template<class T>
@@ -495,6 +495,11 @@ namespace EVA::NE
                 if (pointer != nullptr) nodes.push_back(std::static_pointer_cast<T>(node));
             }
             return nodes;
+        }
+
+        void NavigateToContent()
+        {
+            m_NavigateToContent = true;
         }
 
       private:
@@ -515,6 +520,8 @@ namespace EVA::NE
         NodeEditorStyle m_Style;
 
         Ref<NodeGraph> m_CurrentNodeGraph;
+
+        bool m_NavigateToContent = false;
     };
 
     NodeEditor::NodeEditor() { New(); }
@@ -616,7 +623,7 @@ namespace EVA::NE
             auto pad   = ImGui::GetColumnWidth() - tSize.x;
             ImGui::Dummy({pad * 0.5f, 0});
             ImGui::SameLine();
-            ImGui::Text(node->name.c_str());
+            ImGui::Text("%s", node->name.c_str());
 
             node->Draw();
 
@@ -783,6 +790,15 @@ namespace EVA::NE
             }
         }
 
+        ///
+        /// Misc
+        ///
+        if(m_NavigateToContent) 
+        { 
+            m_NavigateToContent = false; 
+            NE::NavigateToContent(); 
+        }
+
 
         //
         // End of interaction with editor.
@@ -817,7 +833,7 @@ namespace EVA::NE
 
             ImGui::Dummy(ImVec2(radius, 0));
             ImGui::SameLine();
-            ImGui::Text(pin.name.c_str());
+            ImGui::Text("%s", pin.name.c_str());
             ImGui::SameLine();
             ImGui::Dummy(ImVec2(col - radius - tSize.x - border, 0));
         }
@@ -830,7 +846,7 @@ namespace EVA::NE
             ImGui::Dummy({dummy, 0});
             ImGui::SameLine();
 
-            ImGui::Text(pin.name.c_str());
+            ImGui::Text("%s", pin.name.c_str());
             ImGui::SameLine();
 
             auto pos   = ImGui::GetCursorScreenPos();

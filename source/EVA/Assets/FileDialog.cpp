@@ -23,7 +23,7 @@ namespace EVA
         EVA_INTERNAL_ASSERT(it != s_Extentions.end(), "Extention \"{}\" is not registered", extention);
         auto extentionName = (*it).second;
 
-        std::string res = pfd::save_file("Save file", ".", {extentionName, "*" + extention}, true).result();
+        std::string res = pfd::save_file("Save file", ".", {extentionName, "*" + extention}, pfd::opt::force_overwrite).result();
 
         auto path = std::filesystem::path(res);
         if (!path.empty()) { path.replace_extension(std::filesystem::path(extention)); }

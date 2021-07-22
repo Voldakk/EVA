@@ -1,5 +1,6 @@
 #include "InspectorFields.hpp"
 #include "EVA/Assets/DataObject.hpp"
+#include "EVA/Assets/AssetManager.hpp"
 
 namespace EVA
 {

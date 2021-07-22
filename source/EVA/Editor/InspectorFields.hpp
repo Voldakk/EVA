@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <cstring>
+#include <string.h>
 #include <imgui.h>
 #include <type_traits>
 
@@ -21,7 +22,7 @@ namespace EVA
 
         static char* GetCString(const std::string& value)
         {
-            strcpy_s(C_STRING, 10000, value.c_str());
+            strcpy(C_STRING, value.c_str());
             return C_STRING;
         }
 
@@ -189,7 +190,7 @@ namespace EVA
         template<typename T, typename U>
         inline static bool Default(const char* name, std::pair<T, U>& value)
         {
-            ImGui::Text(name);
+            ImGui::Text("%s", name);
             ImGui::PushID(&value);
             ImGui::Indent(INDENT);
 
@@ -206,7 +207,7 @@ namespace EVA
         template<typename... T>
         inline static bool Default(const char* name, std::tuple<T...>& value)
         {
-            ImGui::Text(name);
+            ImGui::Text("%s", name);
             ImGui::PushID(&value);
             ImGui::Indent(INDENT);
 

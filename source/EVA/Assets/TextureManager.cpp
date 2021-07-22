@@ -16,7 +16,7 @@ namespace EVA
             case 2: return TextureFormat::RG8;
             case 3: return TextureFormat::RGB8;
             case 4: return TextureFormat::RGBA8;
-            default: EVA_INTERNAL_ASSERT(false, "Unknown format");
+            default: throw;
         }
     }
 

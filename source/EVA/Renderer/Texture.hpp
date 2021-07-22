@@ -334,9 +334,8 @@ namespace EVA
             case TextureFormat::RGBA16UI:
             case TextureFormat::RGBA32I:
             case TextureFormat::RGBA32UI: return TextureFormat::RGBA;
-
-            default: throw;
         }
+        throw;
     }
 
     inline TextureDataType GetTextureDataType(TextureFormat format)
@@ -418,10 +417,9 @@ namespace EVA
             case TextureFormat::RGBA4:
             case TextureFormat::R11F_G11F_B10F:
             case TextureFormat::RGB9_E5:
-            case TextureFormat::RGBA12:
-
-            default: throw;
+            case TextureFormat::RGBA12: break;
         }
+        throw;
     }
 
     inline uint32_t GetTextureChannels(TextureFormat format)
@@ -432,9 +430,9 @@ namespace EVA
             case TextureFormat::RG: return 2;
             case TextureFormat::RGB: return 3;
             case TextureFormat::RGBA: return 4;
+            default: break;
         }
-        EVA_INTERNAL_ASSERT(false, "Unknown texture format");
-        return 0;
+        throw;
     }
 
     inline PixelDataFormat GetPixelDataFormat(TextureFormat format)
@@ -516,8 +514,7 @@ namespace EVA
             case TextureFormat::RGBA16UI:
             case TextureFormat::RGBA32I:
             case TextureFormat::RGBA32UI: return PixelDataFormat::RGBA_INTEGER;
-
-            default: throw;
         }
+        throw;
     }
 } // namespace EVA

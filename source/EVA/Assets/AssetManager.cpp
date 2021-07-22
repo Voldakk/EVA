@@ -300,7 +300,7 @@ namespace EVA
         FileSystem::CreateDirectories(path.parent_path());
 
         std::ofstream stream;
-        if (!FileSystem::OpenFile(stream, path)) { return nullptr; }
+        if (!FileSystem::OpenFile(stream, path)) { return false; }
         stream << data.dump(JSON_INDENT_WIDTH);
         stream.close();
 

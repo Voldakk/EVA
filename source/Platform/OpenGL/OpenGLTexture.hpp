@@ -9,7 +9,7 @@ namespace EVA
       public:
         static uint32_t CreateGLTextureId(const Texture& texture, const void* data, const std::string& id = "");
         static uint32_t CreateGLTextureId(const Texture& texture, const std::string& id = "");
-        static uint32_t OpenGLTexture::CreateGLCubemapId(const Texture& texture, const std::string& id = "");
+        static uint32_t CreateGLCubemapId(const Texture& texture, const std::string& id = "");
 
         static uint32_t CopyTexture(const Texture& source, const Texture& texture, const std::string& id = "");
 

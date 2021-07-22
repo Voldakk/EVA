@@ -45,7 +45,7 @@ namespace EVA
         const Ref<SubMesh>& GetSubMesh(size_t index) const { return m_SubMeshes[index]; }
 
         const Ref<VertexArray> GetVertexArray() const { return m_SubMeshes.empty() ? nullptr : m_SubMeshes[0]->GetVertexArray(); }
-        const Ref<Material>& GetMaterial() const { return m_SubMeshes.empty() ? nullptr : m_SubMeshes[0]->GetMaterial(); }
+        const Ref<Material> GetMaterial() const { return m_SubMeshes.empty() ? nullptr : m_SubMeshes[0]->GetMaterial(); }
 
       private:
         std::vector<Ref<SubMesh>> m_SubMeshes;

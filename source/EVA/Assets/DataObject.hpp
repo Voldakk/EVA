@@ -5,7 +5,6 @@
 
 #include "Json.hpp"
 #include "Guid.hpp"
-#include "AssetManager.hpp"
 #include "ISerializeable.hpp"
 #include "EVA/Editor/InspectorFields.hpp"
 
@@ -22,6 +21,7 @@ namespace EVA
 
     class DataObject
     {
+        inline const static std::string s_ISerializeableTypeId = "ISerializeableTypeId";
         template<class T>
         struct is_shared_ptr : std::false_type
         {
@@ -69,14 +69,14 @@ namespace EVA
 
         // T
         template<typename T>
-        typename std::enable_if<!is_shared_ptr<T>::value && !(std::is_base_of<ISerializeable, T>::value || std::is_base_of<Asset, T>::value)>::type
-          Set(const std::string& key, T& value) const
+        typename std::enable_if<!(is_shared_ptr<T>::value || std::is_base_of<ISerializeable, T>::value || std::is_base_of<Asset, T>::value)>::type
+          Set(const std::string& key, const T& value) const
         {
             m_Json[key] = value;
         }
 
         template<typename T>
-        typename std::enable_if<!is_shared_ptr<T>::value && !(std::is_base_of<ISerializeable, T>::value || std::is_base_of<Asset, T>::value), T>::type
+        typename std::enable_if<!(is_shared_ptr<T>::value || std::is_base_of<ISerializeable, T>::value || std::is_base_of<Asset, T>::value), T>::type
           Get(const std::string& key, T& defaultValue) const
         {
             if (m_Json.find(key) == m_Json.end()) return defaultValue;
@@ -107,6 +107,91 @@ namespace EVA
             return t;
         }
 
+        // Ref<ISerializeable>
+        template<typename T>
+        typename std::enable_if<std::is_base_of<ISerializeable, T>::value>::type Set(const std::string& key, Ref<T>& value) const
+        {
+            if (value != nullptr)
+            {
+                DataObject d = DataObject(m_Mode);
+                if (value->GetTypeId() != "") { d.Set(s_ISerializeableTypeId, value->GetTypeId()); }
+                value->Serialize(d);
+                m_Json[key] = d.m_Json;
+            }
+        }
+
+        template<typename T>
+        typename std::enable_if<std::is_base_of<ISerializeable, T>::value, Ref<T>>::type Get(const std::string& key, Ref<T>& defaultValue) const
+        {
+            if (m_Json.find(key) == m_Json.end()) return defaultValue;
+
+            DataObject d = DataObject(m_Mode, m_Json[key]);
+
+            std::string defaultString = "";
+            std::string type          = d.Get<std::string>(s_ISerializeableTypeId, defaultString);
+            Ref<ISerializeable> ref;
+            if (type == defaultString) { ref = CreateRef<T>(); }
+            else
+            {
+                ref = ClassMapEVAISerializeable::Create(type);
+            }
+
+            if (ref) { ref->Serialize(d); }
+            
+            return std::static_pointer_cast<T>(ref);
+        }
+
+
+        // Ref<Asset>
+        template<typename T>
+        typename std::enable_if<std::is_base_of<Asset, T>::value>::type Set(const std::string& key, Ref<T>& value) const
+        {
+            if (value != nullptr) m_Json[key] = value->GetGuid();
+        }
+
+        Ref<Asset> GetAsset(const Guid& guid) const;
+
+        template<typename T>
+        typename std::enable_if<std::is_base_of<Asset, T>::value, Ref<T>>::type Get(const std::string& key, Ref<T>& defaultValue) const
+        {
+            if (m_Json.find(key) == m_Json.end()) return defaultValue;
+
+            Guid guid = m_Json[key].get<Guid>();
+
+            return std::static_pointer_cast<T>(GetAsset(guid));
+        }
+
+        // std::vector<T>
+        template<typename T, typename Alloc>
+        void Set(const std::string& key, std::vector<T, Alloc>& value)
+        {
+            json vec;
+            for (auto& v : value)
+            {
+                DataObject d(DataMode::Save);
+                d.Set("key", v);
+                vec.push_back(d.m_Json["key"]);
+            }
+            m_Json[key] = vec;
+        }
+
+        template<typename T, typename Alloc>
+        std::vector<T, Alloc> Get(const std::string& key, std::vector<T, Alloc>& defaultValue)
+        {
+            if (m_Json.find(key) == m_Json.end()) return defaultValue;
+
+            auto j = m_Json[key];
+            std::vector<T, Alloc> vec(j.size());
+
+            for (size_t i = 0; i < j.size(); i++)
+            {
+                DataObject d(DataMode::Load);
+                d.m_Json["key"] = j[i];
+                vec[i]          = d.Get("key", vec[i]);
+            }
+
+            return vec;
+        }
 
         // Asset
         /*template <typename T>
@@ -128,7 +213,7 @@ namespace EVA
         }*/
 
         // Ref<T>
-        template<typename T>
+        /*template<typename T>
         typename std::enable_if<!(std::is_base_of<ISerializeable, T>::value || std::is_base_of<Asset, T>::value)>::type
           Set(const std::string& key, Ref<T>& value) const
         {
@@ -141,7 +226,7 @@ namespace EVA
         {
             static_assert(false, "Not supported");
             return defaultValue;
-        }
+        }*/
 
 
         // Ref<ISerializeable>
@@ -163,123 +248,6 @@ namespace EVA
 
             const auto id = m_Json[key].get<uuid>();
             return AssetManager::GetShared<T>(id);
-        }*/
-        template<typename T>
-        typename std::enable_if<std::is_base_of<ISerializeable, T>::value>::type Set(const std::string& key, Ref<T>& value) const
-        {
-            if (value != nullptr)
-            {
-                DataObject d = DataObject(m_Mode);
-                if (value->GetTypeId() != "") { d.Set("ISerializeableTypeId", value->GetTypeId()); }
-                value->Serialize(d);
-                m_Json[key] = d.m_Json;
-            }
-        }
-
-        template<typename T>
-        typename std::enable_if<std::is_base_of<ISerializeable, T>::value, Ref<T>>::type Get(const std::string& key, Ref<T>& defaultValue) const
-        {
-            if (m_Json.find(key) == m_Json.end()) return defaultValue;
-
-            DataObject d = DataObject(m_Mode, m_Json[key]);
-
-            std::string defaultString = "";
-            std::string type          = d.Get<std::string>("ISerializeableTypeId", defaultString);
-            Ref<ISerializeable> ref;
-            if (type == defaultString) { ref = CreateRef<T>(); }
-            else
-            {
-                ref = ClassMapEVAISerializeable::Create(type);
-            }
-
-            if (ref) { ref->Serialize(d); }
-            
-            return std::static_pointer_cast<T>(ref);
-        }
-
-
-        // Ref<Asset>
-        template<typename T>
-        typename std::enable_if<std::is_base_of<Asset, T>::value>::type Set(const std::string& key, Ref<T>& value) const
-        {
-            if (value != nullptr) m_Json[key] = value->GetGuid();
-        }
-
-        template<typename T>
-        typename std::enable_if<std::is_base_of<Asset, T>::value, Ref<T>>::type Get(const std::string& key, Ref<T>& defaultValue) const
-        {
-            if (m_Json.find(key) == m_Json.end()) return defaultValue;
-
-            Guid guid = m_Json[key].get<Guid>();
-
-            return AssetManager::Load<T>(guid);
-        }
-
-        // std::vector<T>
-        template<typename T, typename Alloc /*, typename = std::enable_if_t<std::is_base_of<ISerializeable, T>::value>*/>
-        void Set(const std::string& key, std::vector<T, Alloc>& value)
-        {
-            json vec;
-            for (auto& v : value)
-            {
-                DataObject d(DataMode::Save);
-                d.Set("key", v);
-                vec.push_back(d.m_Json["key"]);
-            }
-            m_Json[key] = vec;
-        }
-
-        template<typename T, typename Alloc>
-        /*typename std::enable_if<std::is_base_of<ISerializeable, T>::value, std::vector<T, Alloc>>::type*/ std::vector<T, Alloc>
-          Get(const std::string& key, std::vector<T, Alloc>& defaultValue)
-        {
-            if (m_Json.find(key) == m_Json.end()) return defaultValue;
-
-            auto j = m_Json[key];
-            std::vector<T, Alloc> vec(j.size());
-
-            for (size_t i = 0; i < j.size(); i++)
-            {
-                DataObject d(DataMode::Load);
-                d.m_Json["key"] = j[i];
-                vec[i]          = d.Get("key", vec[i]);
-            }
-
-            return vec;
-        }
-
-        /*// std::vector<Ref<T>>
-        template<typename T, typename Alloc, typename = std::enable_if_t<std::is_base_of<ISerializeable, T>::value>>
-        void Set(const std::string& key, std::vector<Ref<T>, Alloc>& value)
-        {
-            json vec;
-            for (auto v : value)
-            {
-                json element;
-                DataObject d(DataMode::Save, element);
-
-                v->Serialize(d);
-                vec.push_back(element);
-            }
-            m_Json[key] = vec;
-        }
-
-        template<typename T, typename Alloc>
-        typename std::enable_if<std::is_base_of<ISerializeable, T>::value, std::vector<Ref<T>, Alloc>>::type
-          Get(const std::string& key, std::vector<Ref<T>, Alloc>& defaultValue)
-        {
-            if (m_Json.find(key) == m_Json.end()) return defaultValue;
-
-            auto j = m_Json[key];
-            std::vector<Ref<T>, Alloc> vec(j.size());
-
-            for (size_t i = 0; i < j.size(); i++)
-            {
-                DataObject d(DataMode::Load, j[i]);
-                vec[i]->Serialize(d);
-            }
-
-            return vec;
         }*/
     };
 } // namespace EVA

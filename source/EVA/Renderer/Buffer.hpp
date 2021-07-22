@@ -35,6 +35,7 @@ namespace EVA
             case EVA::ShaderDataType::Int3: return 4 * 3;
             case EVA::ShaderDataType::Int4: return 4 * 4;
             case EVA::ShaderDataType::Bool: return 1;
+            case EVA::ShaderDataType::None: return 0;
         }
 
         EVA_INTERNAL_ASSERT(false, "Unknown ShaderDataType");
@@ -71,6 +72,7 @@ namespace EVA
                 case EVA::ShaderDataType::Int3: return 3;
                 case EVA::ShaderDataType::Int4: return 4;
                 case EVA::ShaderDataType::Bool: return 1;
+                case EVA::ShaderDataType::None: return 0;
             }
 
             EVA_INTERNAL_ASSERT(false, "Unknown ShaderDataType");

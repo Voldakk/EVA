@@ -47,6 +47,7 @@ namespace EVA
             case EVA::CullMode::Back: EVA_GL_CALL(glCullFace(GL_BACK)); break;
             case EVA::CullMode::Front: EVA_GL_CALL(glCullFace(GL_FRONT)); break;
             case EVA::CullMode::Both: EVA_GL_CALL(glCullFace(GL_FRONT_AND_BACK)); break;
+            default: break;
         }
     }
 
