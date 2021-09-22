@@ -2,6 +2,7 @@
 
 #include "Texture.hpp"
 #include "Shader.hpp"
+#include "EVA/Assets.hpp"
 
 namespace EVA
 {
@@ -15,6 +16,14 @@ namespace EVA
         Ref<Texture> emissive;
         Ref<Texture> height;
 
+        inline static Ref<Texture> s_DefaultAlbedo;
+        inline static Ref<Texture> s_DefaultNormal;
+        inline static Ref<Texture> s_DefaultMetallic;
+        inline static Ref<Texture> s_DefaultRoughness;
+        inline static Ref<Texture> s_DefaultAmbientOcclusion;
+        inline static Ref<Texture> s_DefaultEmissive;
+        inline static Ref<Texture> s_DefaultHeight;
+
         bool enableParalax = true;
         bool paralaxClip   = false;
         float heightScale = 0.0f;
@@ -26,42 +35,53 @@ namespace EVA
             if (albedo)
                 shader->BindTexture("u_AlbedoMap", albedo);
             else
-                shader->BindTexture("u_AlbedoMap", TextureTarget::Texture2D, 0);
+                shader->BindTexture("u_AlbedoMap", s_DefaultAlbedo);
 
             if (normal)
                 shader->BindTexture("u_NormalMap", normal);
             else
-                shader->BindTexture("u_NormalMap", TextureTarget::Texture2D, 0);
+                shader->BindTexture("u_NormalMap", s_DefaultNormal);
 
             if (metallic)
                 shader->BindTexture("u_MetallicMap", metallic);
             else
-                shader->BindTexture("u_MetallicMap", TextureTarget::Texture2D, 0);
+                shader->BindTexture("u_MetallicMap", s_DefaultMetallic);
 
             if (roughness)
                 shader->BindTexture("u_RoughnessMap", roughness);
             else
-                shader->BindTexture("u_RoughnessMap", TextureTarget::Texture2D, 0);
+                shader->BindTexture("u_RoughnessMap", s_DefaultRoughness);
 
             if (ambientOcclusion)
                 shader->BindTexture("u_AmbientOcclusionMap", ambientOcclusion);
             else
-                shader->BindTexture("u_AmbientOcclusionMap", TextureTarget::Texture2D, 0);
+                shader->BindTexture("u_AmbientOcclusionMap", s_DefaultAmbientOcclusion);
 
             if (emissive)
                 shader->BindTexture("u_EmissiveMap", emissive);
             else
-                shader->BindTexture("u_EmissiveMap", TextureTarget::Texture2D, 0);
+                shader->BindTexture("u_EmissiveMap", s_DefaultEmissive);
 
             if (height)
                 shader->BindTexture("u_HeightMap", height);
             else
-                shader->BindTexture("u_HeightMap", TextureTarget::Texture2D, 0);
+                shader->BindTexture("u_HeightMap", s_DefaultHeight);
 
             shader->SetUniformBool("u_EnableParalax", enableParalax && height);
             shader->SetUniformBool("u_ParalaxClip", paralaxClip);
             shader->SetUniformFloat("u_HeightScale", heightScale);
             shader->SetUniformFloat2("u_Tiling", tiling);
+        }
+
+        static void LoadDefaults() 
+        { 
+            s_DefaultAlbedo = AssetManager::Load<Texture>("textures/default_albedo.png");
+            s_DefaultNormal = AssetManager::Load<Texture>("textures/default_normal.png");
+            s_DefaultMetallic = AssetManager::Load<Texture>("textures/default_metallic.png");
+            s_DefaultRoughness = AssetManager::Load<Texture>("textures/default_roughness.png");
+            s_DefaultAmbientOcclusion = AssetManager::Load<Texture>("textures/default_ao.png");
+            s_DefaultEmissive = AssetManager::Load<Texture>("textures/default_emission.png");
+            s_DefaultHeight = AssetManager::Load<Texture>("textures/default_height.png");
         }
     };
 } // namespace EVA

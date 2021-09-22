@@ -15,14 +15,17 @@ int main()
     EVA::AssetManager::Register<EVA::Mesh>(".obj", false);
 
     EVA::AssetManager::Register<EVA::Texture>(".png", false);
+    EVA::AssetManager::Register<EVA::Texture>(".jpeg", false);
     EVA::AssetManager::Register<EVA::Texture>(".hdr", false);
 
     EVA::AssetManager::Register<EVA::NE::NodeGraph>(".graph", true);
     EVA::FileDialog::Register(".graph", "Node graph");
 
-    //app->PushLayer(new EVA::EditorLayer());
+    EVA::Material::LoadDefaults();
+
+    app->PushLayer(new EVA::EditorLayer());
     //app->PushLayer(new EVA::ComputeLayer());
-    app->PushLayer(new EVA::TextureGeneratorLayer());
+    //app->PushLayer(new EVA::TextureGeneratorLayer());
 
     EVA_PROFILE_END_SESSION();
 

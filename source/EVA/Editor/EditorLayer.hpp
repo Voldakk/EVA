@@ -204,7 +204,7 @@ namespace EVA
             ImGui::ColorEdit3("Square color", glm::value_ptr(m_SquareColor));
             m_PersCameraController.Inspector();
             if (ImGui::Button("Add light")) m_Lights.push_back(Light());
-            if (ImGui::Button("Remove light")) m_Lights.erase(m_Lights.end() - 1);
+            if (ImGui::Button("Remove light") && !m_Lights.empty()) m_Lights.erase(m_Lights.end() - 1);
             for (auto& l : m_Lights)
             {
                 l.Inspector();
