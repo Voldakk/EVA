@@ -33,7 +33,6 @@ namespace EVA
 
             m_Shader->Bind();
             m_Shader->ResetTextureUnit();
-            m_Shader->SetUniformFloat("u_EnviromentRotation", rotation);
             RenderCommand::EnableDepth(false);
             Renderer::Submit(m_Shader, m_Mesh->GetVertexArray());
             RenderCommand::EnableDepth(true);

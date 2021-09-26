@@ -2,6 +2,8 @@
 
 namespace EVA
 {
+    const uint32_t TempUniformBinding = 15;
+
     enum class Access
     {
         ReadOnly,

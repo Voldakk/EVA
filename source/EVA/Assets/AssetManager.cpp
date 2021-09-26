@@ -33,8 +33,8 @@ namespace EVA
 
         auto metaPath = path;
         metaPath += ".meta";
-        FileSystem::DeleteFile(metaPath);
-        return FileSystem::DeleteFile(path);
+        FileSystem::Delete(metaPath);
+        return FileSystem::Delete(path);
     }
 
     Ref<Asset> AssetManager::LoadAsset(const Path& path, bool useCache)
@@ -49,7 +49,7 @@ namespace EVA
             if (existing != s_Assets.end()) return existing->second;
         }
 
-        if (!FileSystem::FileExists(path)) 
+        if (!FileSystem::Exists(path)) 
         { 
             EVA_INTERNAL_ERROR("File not found {}", FileSystem::ToString(path));
             return nullptr; 
@@ -62,7 +62,7 @@ namespace EVA
         metaPath += ".meta";
 
         // Create a .meta file is it does not exist
-        if (!FileSystem::FileExists(metaPath))
+        if (!FileSystem::Exists(metaPath))
         {
             json jsonNewMeta;
             jsonNewMeta["guid"] = NewGuid();

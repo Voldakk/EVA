@@ -69,7 +69,11 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 
 namespace EVA
 {
-    OpenGLContext::OpenGLContext(GLFWwindow* windowHandle) : m_WindowHandle(windowHandle) {}
+    OpenGLContext::OpenGLContext(GLFWwindow* windowHandle) : m_WindowHandle(windowHandle) 
+    { 
+        EVA_INTERNAL_ASSERT(s_Instance == nullptr, "Multiple graphics contexts");
+        s_Instance = this; 
+    }
 
     void OpenGLContext::Init()
     {
@@ -95,6 +99,16 @@ namespace EVA
     {
         EVA_PROFILE_FUNCTION();
         glfwSwapBuffers(m_WindowHandle);
+    }
+
+    uint32_t OpenGLContext::MaxUnifromBufferBindings() 
+    { 
+        static GLint count {0};
+        if (count == 0) 
+        { 
+            EVA_GL_CALL(glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &count)); 
+        };
+        return count;
     }
 
     glm::ivec3 OpenGLContext::MaxComputeWorkGroupSize()

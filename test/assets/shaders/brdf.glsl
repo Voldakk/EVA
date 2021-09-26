@@ -1,10 +1,9 @@
 //#type compute
-#version 430 compatibility
-#extension GL_ARB_compute_variable_group_size : enable
+#version 450 core
 
 const float PI = 3.14159265359;
 
-layout(local_size_variable) in;
+layout(local_size_x = 16, local_size_y = 16) in;
 layout(binding = 0, rg32f) uniform writeonly image2D u_Output;
 
 float RadicalInverse_VdC(uint bits) 

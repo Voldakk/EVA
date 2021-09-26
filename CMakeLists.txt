@@ -13,20 +13,31 @@ file(GLOB_RECURSE SOURCES
 	source/EVA/*
 	source/pch.cpp
 )
+
 add_library(eva STATIC ${SOURCES})
 
-#OpenGL
+# OpenGL
 find_package(OpenGL REQUIRED)
 list(APPEND EXTRA_INCLUDES ${OPENGL_INCLUDE_DIRS})
 FILE(GLOB OPENGL_SOURCES "source/Platform/OpenGL/**")
 list(APPEND EXTRA_SOURCES ${OPENGL_SOURCES})
+
+# Vulkan
+include_directories("$ENV{VULKAN_SDK}/include")
+link_directories("$ENV{VULKAN_SDK}/lib/") 
+target_link_libraries(eva PUBLIC 
+	shaderc_sharedd 
+	spirv-cross-cored 
+	spirv-cross-glsld 
+	SPIRV-Toolsd
+)
 
 # GLFW
 add_subdirectory(dependencies/glfw)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set( GLFW_BUILD_INSTALL OFF CACHE BOOL  "GLFW lib only" )
+set(GLFW_BUILD_INSTALL OFF CACHE BOOL  "GLFW lib only" )
 
 if(WIN32)
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
@@ -54,12 +65,6 @@ target_link_libraries(eva PUBLIC imgui)
 # stb
 add_subdirectory(dependencies/stb)
 target_link_libraries(eva PUBLIC stb)
-
-# ECS
-#set(EVA_ECS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-#set(EVA_ECS_ENABLE_BENCHMARKS OFF CACHE BOOL "" FORCE)
-#add_subdirectory(dependencies/ecs)
-#target_link_libraries(eva PUBLIC EVA_ECS)
 
 # NLohmann JSON
 set(JSON_BuildTests OFF CACHE INTERNAL "")

@@ -1,7 +1,9 @@
 #pragma once
 
+#include "EVA/Renderer/GraphicsContext.hpp"
 #include "TextureManager.hpp"
 #include "EVA/Renderer/Framebuffer.hpp"
+#include "EVA/Renderer/UniformBuffer.hpp"
 #include "Mesh.hpp"
 #include "EVA/Assets.hpp"
 
@@ -76,10 +78,20 @@ namespace EVA
 
             RenderCommand::SetCullMode(CullMode::None);
 
+            struct Uniforms
+            {
+                glm::mat4 projection;
+                glm::mat4 view;
+            };
+            Uniforms uniformData;
+            uniformData.projection = captureProjection;
+
+            auto uniformBuffer = UniformBuffer::Create(0, nullptr, sizeof(Uniforms));
+
             for (unsigned int i = 0; i < 6; ++i)
             {
-                shader->SetUniformMat4("u_Projection", captureProjection);
-                shader->SetUniformMat4("u_View", captureViews[i]);
+                uniformData.view = captureViews[i];
+                uniformBuffer->SetData(&uniformData, sizeof(Uniforms));
 
                 frameBuffer->AttachCubemap(out, i);
                 renderCube();
@@ -138,8 +150,19 @@ namespace EVA
 
             shader->Bind();
             shader->BindTexture("u_EnvironmentMap", hdrTexture);
-            shader->SetUniformMat4("u_Projection", captureProjection);
-            shader->SetUniformFloat("u_Resolution", (float)hdrTexture->GetWidth());
+
+            struct Uniforms
+            {
+                glm::mat4 projection;
+                glm::mat4 view;
+                float resolution;
+                float roughness;
+            };
+            Uniforms uniformData;
+            uniformData.projection = captureProjection;
+            uniformData.resolution = (float)hdrTexture->GetWidth();
+
+            auto uniformBuffer = UniformBuffer::Create(0, nullptr, sizeof(Uniforms));
 
             FramebufferSpecification spec;
             spec.width       = out->GetWidth();
@@ -158,11 +181,12 @@ namespace EVA
                 frameBuffer->Resize(mipWidth, mipHeight);
                 frameBuffer->Bind();
 
-                float roughness = (float)mip / (float)(maxMipLevels - 1);
-                shader->SetUniformFloat("u_Roughness", roughness);
+                uniformData.roughness = (float)mip / (float)(maxMipLevels - 1);
                 for (unsigned int i = 0; i < 6; ++i)
                 {
-                    shader->SetUniformMat4("u_View", captureViews[i]);
+                    uniformData.view = captureViews[i];
+                    uniformBuffer->SetData(&uniformData, sizeof(Uniforms));
+
                     frameBuffer->AttachCubemap(out, i, mip);
 
                     RenderCommand::Clear();
@@ -177,7 +201,9 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            uint32_t workGroupSize = 16;
+            return AssetManager::Load<Texture>("textures/ibl_brdf_lut.png");
+
+            /*constexpr uint32_t workGroupSize = 16;
 
             auto shader = AssetManager::Load<Shader>("shaders/brdf.glsl");
             TextureSettings settings;
@@ -190,9 +216,9 @@ namespace EVA
             shader->BindImageTexture(0, out, Access::WriteOnly);
             uint32_t numWorkGroupsX = out->GetWidth() / workGroupSize;
             uint32_t numWorkGroupsY = out->GetHeight() / workGroupSize;
-            shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1, workGroupSize, workGroupSize, 1);
+            shader->DispatchCompute(numWorkGroupsX, numWorkGroupsY, 1);
 
-            return out;
+            return out;*/
         }
 
         inline static std::shared_ptr<Texture> Uniform(float value, TextureFormat format, uint32_t size = 16)

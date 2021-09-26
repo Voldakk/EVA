@@ -14,8 +14,6 @@ namespace EVA
 
         Ref<Shader> m_FlatColorShader, m_TextureShader;
 
-        Ref<Texture> m_Texture;
-
         OrthographicCameraController m_OrtoCameraController;
         PerspectiveCameraController m_PersCameraController;
 
@@ -24,6 +22,8 @@ namespace EVA
         glm::vec3 m_SquareColor = glm::vec3(0.2f, 0.3f, 0.8f);
 
         Ref<Mesh> m_CubeMesh;
+        Ref<Material> m_CubeMaterial;
+
         Ref<Mesh> m_ShipMesh;
         Ref<Shader> m_PBRShader;
 
@@ -75,12 +75,13 @@ namespace EVA
                 Ref<IndexBuffer> ib = IndexBuffer::Create({0, 1, 2, 2, 3, 0});
                 m_SquareVertexArray->SetIndexBuffer(ib);
             }
-            {
-                m_CubeMesh = AssetManager::Load<Mesh>("models/cube.obj");
-            }
 
-            // Texture
-            m_Texture = AssetManager::Load<Texture>("textures/uv.png");
+            {
+                // Cube
+                m_CubeMesh = AssetManager::Load<Mesh>("models/cube.obj");
+                m_CubeMaterial = CreateRef<Material>();
+                m_CubeMaterial->albedo = AssetManager::Load<Texture>("textures/uv.png");
+            }
 
             // Viewport
             FramebufferSpecification spec;
@@ -95,7 +96,7 @@ namespace EVA
         }
         void LoadShaders() 
         { 
-            m_FlatColorShader = AssetManager::Load<Shader>("shaders/color.glsl", false);
+            //m_FlatColorShader = AssetManager::Load<Shader>("shaders/color.glsl", false);
             m_TextureShader   = AssetManager::Load<Shader>("shaders/texture.glsl", false);
             m_PBRShader       = AssetManager::Load<Shader>("shaders/pbr.glsl", false); 
         }
@@ -166,14 +167,12 @@ namespace EVA
             // Cube
             m_TextureShader->Bind();
             m_TextureShader->ResetTextureUnit();
-            m_TextureShader->BindTexture("u_AlbedoMap", m_Texture);
-            Renderer::Submit(m_TextureShader, m_CubeMesh->GetVertexArray(), transform);
+            Renderer::Submit(m_TextureShader, m_CubeMesh->GetVertexArray(), transform, m_CubeMaterial);
 
             // Ship
             m_PBRShader->Bind();
             m_PBRShader->ResetTextureUnit();
-            m_ShipMesh->GetMaterial()->Bind(m_PBRShader);
-            Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray());
+            Renderer::Submit(m_PBRShader, m_ShipMesh->GetVertexArray(), glm::identity<glm::mat4>(), m_ShipMesh->GetMaterial());
 
             Renderer::EndScene();
             m_Viewport->Unbind();

@@ -6,6 +6,8 @@
 #include <memory>
 #include <utility>
 #include <filesystem>
+#include <iterator>
+#include <limits>
 
 #include <string>
 #include <map>

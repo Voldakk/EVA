@@ -1,13 +1,18 @@
 //#type vertex
-#version 330 core
+#version 450 core
 
 layout (location = 0) in vec3 a_Position;
 layout (location = 1) in vec2 a_TexCoords;
 
-out vec3 localPos;
+layout (location = 0) out vec3 localPos;
 
-uniform mat4 u_Projection;
-uniform mat4 u_View;
+layout(binding = 0, std140) uniform Uniforms
+{
+	mat4 u_Projection;
+	mat4 u_View;
+    float u_Resolution;
+    float u_Roughness;
+};
 
 void main()
 {
@@ -17,13 +22,20 @@ void main()
 
 
 //#type fragment
-#version 330 core
-in vec3 localPos;
-out vec4 FragColor;
+#version 450 core
 
-uniform samplerCube u_EnvironmentMap;
-uniform float u_Roughness;
-uniform float u_Resolution;
+layout (location = 0) in vec3 localPos;
+layout (location = 0) out vec4 FragColor;
+
+layout (binding = 0) uniform samplerCube u_EnvironmentMap;
+
+layout(binding = 0, std140) uniform Uniforms
+{
+	mat4 u_Projection;
+	mat4 u_View;
+    float u_Roughness;
+    float u_Resolution;
+};
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 //#type vertex
-#version 330 core
+#version 450 core
 
 layout (location = 0) in vec3 a_Position;
 layout (location = 1) in vec2 a_TexCoords;
@@ -7,7 +7,7 @@ layout (location = 2) in vec3 a_Normal;
 layout (location = 3) in vec3 a_Tangent;
 layout (location = 4) in vec3 a_Bitangent;  
 
-out VTOF {
+layout (location = 0) out VTOF {
     vec3 fragPos;
     vec2 UV;
     mat3 TBN;
@@ -15,9 +15,24 @@ out VTOF {
     vec3 tangentViewPos;
 } vOut;
 
-uniform vec3 u_CameraPosition;
-uniform mat4 u_ViewProjection;
-uniform mat4 u_Model;
+layout(binding = 0, std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+	mat4 u_InverseViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+    vec3 u_CameraPosition;
+    float u_EnviromentRotation;
+};
+
+layout(binding = 2, std140) uniform Object
+{
+    mat4 u_Model;
+    vec2 u_Tiling;
+    float u_HeightScale;
+	bool u_EnableParalax;
+    bool u_ParalaxClip;
+};
 
 void main()
 {
@@ -45,12 +60,12 @@ void main()
 //---------------------------------------------------------------------------------------------------------------------
 
 //#type fragment
-#version 330 core
+#version 450 core
 
 #define MAX_LIGHTS 10
 const float PI = 3.14159265359;
 
-in VTOF {
+layout (location = 0) in VTOF {
     vec3 fragPos;
     vec2 UV;
     mat3 TBN;
@@ -58,38 +73,54 @@ in VTOF {
     vec3 tangentViewPos;
 } fIn;
 
-out vec4 fragColor;
+layout (location = 0) out vec4 fragColor;
 
-uniform vec3 u_CameraPosition;
-
-// Material
-uniform sampler2D u_AlbedoMap;
-uniform sampler2D u_NormalMap;
-uniform sampler2D u_MetallicMap;
-uniform sampler2D u_RoughnessMap;
-uniform sampler2D u_AmbientOcclusionMap;
-uniform sampler2D u_EmissiveMap;
-uniform sampler2D u_HeightMap;
-
-uniform bool u_EnableParalax;
-uniform bool u_ParalaxClip;
-uniform float u_HeightScale;
-uniform vec2 u_Tiling;
+layout(binding = 0, std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+	mat4 u_InverseViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+    vec3 u_CameraPosition;
+    float u_EnviromentRotation;
+};
 
 // IBL
-uniform float u_EnviromentRotation;
-uniform samplerCube u_IrradianceMap;
-uniform samplerCube u_PrefilterMap;
-uniform sampler2D u_BrdfLUT;
+layout(binding = 1) uniform samplerCube u_IrradianceMap;
+layout(binding = 2) uniform samplerCube u_PrefilterMap;
+layout(binding = 3) uniform sampler2D u_BrdfLUT;
 
 // Lights
-uniform int u_NumLights;
-uniform struct Light
+struct Light
 {
    vec4 position;
    vec3 color;
    float attenuation;
-} u_AllLights[MAX_LIGHTS];
+};
+
+layout(binding = 1, std140) uniform Lights
+{
+	int u_NumLights; // 4 slots
+    Light u_Lights[MAX_LIGHTS];
+};
+
+// Material
+layout(binding = 4) uniform sampler2D u_AlbedoMap;
+layout(binding = 5) uniform sampler2D u_NormalMap;
+layout(binding = 6) uniform sampler2D u_MetallicMap;
+layout(binding = 7) uniform sampler2D u_RoughnessMap;
+layout(binding = 8) uniform sampler2D u_AmbientOcclusionMap;
+layout(binding = 9) uniform sampler2D u_EmissiveMap;
+layout(binding = 10) uniform sampler2D u_HeightMap;
+
+layout(binding = 2, std140) uniform Object
+{
+    mat4 u_Model;
+    vec2 u_Tiling;
+    float u_HeightScale;
+	bool u_EnableParalax;
+    bool u_ParalaxClip;
+};
 
 // ----------------------------------------------------------------------------
 float SampleDepth(vec2 uv)
@@ -217,17 +248,17 @@ vec3 CalcLight(vec3 point, vec3 N, vec3 V, vec3 F0, float roughness, float metal
         vec3 radiance;
 
         // Point light
-        if(u_AllLights[i].position.w == 1.0)
+        if(u_Lights[i].position.w == 1.0)
         {
-            L = normalize(u_AllLights[i].position.xyz - point);
-            float distance = length(u_AllLights[i].position.xyz - point);
-            float attenuation = u_AllLights[i].attenuation / (distance * distance);
-            radiance = u_AllLights[i].color * attenuation;
+            L = normalize(u_Lights[i].position.xyz - point);
+            float distance = length(u_Lights[i].position.xyz - point);
+            float attenuation = u_Lights[i].attenuation / (distance * distance);
+            radiance = u_Lights[i].color * attenuation;
         }
         else
         {
-            L = normalize(u_AllLights[i].position.xyz);
-            radiance = u_AllLights[i].color;
+            L = normalize(u_Lights[i].position.xyz);
+            radiance = u_Lights[i].color;
         }
 
         vec3 H = normalize(V + L);

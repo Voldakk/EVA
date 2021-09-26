@@ -41,9 +41,17 @@ namespace EVA
         void ResetTextureUnit() override { m_TextureUnit = 0; }
 
       private:
-        std::string ReadFile(const Path& filepath);
-        std::unordered_map<unsigned int, std::string> PreProcess(const std::string& source);
-        void Compile(const std::unordered_map<unsigned int, std::string>& sources);
+        using ShaderSources = std::unordered_map<unsigned int, std::string>;
+        using ShaderBinaries = std::unordered_map<unsigned int, std::vector<std::uint32_t>>;
+
+        ShaderSources PreProcess(const std::string& source);
+        
+        ShaderBinaries CompileOrGetVulkanBinaries(const ShaderSources& sources);
+        ShaderBinaries CompileOrGetOpenGLBinaries(const ShaderBinaries& vulkanBinaries);
+
+        void CreateProgram(const ShaderBinaries& glBinaries);
+
+        void Reflect(unsigned int type, const std::vector<uint32_t>& shaderData);
 
         int GetUniformLocation(const std::string& name);
         void ResetUniformLocations() { m_UniformLocationMap.clear(); }

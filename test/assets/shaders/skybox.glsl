@@ -1,14 +1,20 @@
 //#type vertex
-#version 330 core
+#version 450 core
 
 layout (location = 0) in vec3 a_Position;
 
-out vec3 fragTexCoord;
-out vec3 fragPos;
+layout (location = 0) out vec3 fragPos;
+layout (location = 1) out vec3 fragTexCoord;
 
-uniform mat4 u_View;
-uniform mat4 u_Projection;
-uniform mat4 u_Model;
+layout(binding = 0, std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+	mat4 u_InverseViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+    vec3 u_CameraPosition;
+    float u_EnviromentRotation;
+};
 
 void main()
 {
@@ -22,31 +28,45 @@ void main()
     view[3][2] = 0;
 
     // Apply all matrix transformations to vert
-    gl_Position = u_Projection * view * u_Model * vec4(a_Position, 1);
+    gl_Position = u_Projection * view * vec4(a_Position, 1);
 }
 
 
 //#type fragment
-#version 330 core
+#version 450 core
 
 #define MAX_LIGHTS 10
 
-in vec3 fragTexCoord;
-in vec3 fragPos;
+layout (location = 0) in vec3 fragPos;
+layout (location = 1) in vec3 fragTexCoord;
 
-out vec4 fragColor;
+layout (location = 0) out vec4 fragColor;
 
-uniform float u_EnviromentRotation;
-uniform samplerCube u_EnvironmentMap;
+layout(binding = 0, std140) uniform Camera
+{
+	mat4 u_ViewProjection;
+	mat4 u_InverseViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+    vec3 u_CameraPosition;
+    float u_EnviromentRotation;
+};
+
+layout(binding = 0) uniform samplerCube u_EnvironmentMap;
 
 // Lights
-uniform int u_NumLights;
-uniform struct Light
+struct Light
 {
    vec4 position;
    vec3 color;
    float attenuation;
-} u_AllLights[MAX_LIGHTS];
+};
+
+layout(binding = 1, std140) uniform Lights
+{
+	int u_NumLights;
+    Light u_Lights[MAX_LIGHTS];
+};
 
 mat3 RotateY(float a)
 {
@@ -61,13 +81,13 @@ void main()
 
     for(int i = 0; i < u_NumLights; ++i) 
     {
-        if (u_AllLights[i].position.w != 1.0)
+        if (u_Lights[i].position.w != 1.0)
         {
-            float sunSize = 1 - 1 / pow(length(u_AllLights[i].color + 1), 0.3);
+            float sunSize = 1 - 1 / pow(length(u_Lights[i].color + 1), 0.3);
             sunSize *= 0.5;
-            float deg = acos(dot(normalize(u_AllLights[i].position.xyz), normalize(fragPos.xyz)));
+            float deg = acos(dot(normalize(u_Lights[i].position.xyz), normalize(fragPos.xyz)));
             float a = 1 - clamp(deg, 0, sunSize) / (sunSize);
-            color = mix(color, u_AllLights[i].color, a*a);
+            color = mix(color, u_Lights[i].color, a*a);
         }
     }
 

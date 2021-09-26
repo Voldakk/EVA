@@ -1,13 +1,16 @@
 //#type vertex
-#version 330 core
+#version 450 core
 
 layout (location = 0) in vec3 a_Position;
 layout (location = 1) in vec2 a_TexCoords;
 
-out vec3 localPos;
+layout (location = 0) out vec3 localPos;
 
-uniform mat4 u_Projection;
-uniform mat4 u_View;
+layout(binding = 0, std140) uniform Uniforms
+{
+	mat4 u_Projection;
+	mat4 u_View;
+};
 
 void main()
 {
@@ -17,11 +20,11 @@ void main()
 
 
 //#type fragment
-#version 330 core
-in vec3 localPos;
-out vec4 FragColor;
+#version 450 core
+layout (location = 0) in vec3 localPos;
+layout (location = 0) out vec4 FragColor;
 
-uniform sampler2D u_EquirectangularMap;
+layout(binding = 0) uniform sampler2D u_EquirectangularMap;
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
 vec2 SampleSphericalMap(vec3 v)

@@ -4,6 +4,12 @@
 
 namespace EVA
 {
+    struct LightData
+    {
+        glm::vec4 position;
+        glm::vec3 color;
+        float attenuation;
+    };
     struct Light
     {
         enum class Type
@@ -45,8 +51,28 @@ namespace EVA
             ImGui::PopID();
         }
 
-        void SetUniforms(const Ref<Shader>& shader, const std::string& uniformName)
+        LightData GetData() const 
+        { 
+            EVA_PROFILE_FUNCTION();
+
+            LightData data;
+            data.color = color * intensity;
+            if (type == Light::Type::Directional) 
+            { 
+                data.position = glm::vec4(direction, 0);
+            }
+            else if (type == Light::Type::Point)
+            {
+                data.position = glm::vec4(position, 1);
+                data.attenuation = attenuation;
+            }
+            return data;
+        }
+
+        /*void SetUniforms(const Ref<Shader>& shader, const std::string& uniformName)
         {
+            EVA_PROFILE_FUNCTION();
+
             shader->SetUniformFloat3(uniformName + "color", color * intensity);
 
             if (type == Light::Type::Directional) { shader->SetUniformFloat4(uniformName + "position", glm::vec4(direction, 0.0f)); }
@@ -55,6 +81,6 @@ namespace EVA
                 shader->SetUniformFloat4(uniformName + "position", glm::vec4(position, 1.0f));
                 shader->SetUniformFloat(uniformName + "attenuation", attenuation);
             }
-        }
+        }*/
     };
 } // namespace EVA

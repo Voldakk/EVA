@@ -319,7 +319,7 @@ namespace EVA
                 for (size_t i = 0; i < m_Lights.size(); i++) 
                 {
                     const auto uniformName = "u_AllLights[" + std::to_string(i) + "].";
-                    m_Lights[i].SetUniforms(m_ComputeShader, uniformName);
+                    //m_Lights[i].SetUniforms(m_ComputeShader, uniformName);
                 }
 
                 m_ComputeShader->BindTexture("u_FbColor", TextureTarget::Texture2D, m_Viewport->GetFramebuffer()->GetColorAttachmentRendererId());

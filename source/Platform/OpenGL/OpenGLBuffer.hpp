@@ -1,3 +1,5 @@
+#pragma once
+
 #include "EVA/Renderer/Buffer.hpp"
 
 namespace EVA
