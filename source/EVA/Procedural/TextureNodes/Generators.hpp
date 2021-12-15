@@ -154,7 +154,7 @@ namespace EVA
 
                 m_Shader->SetUniformFloat("u_Scale", m_Scale);
                 m_Shader->SetUniformFloat("u_ScaleVariation", m_ScaleVariation);
-                
+
                 m_Shader->SetUniformFloat("u_Offset", m_Offset);
                 m_Shader->SetUniformFloat("u_OffsetVariation", m_OffsetVariation);
 
@@ -170,14 +170,14 @@ namespace EVA
                 data.Serialize("Count", m_Count);
                 data.Serialize("Height", m_Height);
 
-                if (data.Inspector()) 
-                { 
+                if (data.Inspector())
+                {
                     data.changed |= ImGui::SliderFloat("Scale", &m_Scale, 0.0f, 1.0f);
                     data.changed |= ImGui::SliderFloat("Scale Variation", &m_ScaleVariation, 0.0f, 1.0f);
                     data.changed |= ImGui::SliderFloat("Offset", &m_Offset, 0.0f, 1.0f);
-                    data.changed |= ImGui::SliderFloat("Offset Variation", &m_OffsetVariation, 0.0f, 1.0f); 
+                    data.changed |= ImGui::SliderFloat("Offset Variation", &m_OffsetVariation, 0.0f, 1.0f);
 
-                    data.changed |= ImGui::SliderFloat("Random Mask", &m_RandomMask, 0.0f, 1.0f); 
+                    data.changed |= ImGui::SliderFloat("Random Mask", &m_RandomMask, 0.0f, 1.0f);
                 }
                 else
                 {
@@ -199,8 +199,8 @@ namespace EVA
             glm::ivec2 m_Count = {4, 8};
             glm::vec2 m_Height = {1.0f, 1.0f};
 
-            float m_Scale           = 0.0f;
-            float m_ScaleVariation  = 0.0f;
+            float m_Scale          = 0.0f;
+            float m_ScaleVariation = 0.0f;
 
             float m_Offset          = 0.0f;
             float m_OffsetVariation = 0.0f;

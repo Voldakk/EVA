@@ -9,10 +9,7 @@ namespace EVA
         class Noise : public ComputeNode
         {
           protected:
-            Noise()
-            {
-                SetTexture(TextureR);
-            }
+            Noise() { SetTexture(TextureR); }
 
             void SetupNode() override
             {
@@ -46,10 +43,7 @@ namespace EVA
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::GradientNoise);
 
           public:
-            GradientNoise() : Noise()
-            {
-                SetShader("noise/gradient.glsl");
-            }
+            GradientNoise() : Noise() { SetShader("noise/gradient.glsl"); }
 
             void SetupNode() override
             {
@@ -79,10 +73,7 @@ namespace EVA
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::VoronoiNoise);
 
           public:
-            VoronoiNoise() : Noise()
-            {
-                SetShader("noise/voronoi.glsl");
-            }
+            VoronoiNoise() : Noise() { SetShader("noise/voronoi.glsl"); }
 
             void SetupNode() override
             {
@@ -96,10 +87,7 @@ namespace EVA
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::WorleyNoise);
 
           public:
-            WorleyNoise() : Noise()
-            {
-                SetShader("noise/worley.glsl");
-            }
+            WorleyNoise() : Noise() { SetShader("noise/worley.glsl"); }
 
             void SetupNode() override
             {

@@ -15,22 +15,19 @@ namespace EVA
     class AssetHandler
     {
       public:
-        static Ref<Asset> Create() 
-        { 
-            auto asset = CreateRef<T>(); 
+        static Ref<Asset> Create()
+        {
+            auto asset = CreateRef<T>();
             return asset;
         }
 
-        static Ref<Asset> Load(const Path& path, DataObject& file, DataObject& metafile) 
-        { 
+        static Ref<Asset> Load(const Path& path, DataObject& file, DataObject& metafile)
+        {
             auto asset = CreateRef<T>();
             asset->Serialize(file);
-            return asset; 
+            return asset;
         }
-        static void Save(Ref<Asset>& asset, const Path& path, DataObject& file, DataObject& metafile) 
-        {
-            asset->Serialize(file);
-        }
+        static void Save(Ref<Asset>& asset, const Path& path, DataObject& file, DataObject& metafile) { asset->Serialize(file); }
     };
 
     class AssetManager

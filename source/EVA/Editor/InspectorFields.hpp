@@ -233,7 +233,7 @@ namespace EVA
         template<typename T>
         static typename std::enable_if<std::is_base_of<Asset, T>::value, bool>::type Default(const char* name, Ref<T>& value)
         {
-            auto ref = std::static_pointer_cast<Asset>(value);
+            auto ref     = std::static_pointer_cast<Asset>(value);
             bool changed = AssetPath(name, ref);
             value        = std::static_pointer_cast<T>(ref);
             return changed;

@@ -181,10 +181,10 @@ namespace EVA
 
             auto shader = AssetManager::Load<Shader>("shaders/brdf.glsl");
             TextureSettings settings;
-            settings.wrapping = TextureWrapping::ClampToEdge;
+            settings.wrapping  = TextureWrapping::ClampToEdge;
             settings.minFilter = TextureMinFilter::Linear;
             settings.magFilter = TextureMagFilter::Linear;
-            auto out          = TextureManager::CreateTexture(size, size, TextureFormat::RG32F, settings);
+            auto out           = TextureManager::CreateTexture(size, size, TextureFormat::RG32F, settings);
 
             shader->Bind();
             shader->BindImageTexture(0, out, Access::WriteOnly);

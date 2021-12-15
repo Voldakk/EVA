@@ -21,19 +21,19 @@ namespace EVA
             CCL()
             {
                 TextureSettings textureSettings;
-                textureSettings.wrapping    = TextureWrapping::ClampToEdge;
-                textureSettings.minFilter   = TextureMinFilter::Nearest;
-                textureSettings.magFilter   = TextureMagFilter::Nearest;
-                m_Data.labelsTexture        = TextureManager::CreateTexture(TextureSize, TextureSize, TextureFormat::R32UI);
-                m_Data.extentsTexture       = TextureManager::CreateTexture(TextureSize, TextureSize, TextureRGBA, textureSettings);
+                textureSettings.wrapping  = TextureWrapping::ClampToEdge;
+                textureSettings.minFilter = TextureMinFilter::Nearest;
+                textureSettings.magFilter = TextureMagFilter::Nearest;
+                m_Data.labelsTexture      = TextureManager::CreateTexture(TextureSize, TextureSize, TextureFormat::R32UI);
+                m_Data.extentsTexture     = TextureManager::CreateTexture(TextureSize, TextureSize, TextureRGBA, textureSettings);
 
                 uint32_t nextIndex = 1;
                 m_NextIndexSsbo = ShaderStorageBuffer::Create(&nextIndex, sizeof(nextIndex), Usage::DeviceModifiedRepeatedlyAppUsedRepeatedly);
-            
-                m_LabelShader      = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/label.glsl");
-                m_FindLinksShader  = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/find_links.glsl");
-                m_ApplyLinksShader = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/apply_links.glsl");
-                m_ExtentsShader = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/extents.glsl");
+
+                m_LabelShader          = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/label.glsl");
+                m_FindLinksShader      = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/find_links.glsl");
+                m_ApplyLinksShader     = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/apply_links.glsl");
+                m_ExtentsShader        = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/extents.glsl");
                 m_ExtentsTextureShader = AssetManager::Load<Shader>(std::string(ShaderPath) + "ccl/extents_texture.glsl");
             }
 
@@ -80,7 +80,7 @@ namespace EVA
             void GenerateTexture(const Ref<Texture>& dataTexture)
             {
                 constexpr glm::ivec2 pixelsPerChunk = glm::ivec2(32);
-                constexpr glm::ivec2 workGroupSize   = glm::ivec2(16);
+                constexpr glm::ivec2 workGroupSize  = glm::ivec2(16);
 
                 glm::ivec2 dims    = glm::ivec2(dataTexture->GetWidth(), dataTexture->GetHeight());
                 glm::ivec2 threads = (dims + pixelsPerChunk - 1) / pixelsPerChunk;
@@ -89,7 +89,7 @@ namespace EVA
                 glm::ivec2 numWorkGroupsChunk  = (threads + workGroupSize - 1) / workGroupSize;
 
                 uint32_t nextIndex = 1;
-                
+
                 {
                     EVA_PROFILE_SCOPE("Label");
 
@@ -108,7 +108,7 @@ namespace EVA
                     nextIndex = *static_cast<uint32_t*>(m_NextIndexSsbo->Map(Access::ReadOnly));
                     m_NextIndexSsbo->Unmap();
                 }
-                
+
                 {
                     EVA_PROFILE_SCOPE("Link");
                     uint32_t prev = 0;
@@ -179,10 +179,10 @@ namespace EVA
                     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
                 }
 
-                
+
                 std::vector<uint32_t> links(nextIndex);
                 Ref<ShaderStorageBuffer> linksSsbo;
-                
+
                 {
                     EVA_PROFILE_SCOPE("Find links");
 
@@ -210,15 +210,12 @@ namespace EVA
                     for (size_t i = 1; i < links.size(); i++)
                     {
                         auto& l = linksData[i];
-                        if (l == i) 
-                        { 
-                            l = nextIndex++;
-                        }
+                        if (l == i) { l = nextIndex++; }
                         else
                         {
                             linkedExtents[i].insert(i);
                             linkedExtents[l].insert(l);
-                            
+
                             for (const auto& n : linkedExtents[i])
                             {
                                 linkedExtents[n].insert(l);
@@ -249,7 +246,7 @@ namespace EVA
                     auto last = std::unique(uniqueLinkedExtents.begin(), uniqueLinkedExtents.end());
                     uniqueLinkedExtents.resize(last - uniqueLinkedExtents.begin());
                     Extents* extentsData = static_cast<Extents*>(extentsSsbo->Map(Access::ReadWrite));
-                    for (const auto& set : uniqueLinkedExtents) 
+                    for (const auto& set : uniqueLinkedExtents)
                     {
                         bool ex = false, ey = false;
 
@@ -257,9 +254,9 @@ namespace EVA
                         glm::uvec2 max = glm::uvec2(0);
 
                         glm::uvec2 m = glm::uvec2(dims);
-                        glm::uvec2 d   = glm::uvec2(0);
+                        glm::uvec2 d = glm::uvec2(0);
 
-                        for (const auto& l : set) 
+                        for (const auto& l : set)
                         {
                             auto* e = &extentsData[l - 1];
                             min.x   = glm::min(min.x, e->minX);
@@ -270,27 +267,27 @@ namespace EVA
                             if (e->minX == 0)
                             {
                                 d.x = glm::max(d.x, e->maxX);
-                                ex = true;
+                                ex  = true;
                             }
                             if (e->maxX == dims.x - 1)
                             {
                                 m.x = glm::min(m.x, e->minX);
-                                ex = true;
+                                ex  = true;
                             }
 
                             if (e->minY == 0)
                             {
                                 d.y = glm::max(d.y, e->maxY);
-                                ey = true;
+                                ey  = true;
                             }
                             if (e->maxY == dims.y - 1)
                             {
                                 m.y = glm::min(m.y, e->minY);
-                                ey = true;
+                                ey  = true;
                             }
                         }
 
-                        for (const auto& l : set) 
+                        for (const auto& l : set)
                         {
                             auto* e = &extentsData[l - 1];
                             if (ex)
@@ -356,10 +353,7 @@ namespace EVA
                 AddInput<CCLData>({"In"});
             }
 
-            const CCLData* GetCCLData() const 
-            { 
-                return GetInputDataPtr<CCLData>(0);
-            }
+            const CCLData* GetCCLData() const { return GetInputDataPtr<CCLData>(0); }
         };
 
         class CCLToRandom : public CCLNode
@@ -369,8 +363,8 @@ namespace EVA
           public:
             CCLToRandom()
             {
-                //SetShader("ccl/to_random_grayscale.glsl");
-                //SetTexture(TextureR);
+                // SetShader("ccl/to_random_grayscale.glsl");
+                // SetTexture(TextureR);
             }
 
             void SetupNode() override
@@ -443,9 +437,9 @@ namespace EVA
                 AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
             }
 
-            void SetUniforms() const override 
-            { 
-                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly); 
+            void SetUniforms() const override
+            {
+                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly);
                 m_Shader->SetUniformFloat("u_Angle", m_Angle);
                 m_Shader->SetUniformFloat("u_AngleVariation", m_AngleVariation);
                 m_Shader->SetUniformFloat("u_Seed", m_Seed);
@@ -455,26 +449,26 @@ namespace EVA
             {
                 CCLNode::Serialize(data);
 
-                if (data.Inspector()) 
-                { 
+                if (data.Inspector())
+                {
                     data.changed |= ImGui::SliderAngle("Angle", &m_Angle);
-                    data.changed |= ImGui::SliderFloat("AngleVariation", &m_AngleVariation, 0, 1); 
+                    data.changed |= ImGui::SliderFloat("AngleVariation", &m_AngleVariation, 0, 1);
                 }
                 else
                 {
                     data.Serialize("Angle", m_Angle);
                     data.Serialize("AngleVariation", m_AngleVariation);
                 }
-                
+
                 data.Serialize("Seed", m_Seed);
 
                 processed &= !data.changed;
             }
 
           private:
-            float m_Angle = 0;
+            float m_Angle          = 0;
             float m_AngleVariation = 0;
-            float m_Seed = 0;
+            float m_Seed           = 0;
         };
 
         class CCLMap : public CCLNode
@@ -521,10 +515,10 @@ namespace EVA
                 AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
             }
 
-            void SetUniforms() const override 
-            { 
+            void SetUniforms() const override
+            {
                 auto data = GetCCLData();
-                m_Shader->BindImageTexture(1, data->labelsTexture, Access::ReadOnly); 
+                m_Shader->BindImageTexture(1, data->labelsTexture, Access::ReadOnly);
                 m_Shader->SetUniformFloat("u_Step", 1.0f / data->count);
             }
         };

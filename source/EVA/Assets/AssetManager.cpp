@@ -13,8 +13,8 @@ namespace EVA
         EVA_PROFILE_FUNCTION();
         FileInfo info;
         if (!GetFileInfo(info, path.extension())) { return nullptr; }
-        auto asset = info.create();
-        asset->m_Guid   = NewGuid();
+        auto asset    = info.create();
+        asset->m_Guid = NewGuid();
         Save(asset, path);
         return asset;
     }
@@ -49,10 +49,10 @@ namespace EVA
             if (existing != s_Assets.end()) return existing->second;
         }
 
-        if (!FileSystem::FileExists(path)) 
-        { 
+        if (!FileSystem::FileExists(path))
+        {
             EVA_INTERNAL_ERROR("File not found {}", FileSystem::ToString(path));
-            return nullptr; 
+            return nullptr;
         }
 
         FileInfo info;
@@ -73,10 +73,7 @@ namespace EVA
 
         // File
         json jsonFile;
-        if (info.isJson)
-        {
-            jsonFile = ReadFile(path);
-        }
+        if (info.isJson) { jsonFile = ReadFile(path); }
         DataObject file(DataMode::Load, jsonFile);
 
         // Meta
@@ -86,7 +83,7 @@ namespace EVA
         auto asset = info.load(path, file, meta);
         if (asset == nullptr) { return asset; }
 
-        asset->m_Path = path;
+        asset->m_Path        = path;
         s_Assets[pathString] = asset;
 
         Guid null;
@@ -100,11 +97,11 @@ namespace EVA
         return asset;
     }
 
-    Ref<Asset> AssetManager::LoadAsset(const Guid& guid, bool useCache) 
-    { 
+    Ref<Asset> AssetManager::LoadAsset(const Guid& guid, bool useCache)
+    {
         EVA_PROFILE_FUNCTION();
 
-        //TODO
+        // TODO
         return nullptr;
     }
 
@@ -119,7 +116,7 @@ namespace EVA
         EVA_PROFILE_FUNCTION();
 
         const auto assetPathString = FileSystem::ToString(asset->GetPath());
-        const auto pathString = FileSystem::ToString(path);
+        const auto pathString      = FileSystem::ToString(path);
 
         FileInfo info;
         if (!GetFileInfo(info, path.extension())) { return false; }
@@ -240,10 +237,11 @@ namespace EVA
         EVA_PROFILE_FUNCTION();
 
         const auto extensionString = FileSystem::ToString(extension);
-        
+
         auto it = s_FileTypes.find(extensionString);
 
-        if (it != s_FileTypes.end()) {
+        if (it != s_FileTypes.end())
+        {
             info = it->second;
             return true;
         }
@@ -280,7 +278,7 @@ namespace EVA
         return nullptr;
     }
 
-    json AssetManager::ReadFile(const Path& path) 
+    json AssetManager::ReadFile(const Path& path)
     {
         EVA_PROFILE_FUNCTION();
 
@@ -293,7 +291,7 @@ namespace EVA
         return data;
     }
 
-    bool AssetManager::WriteFile(const Path& path, const json& data) 
+    bool AssetManager::WriteFile(const Path& path, const json& data)
     {
         EVA_PROFILE_FUNCTION();
 

@@ -8,4 +8,4 @@ namespace EVA::OpenGL
 {
     unsigned int GetGLAccess(const Access value);
     unsigned int GetGLUsage(const Usage value);
-}
+} // namespace EVA::OpenGL

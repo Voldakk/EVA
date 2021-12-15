@@ -2,7 +2,7 @@
 
 namespace EVA::OpenGL
 {
-    unsigned int GetGLAccess(const Access value) 
+    unsigned int GetGLAccess(const Access value)
     {
         switch (value)
         {
@@ -14,7 +14,7 @@ namespace EVA::OpenGL
         return 0;
     }
 
-    unsigned int GetGLUsage(const Usage value) 
+    unsigned int GetGLUsage(const Usage value)
     {
         switch (value)
         {

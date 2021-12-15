@@ -137,7 +137,7 @@ namespace EVA
             }
 
             if (ref) { ref->Serialize(d); }
-            
+
             return std::static_pointer_cast<T>(ref);
         }
 

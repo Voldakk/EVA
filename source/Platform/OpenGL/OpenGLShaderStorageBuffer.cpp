@@ -5,7 +5,8 @@
 
 namespace EVA
 {
-    OpenGLShaderStorageBuffer::OpenGLShaderStorageBuffer(const void* data, uint32_t size, Usage usage) : m_Size(size), m_Usage(OpenGL::GetGLUsage(usage))
+    OpenGLShaderStorageBuffer::OpenGLShaderStorageBuffer(const void* data, uint32_t size, Usage usage) :
+      m_Size(size), m_Usage(OpenGL::GetGLUsage(usage))
     {
         EVA_PROFILE_FUNCTION();
         EVA_GL_CALL(glGenBuffers(1, &m_RendererId));
@@ -37,14 +38,14 @@ namespace EVA
         }
     }
 
-    void* OpenGLShaderStorageBuffer::Map(Access access) const 
-    { 
+    void* OpenGLShaderStorageBuffer::Map(Access access) const
+    {
         EVA_PROFILE_FUNCTION();
         return EVA_GL_CALL(glMapNamedBuffer(m_RendererId, OpenGL::GetGLAccess(access)));
     }
 
-    void OpenGLShaderStorageBuffer::Unmap() const 
-    { 
+    void OpenGLShaderStorageBuffer::Unmap() const
+    {
         EVA_PROFILE_FUNCTION();
         EVA_GL_CALL(glUnmapNamedBuffer(m_RendererId));
     }

@@ -73,7 +73,7 @@ namespace EVA::NE
         std::vector<Pin*> connectedPins;
 
         // Input
-        void* defaultData            = nullptr;
+        void* defaultData     = nullptr;
         InputState inputState = InputState::Changed;
 
         // Output
@@ -227,7 +227,7 @@ namespace EVA::NE
         template<class T>
         const T& GetInputData(uint32_t index) const
         {
-            if (inputs[index].connectedPins.empty()) 
+            if (inputs[index].connectedPins.empty())
             {
                 EVA_INTERNAL_ASSERT(inputs[index].defaultData != nullptr, "Disconnected pis has no default data");
                 return *reinterpret_cast<T*>(inputs[index].defaultData);
@@ -268,8 +268,8 @@ namespace EVA::NE
     struct Link
     {
         NE::LinkId id = 0;
-        Pin* input = nullptr;
-        Pin* output = nullptr;
+        Pin* input    = nullptr;
+        Pin* output   = nullptr;
 
         Link() = default;
         Link(NE::LinkId id, Pin* in, Pin* out) : id(id), input(in), output(out) {}
@@ -497,10 +497,7 @@ namespace EVA::NE
             return nodes;
         }
 
-        void NavigateToContent()
-        {
-            m_NavigateToContent = true;
-        }
+        void NavigateToContent() { m_NavigateToContent = true; }
 
       private:
         inline static uint32_t s_PinTypeCounter = 1;
@@ -648,7 +645,8 @@ namespace EVA::NE
         //
         if (NE::BeginCreate())
         {
-            auto showLabel = [](const char* label, ImColor color) {
+            auto showLabel = [](const char* label, ImColor color)
+            {
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() - ImGui::GetTextLineHeight());
                 auto size = ImGui::CalcTextSize(label);
 
@@ -793,10 +791,10 @@ namespace EVA::NE
         ///
         /// Misc
         ///
-        if(m_NavigateToContent) 
-        { 
-            m_NavigateToContent = false; 
-            NE::NavigateToContent(); 
+        if (m_NavigateToContent)
+        {
+            m_NavigateToContent = false;
+            NE::NavigateToContent();
         }
 
 

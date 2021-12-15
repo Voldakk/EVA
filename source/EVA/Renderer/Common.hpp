@@ -23,4 +23,4 @@ namespace EVA
         DeviceModifiedOnceDeviceUsedRepeatedly,
         DeviceModifiedRepeatedlyDeviceUsedRepeatedly,
     };
-}
+} // namespace EVA

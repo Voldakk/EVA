@@ -93,11 +93,11 @@ namespace EVA
 
             m_Environment = CreateRef<Environment>("textures/space_1k.hdr");
         }
-        void LoadShaders() 
-        { 
+        void LoadShaders()
+        {
             m_FlatColorShader = AssetManager::Load<Shader>("shaders/color.glsl", false);
             m_TextureShader   = AssetManager::Load<Shader>("shaders/texture.glsl", false);
-            m_PBRShader       = AssetManager::Load<Shader>("shaders/pbr.glsl", false); 
+            m_PBRShader       = AssetManager::Load<Shader>("shaders/pbr.glsl", false);
         }
 
         inline static float timer = 0.0f;

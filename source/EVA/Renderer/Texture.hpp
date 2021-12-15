@@ -165,13 +165,10 @@ namespace EVA
         TextureMinFilter minFilter = TextureMinFilter::Linear;
         TextureMagFilter magFilter = TextureMagFilter::Linear;
 
-        void Serialize(DataObject& data) override 
-        {
-            
-        }
+        void Serialize(DataObject& data) override {}
     };
     inline bool operator==(const TextureSettings& lhs, const TextureSettings& rhs)
-    { 
+    {
         return lhs.wrapping == rhs.wrapping && lhs.minFilter == rhs.minFilter && lhs.magFilter == rhs.magFilter;
     }
     inline bool operator!=(const TextureSettings& lhs, const TextureSettings& rhs) { return !operator==(lhs, rhs); }

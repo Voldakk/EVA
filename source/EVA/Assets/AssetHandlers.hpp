@@ -34,14 +34,14 @@ namespace EVA
       public:
         static Ref<Asset> Create() { return CreateRef<Mesh>(); }
 
-        static Ref<Asset> Load(const std::filesystem::path& path, DataObject& file, DataObject& metafile) 
-        { 
+        static Ref<Asset> Load(const std::filesystem::path& path, DataObject& file, DataObject& metafile)
+        {
             TextureSettings settings = DefaultTextureSettings;
             settings.Serialize(metafile);
-            return TextureManager::LoadTexture(path, settings); 
+            return TextureManager::LoadTexture(path, settings);
         }
 
-        static void Save(Ref<Asset>& asset, const std::filesystem::path& path, DataObject& file, DataObject& metafile) 
+        static void Save(Ref<Asset>& asset, const std::filesystem::path& path, DataObject& file, DataObject& metafile)
         {
             auto tex = std::static_pointer_cast<Texture>(asset);
             tex->GetSettings().Serialize(metafile);

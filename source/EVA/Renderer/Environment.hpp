@@ -12,14 +12,14 @@ namespace EVA
         {
             EVA_PROFILE_FUNCTION();
 
-            m_Mesh   = AssetManager::Load<Mesh>("models/cube_inverted.obj");
-            m_Shader = AssetManager::Load<Shader>("shaders/skybox.glsl");
+            m_Mesh               = AssetManager::Load<Mesh>("models/cube_inverted.obj");
+            m_Shader             = AssetManager::Load<Shader>("shaders/skybox.glsl");
             m_BrdfLUT            = TextureUtilities::PreComputeBRDF();
             m_EquirectangularMap = AssetManager::Load<Texture>(map);
             Compute();
         }
 
-        void Compute() 
+        void Compute()
         {
             TextureManager::GenerateMipMaps(m_EquirectangularMap);
             m_EnvironmentMap = TextureUtilities::EquirectangularToCubemap(m_EquirectangularMap);
@@ -43,7 +43,7 @@ namespace EVA
         {
             ISerializeable::Serialize(data);
             bool hdrChanged = false;
-            if (data.Inspector()) 
+            if (data.Inspector())
             {
                 ImGui::PushID(this);
                 ImGui::Text("Enviroment");

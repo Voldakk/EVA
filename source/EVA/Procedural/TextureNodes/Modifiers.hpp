@@ -31,10 +31,7 @@ namespace EVA
 
             bool ProcessTextureNode() override
             {
-                if (GetInputDataType(0) != GetInputDataType(1))
-                {
-                    return false;
-                }
+                if (GetInputDataType(0) != GetInputDataType(1)) { return false; }
 
                 if (IsInputDataType<Ref<Texture>, 1>(0))
                 {
@@ -308,10 +305,7 @@ namespace EVA
             {
                 ComputeNode::Serialize(data);
 
-                if (data.Inspector()) 
-                { 
-                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360); 
-                }
+                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360); }
                 else
                 {
                     data.Serialize("Angle", m_Angle);
@@ -438,7 +432,6 @@ namespace EVA
                 points[0] = {0.4f, 0.4f};
                 points[1] = {0.5f, 0.5f};
                 points[2] = {0.6f, 0.6f};
-
             }
 
             void SetupNode() override
@@ -449,10 +442,7 @@ namespace EVA
                 AddInput<Ref<Texture>, 1>({"A"});
             }
 
-            void SetUniforms() const override 
-            { 
-
-            }
+            void SetUniforms() const override {}
 
             void Serialize(DataObject& data) override
             {
@@ -463,12 +453,12 @@ namespace EVA
                     float x, y;
                 };
 
-                if (data.Inspector()) 
-                { 
+                if (data.Inspector())
+                {
                     int newCount;
                     ImVec2 size = {-1, 200};
                     int flags   = (int)ImGui::CurveEditorFlags::SHOW_GRID | (int)ImGui::CurveEditorFlags::NO_TANGENTS;
-                    //flags       = 0;
+                    // flags       = 0;
                     /*for (size_t i = 0; i < m_Points.size(); i++)
                     {
                         points[i].x = m_Points[i].x;
@@ -483,31 +473,30 @@ namespace EVA
                     }
                     int changed = ImGui::CurveEditor("Curve_123", (float*)points, count, size, flags, &newCount);
 
-                    if (changed >= 0) 
+                    if (changed >= 0)
                     {
                         int a;
-                        //m_Points[changed].x = points[changed].x;
-                        //m_Points[changed].y = points[changed].y;
+                        // m_Points[changed].x = points[changed].x;
+                        // m_Points[changed].y = points[changed].y;
                     }
 
-                    if (newCount != count) 
-                    { 
+                    if (newCount != count)
+                    {
                         count = newCount;
-                        //m_Points.resize(newCount);
-                        //m_Points[i].x = points[i].x;
-                        //m_Points[i].y = points[i].y;
+                        // m_Points.resize(newCount);
+                        // m_Points[i].x = points[i].x;
+                        // m_Points[i].y = points[i].y;
                     }
                 }
                 else
                 {
-                    
                 }
 
                 processed &= !data.changed;
             }
 
           private:
-            //std::vector<glm::vec2> m_Points {{0.0f, 0.0f}, {0.2f, 0.1f} , {0.5f, 0.6f}, {1.0f, 1.0f}};
+            // std::vector<glm::vec2> m_Points {{0.0f, 0.0f}, {0.2f, 0.1f} , {0.5f, 0.6f}, {1.0f, 1.0f}};
             ImVec2 points[16];
             int count = 3;
         };
@@ -515,9 +504,9 @@ namespace EVA
         class KernelFilter : public ComputeNode
         {
           public:
-            KernelFilter() 
-            { 
-                SetShader("kernel_filter.glsl"); 
+            KernelFilter()
+            {
+                SetShader("kernel_filter.glsl");
                 SetTexture(TextureR);
             }
 
@@ -559,7 +548,7 @@ namespace EVA
             }
 
             virtual const std::vector<std::vector<int32_t>>& GetKernel() const = 0;
-            virtual int32_t GetDivisor() const = 0;
+            virtual int32_t GetDivisor() const                                 = 0;
 
           private:
             int32_t m_StepSize = 1;
@@ -580,12 +569,7 @@ namespace EVA
             virtual int32_t GetDivisor() const override { return 256; }
 
           private:
-            std::vector<std::vector<int32_t>> m_kernel {
-                {1,  4,  6,  4, 1}, 
-                {4, 16, 24, 16, 4}, 
-                {6, 24, 36, 24, 6}, 
-                {4, 16, 24, 16, 4}, 
-                {1,  4,  6,  4, 1}};
+            std::vector<std::vector<int32_t>> m_kernel {{1, 4, 6, 4, 1}, {4, 16, 24, 16, 4}, {6, 24, 36, 24, 6}, {4, 16, 24, 16, 4}, {1, 4, 6, 4, 1}};
         };
     } // namespace TextureNodes
 } // namespace EVA

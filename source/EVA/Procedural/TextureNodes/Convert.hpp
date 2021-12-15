@@ -177,7 +177,7 @@ namespace EVA
           public:
             Distance()
             {
-                m_Texture     = TextureManager::CreateTexture(TextureSize, TextureSize, TextureR);
+                m_Texture      = TextureManager::CreateTexture(TextureSize, TextureSize, TextureR);
                 m_DataTexture1 = TextureManager::CreateTexture(TextureSize, TextureSize, TextureFormat::RG32UI);
                 m_DataTexture2 = TextureManager::CreateTexture(TextureSize, TextureSize, TextureFormat::RG32UI);
 
@@ -238,11 +238,11 @@ namespace EVA
             Ref<Texture> m_Texture;
             Ref<Shader> m_SeedShader, m_StepShader, m_TextureShader;
 
-            void GenerateTexture(const Ref<Texture>& inTexture) 
-            { 
+            void GenerateTexture(const Ref<Texture>& inTexture)
+            {
                 constexpr glm::ivec2 workGroupSize = glm::ivec2(16);
 
-                glm::ivec2 dims = glm::ivec2(inTexture->GetWidth(), inTexture->GetHeight());
+                glm::ivec2 dims          = glm::ivec2(inTexture->GetWidth(), inTexture->GetHeight());
                 glm::ivec2 numWorkGroups = (dims + workGroupSize - 1) / workGroupSize;
 
                 Ref<Texture>* currentDataTexture = &m_DataTexture1;
@@ -277,7 +277,7 @@ namespace EVA
                         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
                         m_StepShader->DispatchCompute(numWorkGroups.x, numWorkGroups.y, 1, workGroupSize.x, workGroupSize.y, 1);
                     }
-                } 
+                }
 
                 {
                     EVA_PROFILE_SCOPE("Generate texture");
@@ -315,10 +315,7 @@ namespace EVA
                 AddInput<Ref<Texture>, 1>({"In"});
             }
 
-            void SetUniforms() const override
-            {
-                m_Shader->SetUniformFloat("u_Threshold", m_Threshold);
-            }
+            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Threshold", m_Threshold); }
 
             void Serialize(DataObject& data) override
             {

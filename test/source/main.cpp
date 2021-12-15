@@ -23,9 +23,9 @@ int main()
 
     EVA::Material::LoadDefaults();
 
-    app->PushLayer(new EVA::EditorLayer());
+    //app->PushLayer(new EVA::EditorLayer());
     //app->PushLayer(new EVA::ComputeLayer());
-    //app->PushLayer(new EVA::TextureGeneratorLayer());
+    app->PushLayer(new EVA::TextureGeneratorLayer());
 
     EVA_PROFILE_END_SESSION();
 

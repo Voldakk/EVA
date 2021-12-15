@@ -23,10 +23,7 @@ namespace EVA
         EVA_GL_CALL(glTextureSubImage2D(rendererId, 0, 0, 0, texture.GetWidth(), texture.GetHeight(), GetGLPixelDataFormat(format),
                                         GetGLDataType(type), data));
 
-        if (id != "") 
-        { 
-            EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); 
-        }
+        if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
 
         return rendererId;
     }
@@ -48,7 +45,7 @@ namespace EVA
         auto format         = GetPixelDataFormat(internalformat);
         auto type           = GetTextureDataType(internalformat);
 
-        //EVA_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, internalformat, texture.GetWidth(), texture.GetHeight(), 0, dataFormat, type, nullptr));
+        // EVA_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, internalformat, texture.GetWidth(), texture.GetHeight(), 0, dataFormat, type, nullptr));
         EVA_GL_CALL(glTextureStorage2D(rendererId, 1, GetGLFormat(internalformat), texture.GetWidth(), texture.GetHeight()));
 
         if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
@@ -88,8 +85,8 @@ namespace EVA
         return rendererId;
     }
 
-    uint32_t OpenGLTexture::CopyTexture(const Texture& source, const Texture& texture, const std::string& id) 
-    { 
+    uint32_t OpenGLTexture::CopyTexture(const Texture& source, const Texture& texture, const std::string& id)
+    {
         EVA_PROFILE_FUNCTION();
 
         auto internalformat = texture.GetFormat();
@@ -106,15 +103,15 @@ namespace EVA
         EVA_GL_CALL(glTextureParameteri(rendererId, GL_TEXTURE_MAG_FILTER, GetGLMagFilter(texture.GetSettings().magFilter)));
 
         EVA_GL_CALL(glCopyImageSubData(source.GetRendererId(), GetGLTarget(source.GetTarget()), 0, 0, 0, 0, rendererId,
-                           GetGLTarget(texture.GetTarget()), 0, 0, 0, 0, source.GetWidth(), source.GetHeight(), 1));
+                                       GetGLTarget(texture.GetTarget()), 0, 0, 0, 0, source.GetWidth(), source.GetHeight(), 1));
 
         if (id != "") { EVA_GL_CALL(glObjectLabel(GL_TEXTURE, rendererId, -1, id.c_str())); }
 
         return rendererId;
     }
 
-    void OpenGLTexture::GetDataFromGpu(const Texture& texture, void* buffer, uint32_t bufferSize, int level) 
-    { 
+    void OpenGLTexture::GetDataFromGpu(const Texture& texture, void* buffer, uint32_t bufferSize, int level)
+    {
         EVA_PROFILE_FUNCTION();
 
         auto internalformat = texture.GetFormat();
@@ -187,7 +184,7 @@ namespace EVA
         throw;
     }
 
-        GLenum OpenGLTexture::GetGLPixelDataFormat(const PixelDataFormat value)
+    GLenum OpenGLTexture::GetGLPixelDataFormat(const PixelDataFormat value)
     {
         switch (value)
         {

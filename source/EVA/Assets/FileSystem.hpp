@@ -42,9 +42,6 @@ namespace EVA
             return pathString;
         }
 
-        static Path ToSystemPath(const Path& path)
-        {
-            return s_RootPath / path;
-        }
+        static Path ToSystemPath(const Path& path) { return s_RootPath / path; }
     };
 } // namespace EVA

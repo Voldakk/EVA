@@ -10,10 +10,10 @@ namespace EVA
     {
         constexpr std::string_view ShaderPath = "procedural/shaders/";
         constexpr uint32_t TextureSize        = 2048;
-        constexpr TextureFormat TextureR = TextureFormat::R32F;
-        constexpr TextureFormat TextureRG = TextureFormat::RG32F;
-        constexpr TextureFormat TextureRGB = TextureFormat::RGB32F;
-        constexpr TextureFormat TextureRGBA = TextureFormat::RGBA32F;
+        constexpr TextureFormat TextureR      = TextureFormat::R32F;
+        constexpr TextureFormat TextureRG     = TextureFormat::RG32F;
+        constexpr TextureFormat TextureRGB    = TextureFormat::RGB32F;
+        constexpr TextureFormat TextureRGBA   = TextureFormat::RGBA32F;
 
         class TextureNode : public NE::Node
         {
@@ -259,14 +259,14 @@ namespace EVA
             void SetTexture(TextureFormat format)
             {
                 if (m_Texture != nullptr && m_Texture->GetFormat() == format) return;
-                
-                if (m_Texture == nullptr) 
-                { 
+
+                if (m_Texture == nullptr)
+                {
                     TextureSettings settings;
-                    settings.wrapping = TextureWrapping::Repeat;
+                    settings.wrapping  = TextureWrapping::Repeat;
                     settings.minFilter = TextureMinFilter::Nearest;
                     settings.magFilter = TextureMagFilter::Nearest;
-                    m_Texture = TextureManager::CreateTexture(TextureSize, TextureSize, format, settings); 
+                    m_Texture          = TextureManager::CreateTexture(TextureSize, TextureSize, format, settings);
                 }
                 else
                 {

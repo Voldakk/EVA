@@ -170,7 +170,7 @@ namespace EVA
         return texture;
     }
 
-    void TextureManager::GetDataFromGpu(const Ref<Texture>& texture, void* buffer, uint32_t bufferSize) 
+    void TextureManager::GetDataFromGpu(const Ref<Texture>& texture, void* buffer, uint32_t bufferSize)
     {
         switch (Renderer::GetAPI())
         {

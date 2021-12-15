@@ -41,27 +41,23 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
     {
         case GL_DEBUG_SEVERITY_HIGH:
         {
-            EVA_INTERNAL_ERROR("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source),
-                               GLMessageTypeToString(type), m);
+            EVA_INTERNAL_ERROR("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source), GLMessageTypeToString(type), m);
         }
         break;
         case GL_DEBUG_SEVERITY_MEDIUM:
         {
-            EVA_INTERNAL_WARN("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source),
-                              GLMessageTypeToString(type), m);
+            EVA_INTERNAL_WARN("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source), GLMessageTypeToString(type), m);
         }
         break;
         case GL_DEBUG_SEVERITY_LOW:
         {
-            EVA_INTERNAL_INFO("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source),
-                               GLMessageTypeToString(type), m);
+            EVA_INTERNAL_INFO("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source), GLMessageTypeToString(type), m);
         }
         break;
         case GL_DEBUG_SEVERITY_NOTIFICATION:
         default:
         {
-            EVA_INTERNAL_TRACE("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source),
-                               GLMessageTypeToString(type), m);
+            EVA_INTERNAL_TRACE("GL CALLBACK - {} - {}\n{}", GLMessageSourceToString(source), GLMessageTypeToString(type), m);
         }
         break;
     }

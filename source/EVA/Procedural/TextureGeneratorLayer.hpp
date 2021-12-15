@@ -77,7 +77,7 @@ namespace EVA
         m_Material.height           = m_OutputNode->GetTexture(6);
 
         static Transform t;
-        //t.Rotate(Platform::GetDeltaTime() * 10.0f);
+        // t.Rotate(Platform::GetDeltaTime() * 10.0f);
         if (m_Shader)
         {
             m_Shader->Bind();
@@ -174,8 +174,8 @@ namespace EVA
         ImGui::Begin("Texture");
         if (!selected.empty())
         {
-            auto tNode   = reinterpret_cast<TextureNodes::TextureNode*>(selected[0]);
-            auto texture = tNode ? tNode->GetTexture() : nullptr;
+            auto tNode         = reinterpret_cast<TextureNodes::TextureNode*>(selected[0]);
+            auto texture       = tNode ? tNode->GetTexture() : nullptr;
             uint32_t textureId = 0;
             if (texture != nullptr) textureId = texture->GetRendererId();
             auto size = ImGui::GetContentRegionAvail();

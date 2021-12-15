@@ -26,7 +26,7 @@ namespace EVA
 
         bool enableParalax = true;
         bool paralaxClip   = false;
-        float heightScale = 0.0f;
+        float heightScale  = 0.0f;
 
         glm::vec2 tiling = glm::vec2(1.0f);
 
@@ -73,15 +73,15 @@ namespace EVA
             shader->SetUniformFloat2("u_Tiling", tiling);
         }
 
-        static void LoadDefaults() 
-        { 
-            s_DefaultAlbedo = AssetManager::Load<Texture>("textures/default_albedo.png");
-            s_DefaultNormal = AssetManager::Load<Texture>("textures/default_normal.png");
-            s_DefaultMetallic = AssetManager::Load<Texture>("textures/default_metallic.png");
-            s_DefaultRoughness = AssetManager::Load<Texture>("textures/default_roughness.png");
+        static void LoadDefaults()
+        {
+            s_DefaultAlbedo           = AssetManager::Load<Texture>("textures/default_albedo.png");
+            s_DefaultNormal           = AssetManager::Load<Texture>("textures/default_normal.png");
+            s_DefaultMetallic         = AssetManager::Load<Texture>("textures/default_metallic.png");
+            s_DefaultRoughness        = AssetManager::Load<Texture>("textures/default_roughness.png");
             s_DefaultAmbientOcclusion = AssetManager::Load<Texture>("textures/default_ao.png");
-            s_DefaultEmissive = AssetManager::Load<Texture>("textures/default_emission.png");
-            s_DefaultHeight = AssetManager::Load<Texture>("textures/default_height.png");
+            s_DefaultEmissive         = AssetManager::Load<Texture>("textures/default_emission.png");
+            s_DefaultHeight           = AssetManager::Load<Texture>("textures/default_height.png");
         }
     };
 } // namespace EVA
