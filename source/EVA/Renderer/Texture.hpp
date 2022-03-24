@@ -239,6 +239,8 @@ namespace EVA
             m_Data.resize(width * height, value);
         }
 
+        T Get(size_t x, size_t y) { return m_Data[x + y * m_Width]; }
+
         T* operator[](size_t row) { return &m_Data[row * m_Width]; }
         const T* operator[](size_t row) const { return &m_Data[row * m_Width]; }
 

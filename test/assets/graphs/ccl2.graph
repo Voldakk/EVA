@@ -1,9 +1,24 @@
 {
     "links": [
         [
+            103,
+            2,
+            47
+        ],
+        [
             39,
             35,
             28
+        ],
+        [
+            79,
+            76,
+            28
+        ],
+        [
+            112,
+            8,
+            105
         ],
         [
             48,
@@ -16,9 +31,19 @@
             28
         ],
         [
+            116,
+            115,
+            107
+        ],
+        [
             52,
             50,
             28
+        ],
+        [
+            108,
+            4,
+            107
         ],
         [
             44,
@@ -26,32 +51,42 @@
             28
         ],
         [
-            61,
-            59,
-            10
-        ],
-        [
-            79,
-            76,
-            28
-        ],
-        [
-            81,
+            97,
             29,
-            58
+            64
         ],
         [
-            93,
-            92,
+            101,
+            100,
             25
         ],
         [
-            94,
+            102,
             37,
-            91
+            99
+        ],
+        [
+            110,
+            6,
+            105
+        ],
+        [
+            111,
+            7,
+            107
+        ],
+        [
+            117,
+            3,
+            114
+        ],
+        [
+            118,
+            5,
+            105
         ]
     ],
-    "nextId": 95,
+    "nextId": 119,
     "nodes": [
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::Output",
@@ -84,8 +119,8 @@
                 9.999999747378752e-05
             ],
             "Gap": [
-                23.56999969482422,
-                23.520000457763672
+                20.040000915527344,
+                20.0
             ],
             "Height": [
                 1.0,
@@ -94,7 +129,7 @@
             "ISerializeableTypeId": "::EVA::TextureNodes::Bricks",
             "Num bricks": [
                 4,
-                4
+                1
             ],
             "Offset": 0.5,
             "deletable": true,
@@ -123,7 +158,7 @@
         },
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::CCL",
-            "Threshold": 0.8899999856948853,
+            "Threshold": 0.5,
             "deletable": true,
             "id": 27,
             "inputs": [
@@ -204,21 +239,6 @@
             ]
         },
         {
-            "Angle": 90.0,
-            "ISerializeableTypeId": "::EVA::TextureNodes::DirectionalWarp",
-            "Intensity": 0.8299999833106995,
-            "deletable": true,
-            "id": 57,
-            "inputs": [
-                59,
-                60
-            ],
-            "name": "Directional warp",
-            "outputs": [
-                58
-            ]
-        },
-        {
             "ISerializeableTypeId": "::EVA::TextureNodes::Input",
             "Path": "textures/ccl.png",
             "deletable": true,
@@ -258,12 +278,12 @@
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::Levels",
             "deletable": true,
-            "id": 90,
+            "id": 98,
             "inputs": [
-                92
+                100
             ],
             "m_InputRange": [
-                0.35600000619888306,
+                0.6690000295639038,
                 1.0
             ],
             "m_InputRangeMax": [
@@ -304,7 +324,56 @@
             "m_SelectedChannel": 0,
             "name": "Levels",
             "outputs": [
-                91
+                99
+            ]
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "deletable": true,
+            "id": 104,
+            "inputs": null,
+            "mode": 0,
+            "name": "Uniform color",
+            "outputs": [
+                105
+            ],
+            "value": 1.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::Uniform",
+            "color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "deletable": true,
+            "id": 106,
+            "inputs": null,
+            "mode": 0,
+            "name": "Uniform color",
+            "outputs": [
+                107
+            ],
+            "value": 0.0
+        },
+        {
+            "ISerializeableTypeId": "::EVA::TextureNodes::HeightToNormal",
+            "Strength": 1.0,
+            "deletable": true,
+            "id": 113,
+            "inputs": [
+                115
+            ],
+            "name": "Height to normal",
+            "outputs": [
+                114
             ]
         }
     ],
@@ -319,15 +388,15 @@
         [
             9,
             [
-                -847.0,
-                -122.0
+                -591.0,
+                -106.0
             ]
         ],
         [
             24,
             [
-                -479.0,
-                709.0
+                -495.0,
+                693.0
             ]
         ],
         [
@@ -373,13 +442,6 @@
             ]
         ],
         [
-            57,
-            [
-                -607.0,
-                -140.0
-            ]
-        ],
-        [
             63,
             [
                 -607.0,
@@ -401,10 +463,31 @@
             ]
         ],
         [
-            90,
+            98,
             [
-                -271.0,
-                704.0
+                -264.0,
+                688.0
+            ]
+        ],
+        [
+            104,
+            [
+                609.0,
+                421.0
+            ]
+        ],
+        [
+            106,
+            [
+                609.0,
+                181.0
+            ]
+        ],
+        [
+            113,
+            [
+                872.0,
+                320.0
             ]
         ]
     ]

@@ -88,11 +88,11 @@ namespace EVA
                 glm::ivec2 numWorkGroupsSingle = (dims + workGroupSize - 1) / workGroupSize;
                 glm::ivec2 numWorkGroupsChunk  = (threads + workGroupSize - 1) / workGroupSize;
 
+                
                 uint32_t nextIndex = 1;
 
                 {
                     EVA_PROFILE_SCOPE("Label");
-
 
                     m_LabelShader->Bind();
                     m_LabelShader->ResetTextureUnit();
@@ -109,57 +109,105 @@ namespace EVA
                     m_NextIndexSsbo->Unmap();
                 }
 
+                Ref<ShaderStorageBuffer> linksSsbo;
+
                 {
                     EVA_PROFILE_SCOPE("Link");
-                    uint32_t prev = 0;
-                    while (prev != nextIndex)
+                    uint32_t numLinkParts = (nextIndex + 31) / 32;
+                    std::vector<uint32_t> linkBytes(numLinkParts * nextIndex, 0);
+
                     {
-                        prev = nextIndex;
-                        std::vector<uint32_t> links(nextIndex);
-                        for (size_t i = 0; i < links.size(); i++)
+                        EVA_PROFILE_SCOPE("Set self links");
+                        for (size_t l = 1; l < nextIndex; l++)
                         {
-                            links[i] = i;
-                        }
-                        auto linksSsbo = ShaderStorageBuffer::Create(links.data(), links.size() * sizeof(uint32_t));
-                        {
-                            EVA_PROFILE_SCOPE("Find links");
-
-                            m_FindLinksShader->Bind();
-
-                            m_FindLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadOnly);
-                            m_FindLinksShader->BindStorageBuffer(1, linksSsbo);
-                            m_FindLinksShader->SetUniformBool("u_Wrap", false);
-                            m_FindLinksShader->DispatchCompute(numWorkGroupsChunk.x, numWorkGroupsChunk.y, 1, workGroupSize.x, workGroupSize.y, 1);
-                            glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-                        }
-
-                        uint32_t* linksData = static_cast<uint32_t*>(linksSsbo->Map(Access::ReadWrite));
-
-                        nextIndex = 1;
-                        for (size_t i = 1; i < links.size(); i++)
-                        {
-                            auto& l = linksData[i];
-                            l       = l == i ? nextIndex++ : linksData[l];
-                        }
-                        linksData[0] = 0;
-
-                        linksSsbo->Unmap();
-
-                        {
-                            EVA_PROFILE_SCOPE("Apply links");
-
-                            m_ApplyLinksShader->Bind();
-
-                            m_ApplyLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadWrite);
-                            m_ApplyLinksShader->BindStorageBuffer(1, linksSsbo);
-
-                            m_ApplyLinksShader->DispatchCompute(numWorkGroupsSingle.x, numWorkGroupsSingle.y, 1, workGroupSize.x,
-                                                                workGroupSize.y, 1);
-                            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+                            uint32_t p    = l / 32;
+                            uint32_t pp   = l * numLinkParts + p;
+                            uint32_t v    = 1 << (l % 32);
+                            linkBytes[pp] = v;
                         }
                     }
-                }
 
+                    linksSsbo = ShaderStorageBuffer::Create(linkBytes.data(), linkBytes.size() * sizeof(uint32_t));
+
+                    {
+                        EVA_PROFILE_SCOPE("Find links");
+
+                        m_FindLinksShader->Bind();
+
+                        m_FindLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadOnly);
+                        m_FindLinksShader->BindStorageBuffer(1, linksSsbo);
+                        m_FindLinksShader->SetUniformBool("u_Wrap", false);
+                        m_FindLinksShader->SetUniformInt("u_NumLinkParts", numLinkParts);
+                        m_FindLinksShader->DispatchCompute(numWorkGroupsChunk.x, numWorkGroupsChunk.y, 1, workGroupSize.x, workGroupSize.y, 1);
+                        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+                    }
+                    uint32_t* linksData = static_cast<uint32_t*>(linksSsbo->Map(Access::ReadWrite));
+
+                    {
+                        EVA_PROFILE_SCOPE("Combine link sets");
+                        for (size_t l = 1; l < nextIndex; l++)
+                        {
+                            for (size_t p = 0; p < numLinkParts; p++)
+                            {
+                                uint32_t part = linksData[l * numLinkParts + p];
+                                for (size_t i = 0; i < 32; i++)
+                                {
+                                    if (part >> i & 1)
+                                    {
+                                        uint32_t ll = 32 * p + i;
+                                        for (size_t pp = 0; pp < numLinkParts; pp++)
+                                        {
+                                            linksData[ll * numLinkParts + pp] |= linksData[l * numLinkParts + pp];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    {
+                        EVA_PROFILE_SCOPE("Find min label in linkset");
+                        uint32_t maxLabel = 0;
+                        for (size_t l = 1; l < nextIndex; l++)
+                        {
+                            uint32_t min = 0;
+                            for (size_t p = 0; p < numLinkParts && min == 0; p++)
+                            {
+                                uint32_t part = linksData[l * numLinkParts + p];
+                                for (size_t i = 0; i < 32 && min == 0; i++)
+                                {
+                                    if (part >> i & 1) { min = 32 * p + i; }
+                                }
+                            }
+                            linksData[l] = min;
+                            maxLabel     = glm::max(maxLabel, min);
+                        }
+                    }
+                    {
+                        EVA_PROFILE_SCOPE("Compact labels");
+                        uint32_t newIndex = 1;
+                        for (size_t i = 1; i < nextIndex; i++)
+                        {
+                            auto& l = linksData[i];
+                            l       = l == i ? newIndex++ : linksData[l];
+                        }
+                        linksData[0] = 0;
+                        nextIndex    = newIndex;
+                    }
+                    linksSsbo->Unmap();
+
+                    {
+                        EVA_PROFILE_SCOPE("Apply links");
+
+                        m_ApplyLinksShader->Bind();
+
+                        m_ApplyLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadWrite);
+                        m_ApplyLinksShader->BindStorageBuffer(1, linksSsbo);
+
+                        m_ApplyLinksShader->DispatchCompute(numWorkGroupsSingle.x, numWorkGroupsSingle.y, 1, workGroupSize.x, workGroupSize.y, 1);
+                        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+                    }
+                }
+                
                 struct Extents
                 {
                     uint32_t minX, minY, maxX, maxY;
@@ -180,60 +228,55 @@ namespace EVA
                 }
 
 
-                std::vector<uint32_t> links(nextIndex);
-                Ref<ShaderStorageBuffer> linksSsbo;
-
-                {
-                    EVA_PROFILE_SCOPE("Find links");
-
-                    for (size_t i = 0; i < links.size(); i++)
-                    {
-                        links[i] = i;
-                    }
-                    linksSsbo = ShaderStorageBuffer::Create(links.data(), links.size() * sizeof(uint32_t));
-
-                    m_FindLinksShader->Bind();
-
-                    m_FindLinksShader->BindImageTexture(0, m_Data.labelsTexture, Access::ReadOnly);
-                    m_FindLinksShader->BindStorageBuffer(1, linksSsbo);
-                    m_FindLinksShader->SetUniformBool("u_Wrap", true);
-                    m_FindLinksShader->DispatchCompute(numWorkGroupsChunk.x, numWorkGroupsChunk.y, 1, workGroupSize.x, workGroupSize.y, 1);
-                    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-                }
-
                 std::unordered_map<uint32_t, std::set<uint32_t>> linkedExtents;
                 {
-                    EVA_PROFILE_SCOPE("Compact labels");
+                    EVA_PROFILE_SCOPE("Find warp links");
+
+                    auto labels = TextureManager::GetDataFromGpu<uint32_t>(m_Data.labelsTexture);
                     uint32_t* linksData = static_cast<uint32_t*>(linksSsbo->Map(Access::ReadWrite));
 
-                    nextIndex = 1;
-                    for (size_t i = 1; i < links.size(); i++)
                     {
-                        auto& l = linksData[i];
-                        if (l == i) { l = nextIndex++; }
-                        else
+                        EVA_PROFILE_SCOPE("Top/Bottom");
+                        for (size_t x = 0; x < labels->Width(); x++)
                         {
-                            linkedExtents[i].insert(i);
-                            linkedExtents[l].insert(l);
-
-                            for (const auto& n : linkedExtents[i])
+                            uint32_t a = labels->Get(x, 0);
+                            uint32_t b = labels->Get(x, labels->Height() - 1);
+                            if (a != 0 && b != 0)
                             {
-                                linkedExtents[n].insert(l);
-                            }
-                            for (const auto& n : linkedExtents[l])
-                            {
-                                linkedExtents[n].insert(i);
-                            }
-                            linkedExtents[i].insert(linkedExtents[l].begin(), linkedExtents[l].end());
-                            linkedExtents[l].insert(linkedExtents[i].begin(), linkedExtents[i].end());
+                                linkedExtents[a].insert(a);
+                                linkedExtents[b].insert(b);
 
-                            l = linksData[l];
+                                linkedExtents[a].insert(linkedExtents[b].begin(), linkedExtents[b].end());
+                                linkedExtents[b].insert(linkedExtents[a].begin(), linkedExtents[a].end());
+                            }
                         }
                     }
-                    linksData[0] = 0;
+                    {
+                        EVA_PROFILE_SCOPE("Left/Right");
+                        for (size_t y = 0; y < labels->Height(); y++)
+                        {
+                            uint32_t a = labels->Get(0, y);
+                            uint32_t b = labels->Get(labels->Width() - 1, y);
+                            if (a != 0 && b != 0)
+                            {
+                                linkedExtents[a].insert(a);
+                                linkedExtents[b].insert(b);
 
+                                linkedExtents[a].insert(linkedExtents[b].begin(), linkedExtents[b].end());
+                                linkedExtents[b].insert(linkedExtents[a].begin(), linkedExtents[a].end());
+                            }
+                        }
+                    }
+                    {
+                        EVA_PROFILE_SCOPE("Get min in set");
+                        for (const auto& [k, v] : linkedExtents)
+                        {
+                            linksData[k] = *v.begin();
+                        }
+                    }
                     linksSsbo->Unmap();
                 }
+
                 {
                     EVA_PROFILE_SCOPE("Combine extents");
 

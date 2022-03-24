@@ -6,12 +6,23 @@ layout(local_size_variable) in;
 
 layout(binding = 0, r32ui) uniform restrict readonly uimage2D u_Labels;
 
+uniform bool u_Wrap;
+uniform int u_NumLinkParts;
+
 layout(std430, binding = 1) restrict buffer linksBuffer 
 { 
      uint links[]; 
 };
 
-uniform bool u_Wrap;
+uint GetPartOffset(uint label) 
+{ 
+	return label / 32; 
+}
+
+uint GetPart(uint label) 
+{ 
+    return 1 << (label % 32);
+}
 
 void main()
 {
@@ -30,11 +41,10 @@ void main()
 		uint lMin = imageLoad(u_Labels, ivec2(x, minPos.y)).r;
 		uint lNeg = imageLoad(u_Labels, ivec2(x, negPos.y)).r;
 
-		uint minl = min(lMin, lNeg);
-		if(minl != 0)
+		if (lMin != 0 && lNeg != 0)
 		{
-			atomicMin(links[lMin], minl);
-			atomicMin(links[lNeg], minl);
+            atomicOr(links[u_NumLinkParts * lMin + GetPartOffset(lNeg)], GetPart(lNeg));
+            atomicOr(links[u_NumLinkParts * lNeg + GetPartOffset(lMin)], GetPart(lMin));
 		}
 	}
 
@@ -43,11 +53,10 @@ void main()
 		uint lMin = imageLoad(u_Labels, ivec2(minPos.x, y)).r;
 		uint lNeg = imageLoad(u_Labels, ivec2(negPos.x, y)).r;
 
-		uint minl = min(lMin, lNeg);
-		if(minl != 0)
+        if (lMin != 0 && lNeg != 0)
 		{
-			atomicMin(links[lMin], minl);
-			atomicMin(links[lNeg], minl);
+            atomicOr(links[u_NumLinkParts * lMin + GetPartOffset(lNeg)], GetPart(lNeg));
+            atomicOr(links[u_NumLinkParts * lNeg + GetPartOffset(lMin)], GetPart(lMin));
 		}
 	}
 }
