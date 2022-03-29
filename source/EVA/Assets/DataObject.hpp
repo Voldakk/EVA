@@ -136,7 +136,14 @@ namespace EVA
                 ref = ClassMapEVAISerializeable::Create(type);
             }
 
-            if (ref) { ref->Serialize(d); }
+            if (ref) 
+            {
+                ref->Serialize(d); 
+            }
+            else
+            {
+                EVA_WARN("Failed to load object: \"{}\", Unknown class id: \"{}\"", key, type);
+            }
 
             return std::static_pointer_cast<T>(ref);
         }

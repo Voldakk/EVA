@@ -35,13 +35,13 @@ namespace EVA
 
                 if (IsInputDataType<Ref<Texture>, 1>(0))
                 {
-                    SetShader("blend_grayscale.glsl");
+                    SetShader("modifiers/blend_grayscale.glsl");
                     SetTexture(TextureR);
                     SetOutputType<Ref<Texture>, 1>(0);
                 }
                 else
                 {
-                    SetShader("blend_rgba.glsl");
+                    SetShader("modifiers/blend_rgba.glsl");
                     SetTexture(TextureRGBA);
                     SetOutputType<Ref<Texture>, 4>(0);
                 }
@@ -81,6 +81,222 @@ namespace EVA
             int m_BlendMode = 0;
         };
 
+        class BlendNormal : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::BlendNormal);
+
+          public:
+            BlendNormal()
+            {
+                SetShader("modifiers/blend_normal.glsl");
+                SetTexture(TextureRGBA);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Blend normal";
+                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 4>({"A"});
+                AddInput<Ref<Texture>, 4>({"B"});
+                AddInput<Ref<Texture>, 1>({"Opacity", &TextureWhite()});
+            }
+
+            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Opacity", m_Opacity); }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0, 1); }
+                else
+                {
+                    data.Serialize("Opacity", m_Opacity);
+                }
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Opacity = 1.0f;
+        };
+
+        class DirectionalWarp : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::DirectionalWarp);
+
+          public:
+            DirectionalWarp()
+            {
+                SetShader("modifiers/directional_warp.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Directional warp";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
+                AddInput<Ref<Texture>, 1>({"Intensity", &TextureWhite()});
+            }
+
+            void SetUniforms() const override
+            {
+                m_Shader->SetUniformFloat("u_Angle", m_Angle);
+                m_Shader->SetUniformFloat("u_Intensity", m_Intensity);
+
+                const Ref<Texture>& ref = GetInputData<Ref<Texture>>(0);
+                if (ref)
+                    m_Shader->BindTexture("u_InputMapSampler", ref);
+                else
+                    m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
+            }
+
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360); }
+                else
+                {
+                    data.Serialize("Angle", m_Angle);
+                }
+                data.Serialize("Intensity", m_Intensity);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Angle     = 0;
+            float m_Intensity = 1;
+        };
+
+        class DirectionalWarpNonUniform : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::DirectionalWarpNonUniform);
+
+          public:
+            DirectionalWarpNonUniform()
+            {
+                SetShader("modifiers/directional_warp_non_uniform.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Non-uniform directional warp";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
+                AddInput<Ref<Texture>, 1>({"Intensity", &TextureWhite()});
+                AddInput<Ref<Texture>, 1>({"Angle", &TextureWhite()});
+            }
+
+            void SetUniforms() const override
+            {
+                m_Shader->SetUniformFloat("u_Angle", m_Angle);
+                m_Shader->SetUniformFloat("u_AngleMultiplier", m_AngleMultiplier);
+                m_Shader->SetUniformFloat("u_Intensity", m_Intensity);
+
+                const Ref<Texture>& ref = GetInputData<Ref<Texture>>(0);
+                if (ref)
+                    m_Shader->BindTexture("u_InputMapSampler", ref);
+                else
+                    m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
+            }
+
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector())
+                {
+                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360);
+                    data.changed |= ImGui::SliderFloat("Angle multiplier", &m_AngleMultiplier, 0, 1);
+                }
+                else
+                {
+                    data.Serialize("Angle", m_Angle);
+                    data.Serialize("Angle multiplier", m_AngleMultiplier);
+                }
+                data.Serialize("Intensity", m_Intensity);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Angle           = 0;
+            float m_AngleMultiplier = 1;
+            float m_Intensity       = 1;
+        };
+
+        class GradientMap : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::GradientMap);
+
+          public:
+            GradientMap()
+            {
+                SetShader("modifiers/gradientmap.glsl");
+                SetTexture(TextureRGBA);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Gradient map";
+                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
+            }
+
+            void SetUniforms() const override
+            {
+                int i = 0;
+                for (auto markIt = m_Gradient.getMarks().begin(); markIt != m_Gradient.getMarks().end(); ++markIt)
+                {
+                    ImGradientMark mark = **markIt;
+                    auto u              = "u_Marks[" + std::to_string(i) + "].";
+                    m_Shader->SetUniformFloat(u + "position", mark.position);
+                    m_Shader->SetUniformFloat4(u + "color", glm::vec4(mark.color[0], mark.color[1], mark.color[2], mark.color[3]));
+                    i++;
+                }
+                m_Shader->SetUniformInt("u_Count", m_Gradient.getMarks().size());
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector())
+                {
+                    static bool show                    = false;
+                    static ImGradientMark* draggingMark = nullptr;
+                    static ImGradientMark* selectedMark = nullptr;
+                    if (ImGui::GradientButton(&m_Gradient)) { show = !show; }
+                    if (show) { data.changed |= ImGui::GradientEditor(&m_Gradient, draggingMark, selectedMark); }
+                }
+                else if (data.Save())
+                {
+                    auto marks = m_Gradient.getSerializeableMarks();
+                    data.Serialize("marks", marks);
+                }
+                else if (data.Load())
+                {
+                    ImGradient::MarksVector marks;
+                    data.Serialize("marks", marks);
+                    m_Gradient.setFromSerializeableMarks(marks);
+                }
+
+                processed &= !data.changed;
+            }
+
+          private:
+            ImGradient m_Gradient;
+        };
+
         class Levels : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Levels);
@@ -104,13 +320,13 @@ namespace EVA
             {
                 if (IsInputDataType<Ref<Texture>, 1>(0))
                 {
-                    SetShader("levles_grayscale.glsl");
+                    SetShader("modifiers/levles_grayscale.glsl");
                     SetTexture(TextureR);
                     SetOutputType<Ref<Texture>, 1>(0);
                 }
                 else
                 {
-                    SetShader("levles_rgba.glsl");
+                    SetShader("modifiers/levles_rgba.glsl");
                     SetTexture(TextureRGBA);
                     SetOutputType<Ref<Texture>, 4>(0);
                 }
@@ -204,222 +420,6 @@ namespace EVA
             glm::vec4 m_Midtones = glm::vec4(0.5f);
         };
 
-        class GradientMap : public ComputeNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::GradientMap);
-
-          public:
-            GradientMap()
-            {
-                SetShader("gradientmap.glsl");
-                SetTexture(TextureRGBA);
-            }
-
-            void SetupNode() override
-            {
-                ComputeNode::SetupNode();
-                name = "Gradient map";
-                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
-                AddInput<Ref<Texture>, 1>({"In"});
-            }
-
-            void SetUniforms() const override
-            {
-                int i = 0;
-                for (auto markIt = m_Gradient.getMarks().begin(); markIt != m_Gradient.getMarks().end(); ++markIt)
-                {
-                    ImGradientMark mark = **markIt;
-                    auto u              = "u_Marks[" + std::to_string(i) + "].";
-                    m_Shader->SetUniformFloat(u + "position", mark.position);
-                    m_Shader->SetUniformFloat4(u + "color", glm::vec4(mark.color[0], mark.color[1], mark.color[2], mark.color[3]));
-                    i++;
-                }
-                m_Shader->SetUniformInt("u_Count", m_Gradient.getMarks().size());
-            }
-
-            void Serialize(DataObject& data) override
-            {
-                ComputeNode::Serialize(data);
-
-                if (data.Inspector())
-                {
-                    static bool show                    = false;
-                    static ImGradientMark* draggingMark = nullptr;
-                    static ImGradientMark* selectedMark = nullptr;
-                    if (ImGui::GradientButton(&m_Gradient)) { show = !show; }
-                    if (show) { data.changed |= ImGui::GradientEditor(&m_Gradient, draggingMark, selectedMark); }
-                }
-                else if (data.Save())
-                {
-                    auto marks = m_Gradient.getSerializeableMarks();
-                    data.Serialize("marks", marks);
-                }
-                else if (data.Load())
-                {
-                    ImGradient::MarksVector marks;
-                    data.Serialize("marks", marks);
-                    m_Gradient.setFromSerializeableMarks(marks);
-                }
-
-                processed &= !data.changed;
-            }
-
-          private:
-            ImGradient m_Gradient;
-        };
-
-        class DirectionalWarp : public ComputeNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::DirectionalWarp);
-
-          public:
-            DirectionalWarp()
-            {
-                SetShader("directional_warp.glsl");
-                SetTexture(TextureR);
-            }
-
-            void SetupNode() override
-            {
-                ComputeNode::SetupNode();
-                name = "Directional warp";
-                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
-                AddInput<Ref<Texture>, 1>({"In"});
-                AddInput<Ref<Texture>, 1>({"Intensity", &TextureWhite()});
-            }
-
-            void SetUniforms() const override
-            {
-                m_Shader->SetUniformFloat("u_Angle", m_Angle);
-                m_Shader->SetUniformFloat("u_Intensity", m_Intensity);
-
-                const Ref<Texture>& ref = GetInputData<Ref<Texture>>(0);
-                if (ref)
-                    m_Shader->BindTexture("u_InputMapSampler", ref);
-                else
-                    m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
-            }
-
-
-            void Serialize(DataObject& data) override
-            {
-                ComputeNode::Serialize(data);
-
-                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360); }
-                else
-                {
-                    data.Serialize("Angle", m_Angle);
-                }
-                data.Serialize("Intensity", m_Intensity);
-
-                processed &= !data.changed;
-            }
-
-          private:
-            float m_Angle     = 0;
-            float m_Intensity = 1;
-        };
-
-        class NonUniformDirectionalWarp : public ComputeNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::NonUniformDirectionalWarp);
-
-          public:
-            NonUniformDirectionalWarp()
-            {
-                SetShader("non_uniform_directional_warp.glsl");
-                SetTexture(TextureR);
-            }
-
-            void SetupNode() override
-            {
-                ComputeNode::SetupNode();
-                name = "Directional warp";
-                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
-                AddInput<Ref<Texture>, 1>({"In"});
-                AddInput<Ref<Texture>, 1>({"Intensity", &TextureWhite()});
-                AddInput<Ref<Texture>, 1>({"Angle", &TextureWhite()});
-            }
-
-            void SetUniforms() const override
-            {
-                m_Shader->SetUniformFloat("u_Angle", m_Angle);
-                m_Shader->SetUniformFloat("u_AngleMultiplier", m_AngleMultiplier);
-                m_Shader->SetUniformFloat("u_Intensity", m_Intensity);
-
-                const Ref<Texture>& ref = GetInputData<Ref<Texture>>(0);
-                if (ref)
-                    m_Shader->BindTexture("u_InputMapSampler", ref);
-                else
-                    m_Shader->BindTexture("u_InputMapSampler", TextureTarget::Texture2D, 0);
-            }
-
-
-            void Serialize(DataObject& data) override
-            {
-                ComputeNode::Serialize(data);
-
-                if (data.Inspector())
-                {
-                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0, 360);
-                    data.changed |= ImGui::SliderFloat("Angle multiplier", &m_AngleMultiplier, 0, 1);
-                }
-                else
-                {
-                    data.Serialize("Angle", m_Angle);
-                    data.Serialize("Angle multiplier", m_AngleMultiplier);
-                }
-                data.Serialize("Intensity", m_Intensity);
-
-                processed &= !data.changed;
-            }
-
-          private:
-            float m_Angle           = 0;
-            float m_AngleMultiplier = 1;
-            float m_Intensity       = 1;
-        };
-
-        class NormalBlend : public ComputeNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::NormalBlend);
-
-          public:
-            NormalBlend()
-            {
-                SetShader("normal_blend.glsl");
-                SetTexture(TextureRGBA);
-            }
-
-            void SetupNode() override
-            {
-                ComputeNode::SetupNode();
-                name = "Normal blend";
-                AddOutput<Ref<Texture>, 4>({"Out", &m_Texture});
-                AddInput<Ref<Texture>, 4>({"A"});
-                AddInput<Ref<Texture>, 4>({"B"});
-                AddInput<Ref<Texture>, 1>({"Opacity", &TextureWhite()});
-            }
-
-            void SetUniforms() const override { m_Shader->SetUniformFloat("u_Opacity", m_Opacity); }
-
-            void Serialize(DataObject& data) override
-            {
-                ComputeNode::Serialize(data);
-
-                if (data.Inspector()) { data.changed |= ImGui::SliderFloat("Opacity", &m_Opacity, 0, 1); }
-                else
-                {
-                    data.Serialize("Opacity", m_Opacity);
-                }
-
-                processed &= !data.changed;
-            }
-
-          private:
-            float m_Opacity = 1.0f;
-        };
-
         class QuadTransform : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::QuadTransform);
@@ -427,7 +427,7 @@ namespace EVA
           public:
             QuadTransform()
             {
-                SetShader("quad_transform.glsl");
+                SetShader("modifiers/quad_transform.glsl");
                 SetTexture(TextureR);
             }
 
@@ -439,29 +439,22 @@ namespace EVA
                 AddInput<Ref<Texture>, 1>({"In"});
             }
 
-            void SetUniforms() const override 
-            { 
+            void SetUniforms() const override
+            {
                 const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(0);
 
-                if (ref != nullptr && *ref)
-                { 
-                    m_Shader->BindTexture("u_Input", *ref);
-                }
-                
+                if (ref != nullptr && *ref) { m_Shader->BindTexture("u_Input", *ref); }
+
 
                 auto px = glm::vec4(m_Points[0].x, m_Points[1].x, m_Points[2].x, m_Points[3].x);
                 auto py = glm::vec4(m_Points[0].y, m_Points[1].y, m_Points[2].y, m_Points[3].y);
 
-                auto A  = glm::mat4(
-                    1, 1, 1, 1,
-                    0, 1, 1, 0, 
-                    0, 0, 1, 1, 
-                    0, 0, 1, 0);
+                auto A = glm::mat4(1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0);
 
                 auto AI = glm::inverse(A);
                 auto a  = AI * px;
                 auto b  = AI * py;
-                
+
                 m_Shader->SetUniformFloat4("a", a);
                 m_Shader->SetUniformFloat4("b", b);
             }
@@ -470,10 +463,10 @@ namespace EVA
             {
                 ComputeNode::Serialize(data);
 
-                if (data.Inspector()) 
-                { 
+                if (data.Inspector())
+                {
                     const Ref<Texture>* in = GetInputDataPtr<Ref<Texture>>(0);
-                    Ref<Texture> bg        = in == nullptr ? nullptr : *in; 
+                    Ref<Texture> bg        = in == nullptr ? nullptr : *in;
                     data.changed |= InspectorFields::Line("Rect", m_Points.data(), m_Points.size(), {0, 0}, {1, 1}, true, bg);
                     data.Serialize("Points", m_Points);
                 }
@@ -568,77 +561,6 @@ namespace EVA
             // std::vector<glm::vec2> m_Points {{0.0f, 0.0f}, {0.2f, 0.1f} , {0.5f, 0.6f}, {1.0f, 1.0f}};
             ImVec2 points[16];
             int count = 3;
-        };
-
-        class KernelFilter : public ComputeNode
-        {
-          public:
-            KernelFilter()
-            {
-                SetShader("kernel_filter.glsl");
-                SetTexture(TextureR);
-            }
-
-            void SetupNode() override
-            {
-                ComputeNode::SetupNode();
-                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
-                AddInput<Ref<Texture>, 1>({"In"});
-            }
-
-            void SetUniforms() const override
-            {
-                m_Shader->SetUniformInt("u_StepSize", m_StepSize);
-
-                auto kernel = GetKernel();
-                if (!kernel.empty())
-                {
-                    glm::ivec2 size = {kernel.size(), kernel[0].size()};
-                    m_Shader->SetUniformInt2("u_KernelSize", size);
-                    m_Shader->SetUniformInt("u_Divisor", GetDivisor());
-
-                    for (size_t y = 0; y < size.y; y++)
-                    {
-                        for (size_t x = 0; x < size.x; x++)
-                        {
-                            m_Shader->SetUniformInt("u_Kernel[" + std::to_string(x + y * size.x) + "]", kernel[y][x]);
-                        }
-                    }
-                }
-            }
-
-            void Serialize(DataObject& data) override
-            {
-                ComputeNode::Serialize(data);
-
-                data.Serialize("Step size", m_StepSize);
-
-                processed &= !data.changed;
-            }
-
-            virtual const std::vector<std::vector<int32_t>>& GetKernel() const = 0;
-            virtual int32_t GetDivisor() const                                 = 0;
-
-          private:
-            int32_t m_StepSize = 1;
-        };
-
-        class GaussianBlur5 : public KernelFilter
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::GaussianBlur5);
-
-          public:
-            void SetupNode() override
-            {
-                KernelFilter::SetupNode();
-                name = "Gaussian blur 5x5";
-            }
-
-            virtual const std::vector<std::vector<int32_t>>& GetKernel() const override { return m_kernel; }
-            virtual int32_t GetDivisor() const override { return 256; }
-
-          private:
-            std::vector<std::vector<int32_t>> m_kernel {{1, 4, 6, 4, 1}, {4, 16, 24, 16, 4}, {6, 24, 36, 24, 6}, {4, 16, 24, 16, 4}, {1, 4, 6, 4, 1}};
         };
     } // namespace TextureNodes
 } // namespace EVA

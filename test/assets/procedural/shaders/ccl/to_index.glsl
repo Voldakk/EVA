@@ -10,12 +10,12 @@ uniform float u_Step;
 
 void main()
 {
-	const ivec2 dims = imageSize(u_Output);
-	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    const ivec2 dims        = imageSize(u_Output);
+    const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	uint label = imageLoad(u_LabelMap, pixelCoords).r;
+    uint label = imageLoad(u_LabelMap, pixelCoords).r;
 
-	float value = float(label) * u_Step;
+    float value = float(label) * u_Step;
 
-	imageStore(u_Output, pixelCoords, vec4(value, 0.0, 0.0, 1.0));
+    imageStore(u_Output, pixelCoords, vec4(value, 0.0, 0.0, 1.0));
 }

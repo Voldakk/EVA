@@ -10,15 +10,12 @@ uniform float u_Threshold;
 
 void main()
 {
-	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	float inPixel = imageLoad(u_Input, pixelCoords).r;
-	uvec4 outPixel = uvec4(0);
+    float inPixel  = imageLoad(u_Input, pixelCoords).r;
+    uvec4 outPixel = uvec4(0);
 
-	if(inPixel > u_Threshold)
-	{
-		outPixel.rg = uvec2(pixelCoords);
-	}
+    if (inPixel > u_Threshold) { outPixel.rg = uvec2(pixelCoords); }
 
-	imageStore(u_Output, pixelCoords, outPixel);
+    imageStore(u_Output, pixelCoords, outPixel);
 }

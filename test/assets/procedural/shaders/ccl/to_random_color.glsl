@@ -10,23 +10,21 @@ uniform float u_MinValue;
 uniform float u_MaxValue;
 uniform float u_Seed;
 
-float rand(vec3 n) { 
-	return fract(sin(dot(n, vec3(12.9898, 4.1414, 3.1415))) * 43758.5453);
-}
+float rand(vec3 n) { return fract(sin(dot(n, vec3(12.9898, 4.1414, 3.1415))) * 43758.5453); }
 
 void main()
 {
-	const ivec2 dims = imageSize(u_Output);
-	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    const ivec2 dims        = imageSize(u_Output);
+    const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	vec4 extents = imageLoad(u_ExtentsMap, pixelCoords);
-	vec3 value = vec3(0);
-	if(extents.w > 0) 
-	{ 
-		value.r = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, extents.y)));
-		value.g = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, value.r)));
-		value.b = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, value.g)));
-	}
+    vec4 extents = imageLoad(u_ExtentsMap, pixelCoords);
+    vec3 value   = vec3(0);
+    if (extents.w > 0)
+    {
+        value.r = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, extents.y)));
+        value.g = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, value.r)));
+        value.b = mix(u_MinValue, u_MaxValue, rand(vec3(extents.x, u_Seed, value.g)));
+    }
 
-	imageStore(u_Output, pixelCoords, vec4(value, 1.0));
+    imageStore(u_Output, pixelCoords, vec4(value, 1.0));
 }

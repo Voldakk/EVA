@@ -11,8 +11,8 @@ uniform mat4 u_Model;
 
 void main()
 {
-	v_TexCoord = a_TexCoord;
-	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
+    v_TexCoord  = a_TexCoord;
+    gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.0);
 }
 
 //#type fragment
@@ -24,7 +24,7 @@ in vec2 v_TexCoord;
 
 uniform sampler2D u_AlbedoMap;
 
-void main()
-{
-	color = texture(u_AlbedoMap, v_TexCoord);
+void main() 
+{ 
+    color = texture(u_AlbedoMap, v_TexCoord); 
 }

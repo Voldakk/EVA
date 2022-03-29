@@ -49,10 +49,7 @@ void main()
     uv = uv * 2 - 1;
     uv /= u_Scale;
 
-    uv *= mat2(
-        cos(u_Angle), sin(u_Angle), 
-        -sin(u_Angle), cos(u_Angle)
-    );
+    uv *= mat2(cos(u_Angle), sin(u_Angle), -sin(u_Angle), cos(u_Angle));
 
     float value = 0;
 

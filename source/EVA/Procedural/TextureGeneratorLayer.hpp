@@ -130,38 +130,52 @@ namespace EVA
         }
         if (ImGui::Button("Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
         ImGui::Spacing();
-        if (ImGui::Button("Uniform")) { m_NodeEditor.AddNode<TextureNodes::Uniform>(); }
-        if (ImGui::Button("Shape")) { m_NodeEditor.AddNode<TextureNodes::Shape>(); }
-        if (ImGui::Button("Bricks")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
-        if (ImGui::Button("Tile generator")) { m_NodeEditor.AddNode<TextureNodes::TileGenerator>(); }
+
+        ImGui::Text("CCL");
+        if (ImGui::Button("CCL")) { m_NodeEditor.AddNode<TextureNodes::CCL>(); }
+        if (ImGui::Button("CCL to gradient")) { m_NodeEditor.AddNode<TextureNodes::CCLToGradient>(); }
+        if (ImGui::Button("CCL to index")) { m_NodeEditor.AddNode<TextureNodes::CCLToIndex>(); }
+        if (ImGui::Button("CCL to map")) { m_NodeEditor.AddNode<TextureNodes::CCLMap>(); }
+        if (ImGui::Button("CCL to position")) { m_NodeEditor.AddNode<TextureNodes::CCLToPosition>(); }
+        if (ImGui::Button("CCL to random")) { m_NodeEditor.AddNode<TextureNodes::CCLToRandom>(); }
         ImGui::Spacing();
+
+        ImGui::Text("Convert");
+        if (ImGui::Button("Distance")) { m_NodeEditor.AddNode<TextureNodes::Distance>(); }
+        if (ImGui::Button("Edge detect")) { m_NodeEditor.AddNode<TextureNodes::EdgeDetect>(); }
+        if (ImGui::Button("Height to AO")) { m_NodeEditor.AddNode<TextureNodes::HeightToAmbientOcclusion>(); }
+        if (ImGui::Button("Height to curvature")) { m_NodeEditor.AddNode<TextureNodes::HeightToCurvature>(); }
+        if (ImGui::Button("Height to normal")) { m_NodeEditor.AddNode<TextureNodes::HeightToNormal>(); }
+        ImGui::Spacing();
+
+        ImGui::Text("Filters");
+        if (ImGui::Button("Gaussian blur 5x5")) { m_NodeEditor.AddNode<TextureNodes::GaussianBlur5>(); }
+        ImGui::Spacing();
+
+        ImGui::Text("Generators");
+        if (ImGui::Button("Bricks")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
+        if (ImGui::Button("Shape")) { m_NodeEditor.AddNode<TextureNodes::Shape>(); }
+        if (ImGui::Button("Tile generator")) { m_NodeEditor.AddNode<TextureNodes::TileGenerator>(); }
+        if (ImGui::Button("Uniform")) { m_NodeEditor.AddNode<TextureNodes::Uniform>(); }
+        ImGui::Spacing();
+
+        ImGui::Text("Modifiers");
+        if (ImGui::Button("Blend")) { m_NodeEditor.AddNode<TextureNodes::Blend>(); }
+        if (ImGui::Button("Blend normal")) { m_NodeEditor.AddNode<TextureNodes::BlendNormal>(); }
+        if (ImGui::Button("Curve")) { m_NodeEditor.AddNode<TextureNodes::Curve>(); }
+        if (ImGui::Button("Directional warp")) { m_NodeEditor.AddNode<TextureNodes::DirectionalWarp>(); }
+        if (ImGui::Button("Non-uniform directional warp")) { m_NodeEditor.AddNode<TextureNodes::DirectionalWarpNonUniform>(); }
+        if (ImGui::Button("Gradient map")) { m_NodeEditor.AddNode<TextureNodes::GradientMap>(); }
+        if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::Levels>(); }
+        if (ImGui::Button("Quad transform")) { m_NodeEditor.AddNode<TextureNodes::QuadTransform>(); } 
+        ImGui::Spacing();
+
+        ImGui::Text("Noise");
         if (ImGui::Button("Gradient noise")) { m_NodeEditor.AddNode<TextureNodes::GradientNoise>(); }
         if (ImGui::Button("Voronoi noise")) { m_NodeEditor.AddNode<TextureNodes::VoronoiNoise>(); }
         if (ImGui::Button("Worley noise")) { m_NodeEditor.AddNode<TextureNodes::WorleyNoise>(); }
         ImGui::Spacing();
-        if (ImGui::Button("Blend")) { m_NodeEditor.AddNode<TextureNodes::Blend>(); }
-        if (ImGui::Button("Levels")) { m_NodeEditor.AddNode<TextureNodes::Levels>(); }
-        if (ImGui::Button("Gradient map")) { m_NodeEditor.AddNode<TextureNodes::GradientMap>(); }
-        if (ImGui::Button("Directional warp")) { m_NodeEditor.AddNode<TextureNodes::DirectionalWarp>(); }
-        if (ImGui::Button("Non uniform directional warp")) { m_NodeEditor.AddNode<TextureNodes::NonUniformDirectionalWarp>(); }
-        if (ImGui::Button("Normal blend")) { m_NodeEditor.AddNode<TextureNodes::NormalBlend>(); }
-        if (ImGui::Button("Distance")) { m_NodeEditor.AddNode<TextureNodes::Distance>(); }
-        if (ImGui::Button("Edge detect")) { m_NodeEditor.AddNode<TextureNodes::EdgeDetect>(); }
-        if (ImGui::Button("Gaussian blur 5x5")) { m_NodeEditor.AddNode<TextureNodes::GaussianBlur5>(); }
-        if (ImGui::Button("Curve")) { m_NodeEditor.AddNode<TextureNodes::Curve>(); }
-        if (ImGui::Button("Quad transform")) { m_NodeEditor.AddNode<TextureNodes::QuadTransform>(); }
 
-        ImGui::Spacing();
-        if (ImGui::Button("Height to normal")) { m_NodeEditor.AddNode<TextureNodes::HeightToNormal>(); }
-        if (ImGui::Button("Height to curvature")) { m_NodeEditor.AddNode<TextureNodes::HeightToCurvature>(); }
-        if (ImGui::Button("Height to AO")) { m_NodeEditor.AddNode<TextureNodes::HeightToAmbientOcclusion>(); }
-        ImGui::Spacing();
-        if (ImGui::Button("CCL")) { m_NodeEditor.AddNode<TextureNodes::CCL>(); }
-        if (ImGui::Button("CCL map")) { m_NodeEditor.AddNode<TextureNodes::CCLMap>(); }
-        if (ImGui::Button("CCL to random")) { m_NodeEditor.AddNode<TextureNodes::CCLToRandom>(); }
-        if (ImGui::Button("CCL to gradient")) { m_NodeEditor.AddNode<TextureNodes::CCLToGradient>(); }
-        if (ImGui::Button("CCL to index")) { m_NodeEditor.AddNode<TextureNodes::CCLToIndex>(); }
-        if (ImGui::Button("CCL to position")) { m_NodeEditor.AddNode<TextureNodes::CCLToPosition>(); }
         ImGui::End();
 
         ImGui::Begin("Selected");

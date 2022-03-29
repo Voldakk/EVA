@@ -6,14 +6,19 @@
             40
         ],
         [
+            57,
+            56,
+            51
+        ],
+        [
             49,
             6,
             46
         ],
         [
-            57,
-            56,
-            51
+            250,
+            247,
+            120
         ],
         [
             58,
@@ -46,14 +51,14 @@
             124
         ],
         [
-            130,
-            8,
-            124
-        ],
-        [
             194,
             191,
             184
+        ],
+        [
+            130,
+            8,
+            124
         ],
         [
             131,
@@ -101,27 +106,22 @@
             189
         ],
         [
-            232,
-            226,
-            120
-        ],
-        [
-            233,
-            159,
-            225
-        ],
-        [
             237,
             236,
             230
         ],
         [
-            238,
-            228,
+            251,
+            249,
             235
+        ],
+        [
+            252,
+            159,
+            246
         ]
     ],
-    "nextId": 239,
+    "nextId": 254,
     "nodes": [
         {
             "ISerializeableTypeId": "::EVA::TextureNodes::Output",
@@ -524,23 +524,6 @@
             ]
         },
         {
-            "Angle": 0.0,
-            "Angle multiplier": 1.0,
-            "ISerializeableTypeId": "::EVA::TextureNodes::NonUniformDirectionalWarp",
-            "Intensity": 0.004999999888241291,
-            "deletable": true,
-            "id": 224,
-            "inputs": [
-                226,
-                227,
-                228
-            ],
-            "name": "Directional warp",
-            "outputs": [
-                225
-            ]
-        },
-        {
             "ISerializeableTypeId": "::EVA::TextureNodes::GradientNoise",
             "Octaves": 1,
             "Position": [
@@ -606,6 +589,23 @@
             "name": "Levels",
             "outputs": [
                 235
+            ]
+        },
+        {
+            "Angle": 0.0,
+            "Angle multiplier": 1.0,
+            "ISerializeableTypeId": "::EVA::TextureNodes::DirectionalWarpNonUniform",
+            "Intensity": -0.004999999888241291,
+            "deletable": true,
+            "id": 245,
+            "inputs": [
+                247,
+                248,
+                249
+            ],
+            "name": "Non-uniform directional warp",
+            "outputs": [
+                246
             ]
         }
     ],
@@ -737,13 +737,6 @@
             ]
         ],
         [
-            224,
-            [
-                -1791.0,
-                210.0
-            ]
-        ],
-        [
             229,
             [
                 -2287.0,
@@ -755,6 +748,13 @@
             [
                 -2056.0,
                 516.0
+            ]
+        ],
+        [
+            245,
+            [
+                -1823.0,
+                351.0
             ]
         ]
     ]

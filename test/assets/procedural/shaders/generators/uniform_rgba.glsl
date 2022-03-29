@@ -9,7 +9,7 @@ uniform vec4 u_Color;
 
 void main()
 {
-	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	imageStore(u_Output, pixelCoords, u_Color);
+    imageStore(u_Output, pixelCoords, u_Color);
 }

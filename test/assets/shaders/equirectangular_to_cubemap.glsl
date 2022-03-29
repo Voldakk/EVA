@@ -1,8 +1,8 @@
 //#type vertex
 #version 330 core
 
-layout (location = 0) in vec3 a_Position;
-layout (location = 1) in vec2 a_TexCoords;
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec2 a_TexCoords;
 
 out vec3 localPos;
 
@@ -11,8 +11,8 @@ uniform mat4 u_View;
 
 void main()
 {
-    localPos = a_Position;  
-    gl_Position =  u_Projection * u_View * vec4(a_Position, 1.0);
+    localPos    = a_Position;
+    gl_Position = u_Projection * u_View * vec4(a_Position, 1.0);
 }
 
 
@@ -33,9 +33,9 @@ vec2 SampleSphericalMap(vec3 v)
 }
 
 void main()
-{		
-    vec2 uv = SampleSphericalMap(normalize(localPos));
+{
+    vec2 uv    = SampleSphericalMap(normalize(localPos));
     vec3 color = texture(u_EquirectangularMap, uv).rgb;
-    
+
     FragColor = vec4(color, 1.0);
 }

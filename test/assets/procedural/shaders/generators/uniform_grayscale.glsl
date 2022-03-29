@@ -9,7 +9,7 @@ uniform float u_Value;
 
 void main()
 {
-	const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-	imageStore(u_Output, pixelCoords, vec4(u_Value, 0, 0, 1));
+    imageStore(u_Output, pixelCoords, vec4(u_Value, 0, 0, 1));
 }

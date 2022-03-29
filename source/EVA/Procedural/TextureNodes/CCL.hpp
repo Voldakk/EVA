@@ -88,7 +88,7 @@ namespace EVA
                 glm::ivec2 numWorkGroupsSingle = (dims + workGroupSize - 1) / workGroupSize;
                 glm::ivec2 numWorkGroupsChunk  = (threads + workGroupSize - 1) / workGroupSize;
 
-                
+
                 uint32_t nextIndex = 1;
 
                 {
@@ -207,7 +207,7 @@ namespace EVA
                         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
                     }
                 }
-                
+
                 struct Extents
                 {
                     uint32_t minX, minY, maxX, maxY;
@@ -232,7 +232,7 @@ namespace EVA
                 {
                     EVA_PROFILE_SCOPE("Find warp links");
 
-                    auto labels = TextureManager::GetDataFromGpu<uint32_t>(m_Data.labelsTexture);
+                    auto labels         = TextureManager::GetDataFromGpu<uint32_t>(m_Data.labelsTexture);
                     uint32_t* linksData = static_cast<uint32_t*>(linksSsbo->Map(Access::ReadWrite));
 
                     {
@@ -399,6 +399,131 @@ namespace EVA
             const CCLData* GetCCLData() const { return GetInputDataPtr<CCLData>(0); }
         };
 
+        class CCLToGradient : public CCLNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToGradient);
+
+          public:
+            CCLToGradient()
+            {
+                SetShader("ccl/to_gradient.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                CCLNode::SetupNode();
+                name = "CCL to gradient";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+            }
+
+            void SetUniforms() const override
+            {
+                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly);
+                m_Shader->SetUniformFloat("u_Angle", m_Angle);
+                m_Shader->SetUniformFloat("u_AngleVariation", m_AngleVariation);
+                m_Shader->SetUniformFloat("u_Seed", m_Seed);
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                CCLNode::Serialize(data);
+
+                if (data.Inspector())
+                {
+                    data.changed |= ImGui::SliderAngle("Angle", &m_Angle);
+                    data.changed |= ImGui::SliderFloat("AngleVariation", &m_AngleVariation, 0, 1);
+                }
+                else
+                {
+                    data.Serialize("Angle", m_Angle);
+                    data.Serialize("AngleVariation", m_AngleVariation);
+                }
+
+                data.Serialize("Seed", m_Seed);
+
+                processed &= !data.changed;
+            }
+
+          private:
+            float m_Angle          = 0;
+            float m_AngleVariation = 0;
+            float m_Seed           = 0;
+        };
+
+        class CCLToIndex : public CCLNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToIndex);
+
+          public:
+            CCLToIndex()
+            {
+                SetShader("ccl/to_index.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                CCLNode::SetupNode();
+                name = "CCL to index";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+            }
+
+            void SetUniforms() const override
+            {
+                auto data = GetCCLData();
+                m_Shader->BindImageTexture(1, data->labelsTexture, Access::ReadOnly);
+                m_Shader->SetUniformFloat("u_Step", 1.0f / data->count);
+            }
+        };
+
+        class CCLMap : public CCLNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLMap);
+
+          public:
+            CCLMap()
+            {
+                SetShader("ccl/to_map.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                CCLNode::SetupNode();
+                name = "CCL map";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"Map"});
+            }
+
+            void SetUniforms() const override
+            {
+                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly);
+                m_Shader->BindTexture("u_MapSampler", GetInputData<Ref<Texture>>(1));
+            }
+        };
+
+        class CCLToPosition : public CCLNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToPosition);
+
+          public:
+            CCLToPosition()
+            {
+                SetShader("ccl/to_position.glsl");
+                SetTexture(TextureRG);
+            }
+
+            void SetupNode() override
+            {
+                CCLNode::SetupNode();
+                name = "CCL to position";
+                AddOutput<Ref<Texture>, 2>({"Out", &m_Texture});
+            }
+
+            void SetUniforms() const override { m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly); }
+        };
+
         class CCLToRandom : public CCLNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToRandom);
@@ -460,131 +585,6 @@ namespace EVA
             float m_MinValue = 0.0f;
             float m_MaxValue = 1.0f;
             float m_Seed     = 0.0f;
-        };
-
-        class CCLToGradient : public CCLNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToGradient);
-
-          public:
-            CCLToGradient()
-            {
-                SetShader("ccl/to_gradient.glsl");
-                SetTexture(TextureR);
-            }
-
-            void SetupNode() override
-            {
-                CCLNode::SetupNode();
-                name = "CCL to gradient";
-                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
-            }
-
-            void SetUniforms() const override
-            {
-                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly);
-                m_Shader->SetUniformFloat("u_Angle", m_Angle);
-                m_Shader->SetUniformFloat("u_AngleVariation", m_AngleVariation);
-                m_Shader->SetUniformFloat("u_Seed", m_Seed);
-            }
-
-            void Serialize(DataObject& data) override
-            {
-                CCLNode::Serialize(data);
-
-                if (data.Inspector())
-                {
-                    data.changed |= ImGui::SliderAngle("Angle", &m_Angle);
-                    data.changed |= ImGui::SliderFloat("AngleVariation", &m_AngleVariation, 0, 1);
-                }
-                else
-                {
-                    data.Serialize("Angle", m_Angle);
-                    data.Serialize("AngleVariation", m_AngleVariation);
-                }
-
-                data.Serialize("Seed", m_Seed);
-
-                processed &= !data.changed;
-            }
-
-          private:
-            float m_Angle          = 0;
-            float m_AngleVariation = 0;
-            float m_Seed           = 0;
-        };
-
-        class CCLMap : public CCLNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLMap);
-
-          public:
-            CCLMap()
-            {
-                SetShader("ccl/to_map.glsl");
-                SetTexture(TextureR);
-            }
-
-            void SetupNode() override
-            {
-                CCLNode::SetupNode();
-                name = "CCL map";
-                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
-                AddInput<Ref<Texture>, 1>({"Map"});
-            }
-
-            void SetUniforms() const override
-            {
-                m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly);
-                m_Shader->BindTexture("u_MapSampler", GetInputData<Ref<Texture>>(1));
-            }
-        };
-
-        class CCLToIndex : public CCLNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToIndex);
-
-          public:
-            CCLToIndex()
-            {
-                SetShader("ccl/to_index.glsl");
-                SetTexture(TextureR);
-            }
-
-            void SetupNode() override
-            {
-                CCLNode::SetupNode();
-                name = "CCL to index";
-                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
-            }
-
-            void SetUniforms() const override
-            {
-                auto data = GetCCLData();
-                m_Shader->BindImageTexture(1, data->labelsTexture, Access::ReadOnly);
-                m_Shader->SetUniformFloat("u_Step", 1.0f / data->count);
-            }
-        };
-
-        class CCLToPosition : public CCLNode
-        {
-            REGISTER_SERIALIZABLE(::EVA::TextureNodes::CCLToPosition);
-
-          public:
-            CCLToPosition()
-            {
-                SetShader("ccl/to_position.glsl");
-                SetTexture(TextureRG);
-            }
-
-            void SetupNode() override
-            {
-                CCLNode::SetupNode();
-                name = "CCL to position";
-                AddOutput<Ref<Texture>, 2>({"Out", &m_Texture});
-            }
-
-            void SetUniforms() const override { m_Shader->BindImageTexture(1, GetCCLData()->extentsTexture, Access::ReadOnly); }
         };
     } // namespace TextureNodes
 } // namespace EVA
