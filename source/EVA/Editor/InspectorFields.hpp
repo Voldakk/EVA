@@ -3,12 +3,15 @@
 #include <charconv>
 #include <cstring>
 #include <string.h>
-#include <imgui.h>
 #include <type_traits>
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include "EVA/Assets/FileSystem.hpp"
 #include "EVA/Assets/ISerializeable.hpp"
 #include "EVA/Assets/Asset.hpp"
+#include <EVA/Renderer/Texture.hpp>
 
 namespace EVA
 {
@@ -31,7 +34,7 @@ namespace EVA
         static void ResetCounter() { s_Counter = 0; }
 
 
-        bool EnterInt(const char* name, int& value)
+        static bool EnterInt(const char* name, int& value)
         {
             auto temp = value;
             if (ImGui::InputInt(name, &temp, 1, 5, ImGuiInputTextFlags_EnterReturnsTrue))
@@ -236,6 +239,79 @@ namespace EVA
             auto ref     = std::static_pointer_cast<Asset>(value);
             bool changed = AssetPath(name, ref);
             value        = std::static_pointer_cast<T>(ref);
+            return changed;
+        }
+
+        static bool Line(const char* name, glm::vec2* points, size_t count, glm::vec2 min, glm::vec2 max, bool loop, Ref<Texture> background = nullptr)
+        {
+            const ImVec2 margin(5, 5);
+            const float handleRad = 10.0f;
+
+            bool changed = false;
+            ImGui::PushID(name);
+
+            ImGui::Text(name);
+
+            const ImVec2 pos = ImGui::GetCursorScreenPos();
+            const ImVec2 region = ImGui::GetContentRegionAvail();
+            const float size = glm::min(region.x, region.y);
+
+            const ImRect window(pos, pos + ImVec2(size, size));
+            const ImRect canvas(pos + margin, pos + ImVec2(size, size) - margin);
+
+            ImGui::Dummy(window.GetSize());
+
+            ImDrawList* pDrawList = ImGui::GetWindowDrawList();
+
+            if (background) 
+            { 
+                pDrawList->AddImage((ImTextureID)background->GetRendererId(), canvas.Min, canvas.Max);
+            }
+
+            const auto transformPoint = [&](glm::vec2 p)
+            {
+                glm::vec2 t = (p - min) / (max - min);
+                float x     = canvas.Min.x + t.x * canvas.GetWidth();
+                float y     = canvas.Max.y - t.y * canvas.GetHeight();
+                return ImVec2(x, y);
+            };
+
+            pDrawList->PathClear();
+            for (size_t i = 0; i < count; i++) 
+            {
+                pDrawList->PathLineTo(transformPoint(points[i]));
+            }
+            if (loop && count > 0)
+            {
+                pDrawList->PathLineTo(transformPoint(points[0]));
+            }
+
+            pDrawList->PathStroke(IM_COL32(255, 255, 255, 255));
+            
+            bool hovered;
+            bool held;
+            for (size_t i = 0; i < count; i++)
+            {
+                const ImVec2 p = transformPoint(points[i]);
+
+                const ImRect handleRect(ImVec2(p.x - handleRad, p.y - handleRad), ImVec2(p.x + handleRad, p.y + handleRad)); 
+                ImGui::ButtonBehavior(handleRect, ImGui::GetID((void*)&points[i]), &hovered, &held);
+
+                const uint32_t c = hovered ? 255 : 128;
+                pDrawList->AddCircleFilled(p, handleRad, IM_COL32(c, c, c, 255), 16);
+
+                const bool dragged = hovered && held;
+                if (dragged) 
+                { 
+                    ImVec2 delta = (ImGui::GetMousePos() - p) / canvas.GetSize();
+                    points[i] += glm::vec2(delta.x, -delta.y) * (max - min);
+                    points[i] = glm::clamp(points[i], min, max);
+
+                    changed = true;
+                }
+            }
+
+            ImGui::PopID();
             return changed;
         }
     };

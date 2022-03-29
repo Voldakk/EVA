@@ -210,5 +210,84 @@ namespace EVA
             float m_Seed = 0.0f;
         };
 
+        class Shape : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::Shape);
+
+          public:
+            Shape()
+            {
+                SetShader("generators/shape.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Shape";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+            }
+
+            void SetUniforms() const override
+            {
+                m_Shader->SetUniformInt("u_Shape", m_Shape);
+
+
+                m_Shader->SetUniformInt2("u_Count", m_Count);
+                m_Shader->SetUniformFloat("u_Scale", m_Scale);
+
+                m_Shader->SetUniformFloat2("u_Size", m_Size);
+                m_Shader->SetUniformFloat("u_Angle", glm::radians(m_Angle));
+
+                m_Shader->SetUniformFloat("u_Param", m_Param);
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector())
+                {
+                    const char* items[] = {"Square", "Disc", "Gaussian"};
+                    data.changed |= ImGui::Combo("Shape", &m_Shape, items, IM_ARRAYSIZE(items));
+                }
+                else
+                {
+                    data.Serialize("Shape", m_Shape);
+                }
+
+                data.Serialize("Count", m_Count);
+
+                if (data.Inspector())
+                {
+                    data.changed |= ImGui::SliderFloat("Scale", &m_Scale, 0.0f, 1.0f);
+                    data.changed |= ImGui::SliderFloat2("Size", glm::value_ptr(m_Size), 0.0f, 1.0f);
+                    data.changed |= ImGui::SliderFloat("Angle", &m_Angle, 0.0f, 360.0f);
+                }
+                else
+                {
+                    data.Serialize("Scale", m_Scale);
+                    data.Serialize("Size", m_Size);
+                    data.Serialize("Angle", m_Angle);
+                }
+
+                data.Serialize("Param", m_Param);
+
+                processed &= !data.changed;
+            }
+
+          private:
+
+            int m_Shape = 0;
+
+            glm::ivec2 m_Count = {1, 1};
+
+            float m_Scale    = 1.0f;
+            glm::vec2 m_Size = {1.0f, 1.0f};
+            float m_Angle    = 0.0f;
+
+            float m_Param = 0.5f;
+        };
+
     } // namespace TextureNodes
 } // namespace EVA

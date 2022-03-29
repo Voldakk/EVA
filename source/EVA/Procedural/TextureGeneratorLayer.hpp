@@ -131,6 +131,7 @@ namespace EVA
         if (ImGui::Button("Passthrough")) { m_NodeEditor.AddNode<TextureNodes::Passthrough>(); }
         ImGui::Spacing();
         if (ImGui::Button("Uniform")) { m_NodeEditor.AddNode<TextureNodes::Uniform>(); }
+        if (ImGui::Button("Shape")) { m_NodeEditor.AddNode<TextureNodes::Shape>(); }
         if (ImGui::Button("Bricks")) { m_NodeEditor.AddNode<TextureNodes::Bricks>(); }
         if (ImGui::Button("Tile generator")) { m_NodeEditor.AddNode<TextureNodes::TileGenerator>(); }
         ImGui::Spacing();
@@ -148,6 +149,7 @@ namespace EVA
         if (ImGui::Button("Edge detect")) { m_NodeEditor.AddNode<TextureNodes::EdgeDetect>(); }
         if (ImGui::Button("Gaussian blur 5x5")) { m_NodeEditor.AddNode<TextureNodes::GaussianBlur5>(); }
         if (ImGui::Button("Curve")) { m_NodeEditor.AddNode<TextureNodes::Curve>(); }
+        if (ImGui::Button("Quad transform")) { m_NodeEditor.AddNode<TextureNodes::QuadTransform>(); }
 
         ImGui::Spacing();
         if (ImGui::Button("Height to normal")) { m_NodeEditor.AddNode<TextureNodes::HeightToNormal>(); }

@@ -420,6 +420,75 @@ namespace EVA
             float m_Opacity = 1.0f;
         };
 
+        class QuadTransform : public ComputeNode
+        {
+            REGISTER_SERIALIZABLE(::EVA::TextureNodes::QuadTransform);
+
+          public:
+            QuadTransform()
+            {
+                SetShader("quad_transform.glsl");
+                SetTexture(TextureR);
+            }
+
+            void SetupNode() override
+            {
+                ComputeNode::SetupNode();
+                name = "Quad transform";
+                AddOutput<Ref<Texture>, 1>({"Out", &m_Texture});
+                AddInput<Ref<Texture>, 1>({"In"});
+            }
+
+            void SetUniforms() const override 
+            { 
+                const Ref<Texture>* ref = GetInputDataPtr<Ref<Texture>>(0);
+
+                if (ref != nullptr && *ref)
+                { 
+                    m_Shader->BindTexture("u_Input", *ref);
+                }
+                
+
+                auto px = glm::vec4(m_Points[0].x, m_Points[1].x, m_Points[2].x, m_Points[3].x);
+                auto py = glm::vec4(m_Points[0].y, m_Points[1].y, m_Points[2].y, m_Points[3].y);
+
+                auto A  = glm::mat4(
+                    1, 1, 1, 1,
+                    0, 1, 1, 0, 
+                    0, 0, 1, 1, 
+                    0, 0, 1, 0);
+
+                auto AI = glm::inverse(A);
+                auto a  = AI * px;
+                auto b  = AI * py;
+                
+                m_Shader->SetUniformFloat4("a", a);
+                m_Shader->SetUniformFloat4("b", b);
+            }
+
+            void Serialize(DataObject& data) override
+            {
+                ComputeNode::Serialize(data);
+
+                if (data.Inspector()) 
+                { 
+                    const Ref<Texture>* in = GetInputDataPtr<Ref<Texture>>(0);
+                    Ref<Texture> bg        = in == nullptr ? nullptr : *in; 
+                    data.changed |= InspectorFields::Line("Rect", m_Points.data(), m_Points.size(), {0, 0}, {1, 1}, true, bg);
+                    data.Serialize("Points", m_Points);
+                }
+                else
+                {
+                    data.Serialize("Points", m_Points);
+                }
+
+                processed &= !data.changed;
+            }
+
+          private:
+            std::vector<glm::vec2> m_Points = {glm::vec2(1.0f, 0.0f), {0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}};
+        };
+
         class Curve : public ComputeNode
         {
             REGISTER_SERIALIZABLE(::EVA::TextureNodes::Curve);
