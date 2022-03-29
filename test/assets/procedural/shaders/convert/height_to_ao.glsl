@@ -3,8 +3,9 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, r32f) uniform writeonly image2D u_Output;
-layout(binding = 1, r32f) uniform readonly image2D u_Input;
+layout(binding = 0) uniform writeonly image2D u_Output;
+
+uniform sampler2D u_InputMapIn;
 
 uniform vec3 u_Samples[64];
 uniform vec3 u_Noise[16];
@@ -49,6 +50,7 @@ void main()
 {
     const ivec2 dims        = imageSize(u_Output);
     const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv                 = vec2(pixelCoords) / vec2(dims);
 
     float height  = imageLoad(u_Input, pixelCoords).r;
     vec4 outPixel = vec4(0);

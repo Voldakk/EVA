@@ -3,8 +3,9 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, r32f) uniform writeonly image2D u_Output;
-layout(binding = 1, r32f) readonly uniform image2D u_Input;
+layout(binding = 0) uniform writeonly image2D u_Output;
+
+uniform sampler2D u_InputMapIn;
 
 uniform vec2 u_InputRange  = vec2(0.0, 1.0);
 uniform vec2 u_OutputRange = vec2(0.0, 1.0);
@@ -12,9 +13,11 @@ uniform float u_Midtone    = 0.5;
 
 void main()
 {
+    const ivec2 dims        = imageSize(u_Output);
     const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv                 = vec2(pixelCoords) / vec2(dims);
 
-    float inPixel = imageLoad(u_Input, pixelCoords).r;
+    float inPixel = texture(u_InputMapIn, uv).r;
     vec4 outPixel = vec4(0);
 
     float gamma = (1 - u_Midtone) * 2;

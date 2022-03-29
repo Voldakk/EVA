@@ -3,10 +3,11 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, rgba32f) uniform writeonly image2D u_Output;
-layout(binding = 1, rgba32f) uniform readonly image2D u_InputA;
-layout(binding = 2, rgba32f) uniform readonly image2D u_InputB;
-layout(binding = 3, r32f) uniform readonly image2D u_OpacityMap;
+layout(binding = 0) uniform writeonly image2D u_Output;
+
+uniform sampler2D u_InputMapA;
+uniform sampler2D u_InputMapB;
+uniform sampler2D u_InputMapOpacity;
 
 uniform float u_Opacity;
 
@@ -64,10 +65,11 @@ void main()
 {
     const ivec2 dims        = imageSize(u_Output);
     const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv                 = vec2(pixelCoords) / vec2(dims);
 
-    vec4 a        = imageLoad(u_InputA, pixelCoords);
-    vec4 b        = imageLoad(u_InputB, pixelCoords);
-    float opacity = u_Opacity * imageLoad(u_OpacityMap, pixelCoords).r;
+    vec4 a        = texture(u_InputMapA, uv);
+    vec4 b        = texture(u_InputMapB, uv);
+    float opacity = u_Opacity * texture(u_InputMapOpacity, uv).r;
 
     vec3 r = blend_rnm(a, b);
     r      = normalize(r) * 0.5 + 0.5;

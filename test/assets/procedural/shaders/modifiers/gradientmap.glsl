@@ -3,8 +3,9 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, rgba32f) uniform writeonly image2D u_Output;
-layout(binding = 1, r32f) readonly uniform image2D u_Input;
+layout(binding = 0) uniform writeonly image2D u_Output;
+
+uniform sampler2D u_InputMapIn;
 
 uniform struct Mark
 {
@@ -17,8 +18,9 @@ void main()
 {
     const ivec2 dims        = imageSize(u_Output);
     const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv                 = vec2(pixelCoords) / vec2(dims);
 
-    vec4 inPixel  = imageLoad(u_Input, pixelCoords);
+    vec4 inPixel  = texture(u_InputMapIn, uv);
     vec4 outPixel = vec4(0, 0, 0, 1);
     float value   = inPixel.r;
 

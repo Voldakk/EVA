@@ -3,9 +3,9 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, r32f) uniform writeonly image2D u_Output;
+layout(binding = 0) uniform writeonly image2D u_Output;
 
-uniform sampler2D u_Input;
+uniform sampler2D u_InputMapIn;
 
 uniform vec4 a;
 uniform vec4 b;
@@ -28,7 +28,7 @@ void main()
 
     float l = (x - a[0] - a[2] * m) / (a[1] + a[3] * m);
 
-    vec3 value = texture(u_Input, vec2(l, m)).rgb;
+    vec3 value = texture(u_InputMapIn, vec2(l, m)).rgb;
 
     if (l < 0 || l > 1 || m < 0 || m > 1) { value = vec3(0); }
 

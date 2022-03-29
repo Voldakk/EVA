@@ -3,7 +3,7 @@
 #extension GL_ARB_compute_variable_group_size : enable
 
 layout(local_size_variable) in;
-layout(binding = 0, r32f) uniform writeonly image2D u_Output;
+layout(binding = 0) uniform writeonly image2D u_Output;
 
 uniform float u_Scale;
 uniform vec2 u_Position;
@@ -43,14 +43,12 @@ void main()
     const ivec2 dims        = imageSize(u_Output);
     const ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
 
-    vec4 outPixel = vec4(1.0f);
-
     vec2 uv = vec2(pixelCoords) / vec2(dims);
     uv += u_Position;
 
     float dist = GetDistance(uv * u_Scale);
 
-    outPixel.r = 1.0 - pow(dist, u_Exponent);
+    float value = 1.0 - pow(dist, u_Exponent);
 
-    imageStore(u_Output, pixelCoords, outPixel);
+    imageStore(u_Output, pixelCoords, vec4(vec3(value), 1));
 }
